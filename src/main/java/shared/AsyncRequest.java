@@ -77,19 +77,24 @@ public class AsyncRequest<RequestType extends Request, ResponseType extends Resp
 
     @Override
     public ResponseType call() throws Exception {
+        final EventHandler eventHandler = new EventHandler();
+        listener.addEventHandler(eventHandler);
+
+        // send request
         final Packet<Message> requestPacket = new NetworkPacket<>();
         requestPacket.pack(request);
         sender.sendMessage(requestPacket);
 
-        final EventHandler eventHandler = new EventHandler();
+        // wait for response
         try {
-            listener.addEventHandler(eventHandler);
             eventHandler.waitForResponse();
         } catch (InterruptedException e) {
             LOGGER.warning("timeout, event handler did not notify us so far ...");
-        } finally {
             listener.removeEventHandler(eventHandler);
+            throw e;
         }
+
+        listener.removeEventHandler(eventHandler);
 
         final Message response = eventHandler.getResponse();
         try {

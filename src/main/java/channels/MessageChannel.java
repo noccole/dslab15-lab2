@@ -1,25 +1,25 @@
 package channels;
 
-import commands.*;
+import commands.Message;
 
 import java.io.*;
 
-public class CommandChannel implements Channel<Request> {
+public class MessageChannel implements Channel<Message> {
     private final Channel<byte[]> channel;
 
-    public CommandChannel(Channel<byte[]> channel) {
+    public MessageChannel(Channel<byte[]> channel) {
         this.channel = channel;
     }
 
     @Override
-    public void send(Packet<Request> packet) throws ChannelException {
+    public void send(Packet<Message> packet) throws ChannelException {
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
         try {
-            final Request request = packet.unpack();
+            final Message message = packet.unpack();
             ObjectOutputStream objectStream =  new ObjectOutputStream(byteStream);
-            objectStream.writeObject(request);
+            objectStream.writeObject(message);
         } catch (IOException e) {
-            throw new ChannelException("could not serialize command", e);
+            throw new ChannelException("could not serialize message", e);
         }
 
         final Packet<byte[]> bytePacket = new NetworkPacket();
@@ -29,23 +29,23 @@ public class CommandChannel implements Channel<Request> {
     }
 
     @Override
-    public Packet receive() throws ChannelException {
+    public Packet<Message> receive() throws ChannelException {
         final Packet<byte[]> bytePacket = channel.receive();
 
-        Request request;
+        Message message;
         try {
             InputStream byteStream = new ByteArrayInputStream(bytePacket.unpack());
             ObjectInputStream objectStream = new ObjectInputStream(byteStream);
-            request = (Request)objectStream.readObject();
+            message = (Message)objectStream.readObject();
         } catch (IOException e) {
-            throw new ChannelException("could not deserialize command", e);
+            throw new ChannelException("could not deserialize message", e);
         } catch (ClassNotFoundException e) {
-            throw new ChannelException("received object was not of type ICommand", e);
+            throw new ChannelException("received object was not of type Message", e);
         }
 
-        final Packet<Request> packet = new NetworkPacket();
+        final Packet<Message> packet = new NetworkPacket();
         packet.setRemoteAddress(bytePacket.getRemoteAddress());
-        packet.pack(request);
+        packet.pack(message);
         return packet;
     }
 }

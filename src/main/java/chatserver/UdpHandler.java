@@ -2,7 +2,7 @@ package chatserver;
 
 import channels.Channel;
 import channels.ChannelException;
-import channels.CommandChannel;
+import channels.MessageChannel;
 import channels.UdpChannel;
 import commands.ListRequest;
 import commands.ListResponse;
@@ -25,7 +25,7 @@ public class UdpHandler {
 
         Channel channel;
         try {
-            channel = new CommandChannel(new UdpChannel(socket));
+            channel = new MessageChannel(new UdpChannel(socket));
         } catch (ChannelException e) {
             e.printStackTrace();
             return;

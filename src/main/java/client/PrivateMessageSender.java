@@ -1,15 +1,14 @@
 package client;
 
-import channels.ChannelException;
-import channels.CommandChannel;
 import channels.Channel;
+import channels.ChannelException;
+import channels.MessageChannel;
 import channels.TcpChannel;
-import commands.*;
-import executors.CommandBus;
-import executors.RequestHandler;
-import executors.StateMachineRequestHandler;
-import executors.RequestListener;
-import executors.ChannelRequestListener;
+import commands.LookupRequest;
+import commands.LookupResponse;
+import commands.SendPrivateMessageRequest;
+import commands.SendPrivateMessageResponse;
+import executors.*;
 import states.State;
 import states.StateException;
 import states.StateMachine;
@@ -28,7 +27,7 @@ public class PrivateMessageSender {
         // remote executor/listener
         Channel commandChannel;
         try {
-            commandChannel = new CommandChannel(new TcpChannel(socket));
+            commandChannel = new MessageChannel(new TcpChannel(socket));
         } catch (ChannelException e) {
             e.printStackTrace();
             return;

@@ -2,7 +2,7 @@ package client;
 
 import channels.Channel;
 import channels.ChannelException;
-import channels.CommandChannel;
+import channels.MessageChannel;
 import channels.TcpChannel;
 import commands.SendPrivateMessageRequest;
 import commands.SendPrivateMessageResponse;
@@ -20,7 +20,7 @@ public class PrivateMessageHandler {
     public PrivateMessageHandler(Socket socket) {
         Channel channel;
         try {
-            channel = new CommandChannel(new TcpChannel(socket));
+            channel = new MessageChannel(new TcpChannel(socket));
         } catch (ChannelException e) {
             e.printStackTrace();
             return;

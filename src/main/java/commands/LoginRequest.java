@@ -24,7 +24,7 @@ public class LoginRequest extends Request {
     }
 
     @Override
-    public State.StateResult applyTo(State state) throws StateException {
+    public StateResult applyTo(State state) throws StateException {
         return state.handleLoginRequest(this);
     }
 

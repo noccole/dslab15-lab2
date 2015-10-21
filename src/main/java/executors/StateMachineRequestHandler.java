@@ -16,13 +16,10 @@ public class StateMachineRequestHandler extends RequestHandler {
     @Override
     protected Response consumeRequest(Request request) {
         try {
-            Response response = stateMachine.handleRequest(request);
-            response.setRequestId(request.getRequestId());
-            return response;
+            return stateMachine.handleRequest(request);
         } catch (StateException e) {
-            ErrorResponse response = new ErrorResponse();
+            ErrorResponse response = new ErrorResponse(request);
             response.setReason(e.toString());
-            response.setRequestId(request.getRequestId());
             return response;
         }
     }

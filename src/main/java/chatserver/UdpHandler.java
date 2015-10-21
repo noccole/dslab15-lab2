@@ -1,14 +1,22 @@
 package chatserver;
 
-import channels.*;
-import commands.*;
+import channels.Channel;
+import channels.ChannelException;
+import channels.CommandChannel;
+import channels.UdpChannel;
+import commands.ListRequest;
+import commands.ListResponse;
 import executors.*;
 import states.State;
 import states.StateException;
 import states.StateMachine;
+import states.StateResult;
 
 import java.net.DatagramSocket;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class UdpHandler {
     private final UserService userService;
@@ -37,7 +45,7 @@ public class UdpHandler {
 
     private class StateListUsersService extends State {
         @Override
-        public StateResult handleListRequest(ListRequest command) throws StateException {
+        public StateResult handleListRequest(ListRequest request) throws StateException {
             final List<User> users = new LinkedList(userService.findAll());
 
             final Map<String, String> userStates = new TreeMap<>();
@@ -45,7 +53,7 @@ public class UdpHandler {
                 userStates.put(user.getUsername(), user.getPresence().toString());
             }
 
-            ListResponse response = new ListResponse();
+            ListResponse response = new ListResponse(request);
             response.setUsers(userStates);
 
             return new StateResult(this, response);

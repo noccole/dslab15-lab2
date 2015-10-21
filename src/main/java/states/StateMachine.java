@@ -11,7 +11,7 @@ public class StateMachine {
     }
 
     public synchronized Response handleRequest(Request request) throws StateException {
-        final State.StateResult stateResult = request.applyTo(state);
+        final StateResult stateResult = request.applyTo(state);
 
         if (state != stateResult.getNextState()) {
             // change current state

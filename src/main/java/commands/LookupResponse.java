@@ -4,6 +4,12 @@ public class LookupResponse extends Response {
     private String username;
     private String privateAddress;
 
+    public LookupResponse(LookupRequest request) {
+        super(request);
+
+        this.username = request.getUsername();
+    }
+
     public String getUsername() {
         return username;
     }

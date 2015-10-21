@@ -2,22 +2,24 @@ package commands;
 
 import states.State;
 import states.StateException;
+import states.StateResult;
 
-import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicLong;
 
-public abstract class Request implements Serializable {
+public abstract class Request implements Message {
     private static final AtomicLong requestCounter = new AtomicLong(0);
 
-    private final long requestId;
+    private final long messageId;
 
     public Request() {
-        requestId = requestCounter.incrementAndGet();
+        messageId = requestCounter.incrementAndGet();
     }
 
-    public long getRequestId() {
-        return requestId;
+    @Override
+    public long getMessageId() {
+        return messageId;
     }
 
-    public abstract State.StateResult applyTo(State state) throws StateException;
+    @Override
+    public abstract StateResult applyTo(State state) throws StateException;
 }

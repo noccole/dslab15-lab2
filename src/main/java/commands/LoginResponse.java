@@ -3,6 +3,10 @@ package commands;
 public class LoginResponse extends Response {
     private boolean success;
 
+    public LoginResponse(LoginRequest request) {
+        super(request);
+    }
+
     public boolean isSuccess() {
         return success;
     }

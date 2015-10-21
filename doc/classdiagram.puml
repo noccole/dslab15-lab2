@@ -1,0 +1,115 @@
+@startuml
+
+skinparam handwritten false
+
+package commands {
+    interface Command {
+        + applyTo(state: State): State
+    }
+
+    class ExitCommand implements Command {
+        + applyTo(state: State): State
+    }
+
+    class LastMessageCommand implements Command {
+        + applyTo(state: State): State
+    }
+
+    class ListCommand implements Command {
+        + applyTo(state: State): State
+    }
+
+    class LoginCommand implements Command {
+        - username: String
+        - password: String
+
+        + applyTo(state: State): State
+    }
+}
+
+package Channels {
+    interface Channel<T> {
+        + send(packet: Packet<T>)
+        + receive(): Packet<T>
+    }
+
+    abstract class ChannelDecorator<T> implements Channel {
+        + send(packet: Packet<T>)
+        + receive(): Packet<T>
+    }
+    ChannelDecorator o--> Channel
+
+    class TcpChannel<T=byte[]> implements Channel {
+        - socket: Socket
+
+        + send(packet: Packet<byte[]>)
+        + receive(): Packet<byte[]>
+    }
+
+    class UdpChannel<T=byte[]> implements Channel {
+        - socket: DatagramSocket
+
+        + send(packet: Packet<byte[]>)
+        + receive(): Packet<byte[]>
+    }
+
+    class CommandChannel<T=Command> implements Channel {
+        + send(packet: Packet<Command>)
+        + receive(): Packet<Command>
+    }
+    CommandChannel o--> Channel
+
+    interface Packet<T> {
+        + pack(payload: T)
+        + unpack(): T
+
+        + setRemoteAddress(remoteAddress: SocketAddress)
+        + getRemoteAddress(): SocketAddress
+
+        + clone(): Packet
+    }
+
+    class NetworkPacket<T> implements Packet {
+        - payload: T
+        - remoteAddress: SocketAddress
+
+        + pack(payload: T)
+        + unpack(): T
+
+        + setRemoteAddress(remoteAddress: SocketAddress)
+        + getRemoteAddress(): SocketAddress
+
+        + clone(): Packet
+    }
+
+    abstract class PacketDecorator<T> implements Packet {
+        + pack(payload: T)
+        + unpack(): T
+
+        + setRemoteAddress(remoteAddress: SocketAddress)
+        + getRemoteAddress(): SocketAddress
+
+        + clone(): Packet
+    }
+    PacketDecorator o--> Packet
+
+    package Base64 {
+        class Base64Channel<T=byte[]> extends ChannelDecorator {
+            + send(packet: Packet<T>)
+            + receive(): Packet<T>
+        }
+
+        class Base64EncodedPacket<T=byte[]> extends PacketDecorator {
+            + unpack(): byte[]
+        }
+
+        class Base64DecodedPacket<T=byte[]> extends PacketDecorator {
+            + unpack(): byte[]
+        }
+
+        Base64Channel ..> Base64EncodedPacket : uses
+        Base64Channel ..> Base64DecodedPacket : uses
+    }
+}
+
+@enduml

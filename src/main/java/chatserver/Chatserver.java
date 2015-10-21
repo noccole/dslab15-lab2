@@ -1,6 +1,8 @@
 package chatserver;
 
-import executors.CommandBus;
+import cli.Command;
+import cli.Shell;
+import entities.User;
 import service.UserService;
 import util.Config;
 
@@ -11,13 +13,14 @@ import java.net.DatagramSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.Map;
+import java.util.function.BiConsumer;
 
 public class Chatserver implements IChatserverCli, Runnable {
+	private final Shell shell;
+	private final Config config;
 
-	private String componentName;
-	private Config config;
-	private InputStream userRequestStream;
-	private PrintStream userResponseStream;
+	private final UserService userService;
 
 	/**
 	 * @param componentName
@@ -29,21 +32,20 @@ public class Chatserver implements IChatserverCli, Runnable {
 	 * @param userResponseStream
 	 *            the output stream to write the console output to
 	 */
-	public Chatserver(String componentName, Config config,
-			InputStream userRequestStream, PrintStream userResponseStream) {
-		this.componentName = componentName;
+	public Chatserver(String componentName, Config config, InputStream userRequestStream, PrintStream userResponseStream) {
 		this.config = config;
-		this.userRequestStream = userRequestStream;
-		this.userResponseStream = userResponseStream;
 
-		// TODO
+		shell = new Shell(componentName, userRequestStream, userResponseStream);
+		shell.register(this);
+
+		userService = new UserService();
 	}
 
 	@Override
 	public void run() {
 		ServerSocket serverSocket;
 		try {
-			serverSocket = new ServerSocket(12345);
+			serverSocket = new ServerSocket(config.getInt("tcp.port"));
 		} catch (IOException e) {
 			e.printStackTrace();
 			return;
@@ -51,14 +53,14 @@ public class Chatserver implements IChatserverCli, Runnable {
 
 		DatagramSocket serverUdpSocket;
 		try {
-			serverUdpSocket = new DatagramSocket(12346);
+			serverUdpSocket = new DatagramSocket(config.getInt("udp.port"));
 		} catch (SocketException e) {
 			e.printStackTrace();
 			return;
 		}
 
-		final UserService userService = new UserService();
-		final CommandBus serverBus = new CommandBus();
+
+		//final CommandBus serverBus = new CommandBus();
 
 		UdpHandler udpHandler = new UdpHandler(serverUdpSocket, userService);
 
@@ -78,15 +80,28 @@ public class Chatserver implements IChatserverCli, Runnable {
 	}
 
 	@Override
+	@Command
 	public String users() throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		final Map<String, User.Presence> userList = userService.getUserList();
+
+		final String result = new String();
+		userList.forEach(new BiConsumer<String, User.Presence>() {
+			@Override
+			public void accept(String username, User.Presence presence) {
+				result.concat(username + ": " + presence.toString() + "\n");
+			}
+		});
+
+		return result;
 	}
 
 	@Override
+	@Command
 	public String exit() throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		// TODO close all resources
+
+		shell.close();
+		return "Shut down completed! Bye ..";
 	}
 
 	/**
@@ -95,9 +110,10 @@ public class Chatserver implements IChatserverCli, Runnable {
 	 *            component
 	 */
 	public static void main(String[] args) {
-		Chatserver chatserver = new Chatserver(args[0],
-				new Config("chatserver"), System.in, System.out);
-		// TODO: start the chatserver
+		final Config config = new Config("chatserver");
+		final Chatserver chatserver = new Chatserver(args[0], config, System.in, System.out);
+
+		new Thread(chatserver).start();
 	}
 
 }

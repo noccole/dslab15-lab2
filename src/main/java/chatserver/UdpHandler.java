@@ -47,7 +47,7 @@ public class UdpHandler {
         public StateResult handleListRequest(ListRequest request) throws StateException {
             final Map<String, User.Presence> userList = userService.getUserList();
 
-            ListResponse response = new ListResponse(request);
+            final ListResponse response = new ListResponse(request);
             response.setUserList(userList);
 
             return new StateResult(this, response);

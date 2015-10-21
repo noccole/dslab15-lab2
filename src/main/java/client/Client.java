@@ -1,31 +1,19 @@
 package client;
 
+import cli.Command;
+import cli.Shell;
+import commands.*;
+import executors.CommandBus;
+import util.Config;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.Socket;
-import java.util.Scanner;
-
-import channels.ChannelException;
-import channels.CommandChannel;
-import channels.Channel;
-import channels.TcpChannel;
-import commands.*;
-import executors.CommandBus;
-import executors.StateMachineRequestHandler;
-import executors.RemoteCommandHandler;
-import executors.ChannelRequestListener;
-import states.State;
-import states.StateException;
-import states.StateMachine;
-import util.Config;
 
 public class Client implements IClientCli, Runnable {
-
-	private String componentName;
-	private Config config;
-	private InputStream userRequestStream;
-	private PrintStream userResponseStream;
+	private final Shell shell;
+	private final Config config;
 
 	private final CommandBus clientBus = new CommandBus();
 
@@ -39,52 +27,26 @@ public class Client implements IClientCli, Runnable {
 	 * @param userResponseStream
 	 *            the output stream to write the console output to
 	 */
-	public Client(String componentName, Config config,
-			InputStream userRequestStream, PrintStream userResponseStream) {
-		this.componentName = componentName;
+	public Client(String componentName, Config config, InputStream userRequestStream, PrintStream userResponseStream) {
 		this.config = config;
-		this.userRequestStream = userRequestStream;
-		this.userResponseStream = userResponseStream;
 
-		// TODO
-
-		Socket socket;
-		try {
-			socket = new Socket("localhost", 12345);
-		} catch (IOException e) {
-			e.printStackTrace();
-			return;
-		}
-
-		// add a local command executor
-		final StateMachine stateMachine = new StateMachine(new StateOffline());
-		clientBus.addCommandExecutor(new StateMachineRequestHandler(stateMachine));
-
-		// add a remote command executor
-		Channel commandChannel;
-		try {
-			commandChannel = new CommandChannel(new TcpChannel(socket));
-		} catch (ChannelException e) {
-			e.printStackTrace();
-			return;
-		}
-		clientBus.addCommandExecutor(new RemoteCommandHandler(commandChannel));
-		clientBus.addCommandListener(new ChannelRequestListener(commandChannel));
+		shell = new Shell(componentName, userRequestStream, userResponseStream);
+		shell.register(this);
 	}
 
 	@Override
 	public void run() {
-		Scanner scanner = new Scanner(System.in);
-		while (true) {
-			SendMessageRequest command = new SendMessageRequest();
-			command.setMessage(scanner.nextLine());
-
-			System.out.println("--- Send ---");
-			clientBus.executeCommand(command);
+		Socket socket;
+		try {
+			socket = new Socket(config.getString("chatserver.host"), config.getInt("chatserver.tcp.port"));
+		} catch (IOException e) {
+			e.printStackTrace();
+			return;
 		}
 	}
 
 	@Override
+	@Command
 	public String login(String username, String password) throws IOException {
 		LoginRequest command = new LoginRequest();
 		command.setUsername(username);
@@ -96,6 +58,7 @@ public class Client implements IClientCli, Runnable {
 	}
 
 	@Override
+	@Command
 	public String logout() throws IOException {
 		LogoutRequest command = new LogoutRequest();
 		clientBus.executeCommand(command);
@@ -105,6 +68,7 @@ public class Client implements IClientCli, Runnable {
 	}
 
 	@Override
+	@Command
 	public String send(String message) throws IOException {
 		SendMessageRequest command = new SendMessageRequest();
 		command.setMessage(message);
@@ -115,6 +79,7 @@ public class Client implements IClientCli, Runnable {
 	}
 
 	@Override
+	@Command
 	public String list() throws IOException {
 		ListRequest command = new ListRequest();
 		clientBus.executeCommand(command);
@@ -124,6 +89,7 @@ public class Client implements IClientCli, Runnable {
 	}
 
 	@Override
+	@Command
 	public String msg(String username, String message) throws IOException {
 		SendPrivateMessageRequest command = new SendPrivateMessageRequest();
 		command.setReceiver(username);
@@ -135,6 +101,7 @@ public class Client implements IClientCli, Runnable {
 	}
 
 	@Override
+	@Command
 	public String lookup(String username) throws IOException {
 		LookupRequest command = new LookupRequest();
 		command.setUsername(username);
@@ -145,6 +112,7 @@ public class Client implements IClientCli, Runnable {
 	}
 
 	@Override
+	@Command
 	public String register(String privateAddress) throws IOException {
 		RegisterRequest command = new RegisterRequest();
 		command.setAddress(privateAddress);
@@ -155,6 +123,7 @@ public class Client implements IClientCli, Runnable {
 	}
 	
 	@Override
+	@Command
 	public String lastMsg() throws IOException {
 		LastMessageCommand command = new LastMessageCommand();
 		clientBus.executeCommand(command);
@@ -164,6 +133,7 @@ public class Client implements IClientCli, Runnable {
 	}
 
 	@Override
+	@Command
 	public String exit() throws IOException {
 		ExitCommand command = new ExitCommand();
 		clientBus.executeCommand(command);
@@ -177,9 +147,10 @@ public class Client implements IClientCli, Runnable {
 	 *            the first argument is the name of the {@link Client} component
 	 */
 	public static void main(String[] args) {
-		Client client = new Client(args[0], new Config("client"), System.in,
-				System.out);
-		// TODO: start the client
+		final Config config = new Config("client");
+		final Client client = new Client(args[0], config, System.in, System.out);
+
+		new Thread(client).start();
 	}
 
 	// --- Commands needed for Lab 2. Please note that you do not have to
@@ -191,7 +162,7 @@ public class Client implements IClientCli, Runnable {
 		return null;
 	}
 
-	private class StateOffline extends State {
+	/*private class StateOffline extends State {
 		@Override
 		public State handleLoginRequest(LoginRequest command) throws StateException {
 			return new StateLoggingIn();
@@ -270,5 +241,5 @@ public class Client implements IClientCli, Runnable {
 		public String toString() {
 			return "client state online";
 		}
-	}
+	}    */
 }

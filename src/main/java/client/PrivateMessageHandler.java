@@ -1,14 +1,16 @@
 package client;
 
+import channels.Channel;
 import channels.ChannelException;
 import channels.CommandChannel;
-import channels.Channel;
 import channels.TcpChannel;
-import commands.*;
+import commands.SendPrivateMessageRequest;
+import commands.SendPrivateMessageResponse;
 import executors.*;
 import states.State;
 import states.StateException;
 import states.StateMachine;
+import states.StateResult;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -51,10 +53,10 @@ public class PrivateMessageHandler {
 
     private class StateOfferService extends State {
         @Override
-        public StateResult handleSendPrivateMessageRequest(SendPrivateMessageRequest command) throws StateException {
+        public StateResult handleSendPrivateMessageRequest(SendPrivateMessageRequest request) throws StateException {
             //localBus.executeCommand(command); // TODO
 
-            SendPrivateMessageResponse response = new SendPrivateMessageResponse();
+            SendPrivateMessageResponse response = new SendPrivateMessageResponse(request);
 
             return new StateResult(new StateShutdownService(), response);
         }

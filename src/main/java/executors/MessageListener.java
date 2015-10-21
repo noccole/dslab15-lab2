@@ -1,14 +1,14 @@
 package executors;
 
 import channels.Packet;
-import commands.Request;
+import commands.Message;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public abstract class RequestListener implements Runnable {
+public abstract class MessageListener implements Runnable {
     public interface EventHandler {
-        void onRequestReceived(Packet<Request> request);
+        void onMessageReceived(Packet<Message> message);
     }
 
     private Set<EventHandler> eventHandlers = new HashSet<>();
@@ -17,10 +17,10 @@ public abstract class RequestListener implements Runnable {
     @Override
     public void run() {
         while (run) {
-            final Packet<Request> request = waitForRequest();
-            if (request != null) {
+            final Packet<Message> message = waitForMessage();
+            if (message != null) {
                 for (EventHandler eventHandler : eventHandlers) {
-                    eventHandler.onRequestReceived(request);
+                    eventHandler.onMessageReceived(message);
                 }
             } else {
                 stop();
@@ -36,7 +36,7 @@ public abstract class RequestListener implements Runnable {
         eventHandlers.remove(eventHandler);
     }
 
-    protected abstract Packet<Request> waitForRequest();
+    protected abstract Packet<Message> waitForMessage();
 
     public void stop() {
         run = false;

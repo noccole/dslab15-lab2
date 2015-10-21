@@ -1,22 +1,21 @@
 package executors;
 
 import commands.ErrorResponse;
-import commands.Request;
-import commands.Response;
+import commands.Message;
 import states.StateException;
 import states.StateMachine;
 
-public class StateMachineRequestHandler extends RequestHandler {
+public class StateMachineMessageHandler extends MessageHandler {
     private StateMachine stateMachine;
 
-    public StateMachineRequestHandler(StateMachine stateMachine) {
+    public StateMachineMessageHandler(StateMachine stateMachine) {
         this.stateMachine = stateMachine;
     }
 
     @Override
-    protected Response consumeRequest(Request request) {
+    protected Message consumeMessage(Message request) {
         try {
-            return stateMachine.handleRequest(request);
+            return stateMachine.handleMessage(request);
         } catch (StateException e) {
             ErrorResponse response = new ErrorResponse(request);
             response.setReason(e.toString());

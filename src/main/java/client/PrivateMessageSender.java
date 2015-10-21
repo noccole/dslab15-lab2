@@ -17,8 +17,8 @@ public class PrivateMessageSender {
     private CommandBus clientBus;
     private CommandBus localBus;
 
-    private RequestHandler localExecutor;
-    private RequestHandler clientExecutor;
+    private MessageHandler localExecutor;
+    private MessageHandler clientExecutor;
 
     public PrivateMessageSender(CommandBus clientBus) {
         this.clientBus = clientBus;
@@ -33,12 +33,12 @@ public class PrivateMessageSender {
             return;
         }
         this.clientExecutor = new RemoteCommandHandler(commandChannel);
-        final RequestListener clientListener = new ChannelRequestListener(commandChannel);
+        final MessageListener clientListener = new ChannelMessageListener(commandChannel);
 
         // local executor
         final State initialState = new StateLookupPrivateAddress();
         final StateMachine stateMachine = new StateMachine(initialState);
-        this.localExecutor = new StateMachineRequestHandler(stateMachine);
+        this.localExecutor = new StateMachineMessageHandler(stateMachine);
 
         localBus.addCommandExecutor(localExecutor);
         localBus.addCommandListener(clientListener);

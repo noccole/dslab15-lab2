@@ -1,32 +1,31 @@
 package executors;
 
 import channels.Packet;
-import commands.Request;
-import commands.Response;
+import commands.Message;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public abstract class ResponseSender implements Runnable {
-    private final BlockingQueue<Packet<Response>> responses = new LinkedBlockingQueue<>();
+public abstract class MessageSender implements Runnable {
+    private final BlockingQueue<Packet<Message>> messages = new LinkedBlockingQueue<>();
     private boolean run = true;
 
-    public void sendResponse(Packet<Response> response) {
-        responses.add(response);
+    public void sendMessage(Packet<Message> message) {
+        messages.add(message);
     }
 
     @Override
     public void run() {
         while (run) {
             try {
-                consumeResponse(responses.take());
+                consumeMessage(messages.take());
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    protected abstract void consumeResponse(Packet<Response> command);
+    protected abstract void consumeMessage(Packet<Message> message);
 
     public void stop() {
         run = false;

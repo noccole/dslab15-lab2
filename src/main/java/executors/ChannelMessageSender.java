@@ -1,0 +1,23 @@
+package executors;
+
+import channels.Channel;
+import channels.ChannelException;
+import channels.Packet;
+import commands.Message;
+
+public class ChannelMessageSender extends MessageSender {
+    private final Channel<Message> channel;
+
+    public ChannelMessageSender(Channel<Message> channel) {
+        this.channel = channel;
+    }
+
+    @Override
+    protected void consumeMessage(Packet<Message> message) {
+        try {
+            channel.send(message);
+        } catch (ChannelException e) {
+            System.err.println("could not send message " + e);
+        }
+    }
+}

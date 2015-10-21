@@ -7,7 +7,7 @@ import states.StateResult;
 public abstract class Response implements Message {
     private long messageId;
 
-    public Response(Request request) {
+    public Response(Message request) {
         this.messageId = request.getMessageId();
     }
 

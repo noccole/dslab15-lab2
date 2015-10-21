@@ -1,7 +1,6 @@
 package states;
 
-import commands.Request;
-import commands.Response;
+import commands.Message;
 
 public class StateMachine {
     private State state;
@@ -10,8 +9,8 @@ public class StateMachine {
         this.state = initialState;
     }
 
-    public synchronized Response handleRequest(Request request) throws StateException {
-        final StateResult stateResult = request.applyTo(state);
+    public synchronized Message handleMessage(Message message) throws StateException {
+        final StateResult stateResult = message.applyTo(state);
 
         if (state != stateResult.getNextState()) {
             // change current state
@@ -30,6 +29,6 @@ public class StateMachine {
             }
         }
 
-        return stateResult.getResponse();
+        return stateResult.getResult();
     }
 }

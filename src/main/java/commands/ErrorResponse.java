@@ -3,7 +3,7 @@ package commands;
 public class ErrorResponse extends Response {
     private String reason;
 
-    public ErrorResponse(Request request) {
+    public ErrorResponse(Message request) {
         super(request);
     }
 

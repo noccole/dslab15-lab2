@@ -1,23 +1,23 @@
 package states;
 
-import commands.Response;
+import commands.Message;
 
 public class StateResult {
-    private final Response response;
+    private final Message result;
     private final State nextState;
 
     public StateResult(State nextState) {
         this.nextState = nextState;
-        this.response = null;
+        this.result = null;
     }
 
-    public StateResult(State nextState, Response response) {
+    public StateResult(State nextState, Message result) {
         this.nextState = nextState;
-        this.response = response;
+        this.result = result;
     }
 
-    public Response getResponse() {
-        return response;
+    public Message getResult() {
+        return result;
     }
 
     public State getNextState() {

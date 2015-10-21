@@ -29,12 +29,12 @@ public class ClientHandler {
             return;
         }
 
-        final RequestListener listener = new ChannelRequestListener(channel);
-        final ResponseSender sender = new ChannelResponseSender(channel);
+        final MessageListener listener = new ChannelMessageListener(channel);
+        final MessageSender sender = new ChannelMessageSender(channel);
 
         final State initialState = new StateOffline();
         final StateMachine stateMachine = new StateMachine(initialState);
-        final RequestHandler handler = new StateMachineRequestHandler(stateMachine);
+        final MessageHandler handler = new StateMachineMessageHandler(stateMachine);
 
         new CommandBus(listener, handler, sender);
     }

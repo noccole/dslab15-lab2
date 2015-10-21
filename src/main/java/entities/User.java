@@ -1,7 +1,4 @@
-package chatserver;
-
-import java.net.InetSocketAddress;
-import java.net.Socket;
+package entities;
 
 public class User {
     public enum Presence {

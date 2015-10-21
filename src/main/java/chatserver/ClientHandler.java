@@ -1,15 +1,17 @@
 package chatserver;
 
+import channels.Channel;
 import channels.ChannelException;
 import channels.CommandChannel;
-import channels.Channel;
 import channels.TcpChannel;
 import commands.*;
+import entities.User;
 import executors.*;
-import executors.RemoteCommandHandler;
+import service.UserService;
 import states.State;
 import states.StateException;
 import states.StateMachine;
+import states.StateResult;
 
 import java.net.Socket;
 
@@ -39,24 +41,25 @@ public class ClientHandler {
 
     private class StateOffline extends State {
         @Override
-        public State handleLoginRequest(LoginRequest command) throws StateException {
+        public StateResult handleLoginRequest(LoginRequest request) throws StateException {
             boolean success = false;
 
-            final User user = userService.find(command.getUsername());
+            final User user = userService.find(request.getUsername());
             if (user != null) {
-                success = userService.login(user, command.getPassword());
+                success = userService.login(user, request.getPassword());
             }
 
-            // inform the client
-            final LoginResponse result = new LoginResponse();
-            result.setSuccess(success);
-            // TODO
+            final LoginResponse response = new LoginResponse(request);
+            response.setSuccess(success);
 
+            State nextState;
             if (success) {
-                return new StateOnline(user);
+                nextState = new StateOnline(user);
             } else {
-                return this;
+                nextState = this;
             }
+
+            return new StateResult(nextState, response);
         }
 
         @Override
@@ -74,45 +77,52 @@ public class ClientHandler {
 
         @Override
         public void onEntered() throws StateException {
-            serverBus.addCommandExecutor(clientSideExecutor);
+            //serverBus.addCommandExecutor(clientSideExecutor);
         }
 
         @Override
         public void onExited() throws StateException {
-            serverBus.removeCommandExecutor(clientSideExecutor);
+            //serverBus.removeCommandExecutor(clientSideExecutor);
         }
 
         @Override
-        public State handleLogoutRequest(LogoutRequest command) throws StateException {
+        public StateResult handleLogoutRequest(LogoutRequest request) throws StateException {
             userService.logout(user);
 
-            // inform the client
-            final LogoutResponse result = new LogoutResponse();
-            clientSideExecutor.executeCommand(result);
+            final LogoutResponse response = new LogoutResponse(request);
 
-            return new StateOffline();
+            return new StateResult(new StateOffline(), response);
         }
 
         @Override
-        public State handleSendMessageRequest(SendMessageRequest command) throws StateException {
-            command.setUsername(user.getUsername()); // override the user name to avoid identity spoofing
-            serverBus.executeCommand(command); // forward command to server bus
-            return this;
+        public StateResult handleSendMessageRequest(SendMessageRequest request) throws StateException {
+            request.setUsername(user.getUsername()); // override the user name to avoid identity spoofing
+            //serverBus.executeCommand(command); // TODO forward command to server bus
+
+            final SendMessageResponse response = new SendMessageResponse(request);
+
+            return new StateResult(this, response);
         }
 
         @Override
-        public State handleRegisterRequest(RegisterRequest command) throws StateException {
-            user.setPrivateAddress(command.getAddress());
-            return this;
+        public StateResult handleRegisterRequest(RegisterRequest request) throws StateException {
+            user.setPrivateAddress(request.getAddress());
+
+            final RegisterResponse response = new RegisterResponse(request);
+
+            return new StateResult(this, response);
         }
 
         @Override
-        public State handleLookupRequest(LookupRequest command) throws StateException {
-            final User other = userService.find(command.getUsername());
-            if (other != null) {
-                // TODO send response
+        public StateResult handleLookupRequest(LookupRequest request) throws StateException {
+            final User requestedUser = userService.find(request.getUsername());
+
+            final LookupResponse response = new LookupResponse(request);
+            if (requestedUser != null) {
+                response.setPrivateAddress(requestedUser.getPrivateAddress());
             }
-            return this;
+
+            return new StateResult(this, response);
         }
 
         @Override

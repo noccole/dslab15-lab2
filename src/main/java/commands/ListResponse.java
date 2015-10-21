@@ -1,20 +1,22 @@
 package commands;
 
+import entities.User;
+
 import java.util.Map;
 
 public class ListResponse extends Response {
-    private Map<String, String> users;
+    private Map<String, User.Presence> userList;
 
     public ListResponse(ListRequest request) {
         super(request);
     }
 
-    public Map<String, String> getUsers() {
-        return users;
+    public Map<String, User.Presence> getUserList() {
+        return userList;
     }
 
-    public void setUsers(Map<String, String> users) {
-        this.users = users;
+    public void setUserList(Map<String, User.Presence> userList) {
+        this.userList = userList;
     }
 
     @Override

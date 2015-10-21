@@ -1,6 +1,8 @@
-package chatserver;
+package service;
 
-import java.util.Collection;
+import entities.User;
+
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class UserService {
@@ -26,5 +28,16 @@ public class UserService {
 
     public User find(String username) {
         return users.get(username);
+    }
+
+    public Map<String, User.Presence> getUserList() {
+        final List<User> users = new LinkedList(findAll());
+
+        final Map<String, User.Presence> userStates = new TreeMap<>();
+        for (User user : users) {
+            userStates.put(user.getUsername(), user.getPresence());
+        }
+
+        return userStates;
     }
 }

@@ -6,17 +6,16 @@ import channels.CommandChannel;
 import channels.UdpChannel;
 import commands.ListRequest;
 import commands.ListResponse;
+import entities.User;
 import executors.*;
+import service.UserService;
 import states.State;
 import states.StateException;
 import states.StateMachine;
 import states.StateResult;
 
 import java.net.DatagramSocket;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 public class UdpHandler {
     private final UserService userService;
@@ -46,15 +45,10 @@ public class UdpHandler {
     private class StateListUsersService extends State {
         @Override
         public StateResult handleListRequest(ListRequest request) throws StateException {
-            final List<User> users = new LinkedList(userService.findAll());
-
-            final Map<String, String> userStates = new TreeMap<>();
-            for (User user : users) {
-                userStates.put(user.getUsername(), user.getPresence().toString());
-            }
+            final Map<String, User.Presence> userList = userService.getUserList();
 
             ListResponse response = new ListResponse(request);
-            response.setUsers(userStates);
+            response.setUserList(userList);
 
             return new StateResult(this, response);
         }

@@ -1,5 +1,9 @@
 package chatserver;
 
+import executors.CommandBus;
+import service.UserService;
+import util.Config;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -7,13 +11,6 @@ import java.net.DatagramSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.LinkedList;
-import java.util.List;
-
-import commands.IProtocol;
-import commands.SimpleTextCommandProtocol;
-import executors.CommandBus;
-import util.Config;
 
 public class Chatserver implements IChatserverCli, Runnable {
 
@@ -73,7 +70,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 		while (true) {
 			try {
 				final Socket clientSocket = serverSocket.accept();
-				new ClientHandler(clientSocket, serverBus, userService);
+				new ClientHandler(clientSocket, userService);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

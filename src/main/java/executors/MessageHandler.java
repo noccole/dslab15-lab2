@@ -59,7 +59,7 @@ public abstract class MessageHandler implements Runnable {
         eventHandlers.remove(eventHandler);
     }
 
-    protected abstract Message consumeMessage(Message request);
+    protected abstract Message consumeMessage(Message message);
 
     public void stop() {
         run = false;

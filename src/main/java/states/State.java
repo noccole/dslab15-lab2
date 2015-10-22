@@ -38,4 +38,8 @@ public abstract class State {
     public StateResult handleListRequest(ListRequest request) throws StateException {
         throw new StateException("request not allowed in current state");
     }
+
+    public StateResult handleMessageEvent(MessageEvent event) throws StateException {
+        return new StateResult(this);
+    }
 }

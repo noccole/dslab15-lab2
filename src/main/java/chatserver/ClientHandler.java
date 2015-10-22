@@ -96,8 +96,10 @@ public class ClientHandler {
 
         @Override
         public StateResult handleSendMessageRequest(SendMessageRequest request) throws StateException {
-            request.setUsername(user.getUsername()); // override the user name to avoid identity spoofing
-            //serverBus.executeCommand(command); // TODO forward command to server bus
+            final MessageEvent event = new MessageEvent();
+            event.setUsername(user.getUsername());
+            event.setMessage(request.getMessage());
+            // TODO send
 
             final SendMessageResponse response = new SendMessageResponse(request);
 

@@ -4,8 +4,17 @@ import states.State;
 import states.StateException;
 import states.StateResult;
 
-public class SendMessageRequest extends Request {
+public class MessageEvent extends Event {
+    private String username;
     private String message;
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
     public String getMessage() {
         return message;
@@ -17,11 +26,11 @@ public class SendMessageRequest extends Request {
 
     @Override
     public StateResult applyTo(State state) throws StateException {
-        return state.handleSendMessageRequest(this);
+        return state.handleMessageEvent(this);
     }
 
     @Override
     public String toString() {
-        return "send message";
+        return "message event";
     }
 }

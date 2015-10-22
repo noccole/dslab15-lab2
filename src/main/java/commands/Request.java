@@ -1,9 +1,5 @@
 package commands;
 
-import states.State;
-import states.StateException;
-import states.StateResult;
-
 import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class Request implements Message {
@@ -19,7 +15,4 @@ public abstract class Request implements Message {
     public long getMessageId() {
         return messageId;
     }
-
-    @Override
-    public abstract StateResult applyTo(State state) throws StateException;
 }

@@ -1,9 +1,14 @@
 package client;
 
+import channels.*;
 import cli.Command;
 import cli.Shell;
 import commands.*;
-import executors.CommandBus;
+import executors.ChannelMessageSender;
+import executors.MessageSender;
+import states.State;
+import states.StateException;
+import states.StateResult;
 import util.Config;
 
 import java.io.IOException;
@@ -15,7 +20,7 @@ public class Client implements IClientCli, Runnable {
 	private final Shell shell;
 	private final Config config;
 
-	private final CommandBus clientBus = new CommandBus();
+	private MessageSender messageSender;
 
 	/**
 	 * @param componentName
@@ -43,15 +48,32 @@ public class Client implements IClientCli, Runnable {
 			e.printStackTrace();
 			return;
 		}
+
+		Channel channel;
+		try {
+			channel = new MessageChannel(new TcpChannel(socket));
+		} catch (ChannelException e) {
+			e.printStackTrace();
+			return;
+		}
+
+		messageSender = new ChannelMessageSender(channel);
+	}
+
+	private void sendRequest(Request request) {
+		Packet<Message> packet = new NetworkPacket<>();
+		packet.pack(request);
+		messageSender.sendMessage(packet);
 	}
 
 	@Override
 	@Command
 	public String login(String username, String password) throws IOException {
-		LoginRequest command = new LoginRequest();
-		command.setUsername(username);
-		command.setPassword(password);
-		clientBus.executeCommand(command);
+		LoginRequest request = new LoginRequest();
+		request.setUsername(username);
+		request.setPassword(password);
+		sendRequest(request);
+
 
 		// TODO Auto-generated method stub
 		return null;
@@ -60,8 +82,8 @@ public class Client implements IClientCli, Runnable {
 	@Override
 	@Command
 	public String logout() throws IOException {
-		LogoutRequest command = new LogoutRequest();
-		clientBus.executeCommand(command);
+		LogoutRequest request = new LogoutRequest();
+		sendRequest(request);
 
 		// TODO Auto-generated method stub
 		return null;
@@ -70,9 +92,9 @@ public class Client implements IClientCli, Runnable {
 	@Override
 	@Command
 	public String send(String message) throws IOException {
-		SendMessageRequest command = new SendMessageRequest();
-		command.setMessage(message);
-		clientBus.executeCommand(command);
+		SendMessageRequest request = new SendMessageRequest();
+		request.setMessage(message);
+		sendRequest(request);
 
 		// TODO Auto-generated method stub
 		return null;
@@ -81,8 +103,8 @@ public class Client implements IClientCli, Runnable {
 	@Override
 	@Command
 	public String list() throws IOException {
-		ListRequest command = new ListRequest();
-		clientBus.executeCommand(command);
+		ListRequest request = new ListRequest();
+		sendRequest(request);
 
 		// TODO Auto-generated method stub
 		return null;
@@ -91,10 +113,10 @@ public class Client implements IClientCli, Runnable {
 	@Override
 	@Command
 	public String msg(String username, String message) throws IOException {
-		SendPrivateMessageRequest command = new SendPrivateMessageRequest();
-		command.setReceiver(username);
-		command.setMessage(message);
-		clientBus.executeCommand(command);
+		SendPrivateMessageRequest request = new SendPrivateMessageRequest();
+		request.setReceiver(username);
+		request.setMessage(message);
+		sendRequest(request);
 
 		// TODO Auto-generated method stub
 		return null;
@@ -103,9 +125,9 @@ public class Client implements IClientCli, Runnable {
 	@Override
 	@Command
 	public String lookup(String username) throws IOException {
-		LookupRequest command = new LookupRequest();
-		command.setUsername(username);
-		clientBus.executeCommand(command);
+		LookupRequest request = new LookupRequest();
+		request.setUsername(username);
+		sendRequest(request);
 
 		// TODO Auto-generated method stub
 		return null;
@@ -114,9 +136,9 @@ public class Client implements IClientCli, Runnable {
 	@Override
 	@Command
 	public String register(String privateAddress) throws IOException {
-		RegisterRequest command = new RegisterRequest();
-		command.setAddress(privateAddress);
-		clientBus.executeCommand(command);
+		RegisterRequest request = new RegisterRequest();
+		request.setAddress(privateAddress);
+		sendRequest(request);
 
 		// TODO Auto-generated method stub
 		return null;
@@ -125,9 +147,6 @@ public class Client implements IClientCli, Runnable {
 	@Override
 	@Command
 	public String lastMsg() throws IOException {
-		LastMessageCommand command = new LastMessageCommand();
-		clientBus.executeCommand(command);
-
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -135,9 +154,6 @@ public class Client implements IClientCli, Runnable {
 	@Override
 	@Command
 	public String exit() throws IOException {
-		ExitCommand command = new ExitCommand();
-		clientBus.executeCommand(command);
-
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -164,7 +180,7 @@ public class Client implements IClientCli, Runnable {
 
 	/*private class StateOffline extends State {
 		@Override
-		public State handleLoginRequest(LoginRequest command) throws StateException {
+		public State handleLoginRequest(LoginRequest request) throws StateException {
 			return new StateLoggingIn();
 		}
 
@@ -203,43 +219,54 @@ public class Client implements IClientCli, Runnable {
 		public String toString() {
 			return "client state logging out";
 		}
-	}
+	}  */
 
 	private class StateOnline extends State {
 		private String lastPublicMessage = "No message received !";
 
 		@Override
-		public State handleLogoutRequest(LogoutRequest command) throws StateException {
+		public StateResult handleMessageEvent(MessageEvent event) throws StateException {
+			try {
+				shell.writeLine(event.getUsername() + ": " + event.getMessage());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			return new StateResult(this);
+		}
+
+		/*@Override
+		public State handleLogoutRequest(LogoutRequest request) throws StateException {
 			return new StateLoggingOut();
 		}
 
 		@Override
-		public State handleSendMessageRequest(SendMessageRequest command) throws StateException {
-			System.out.println(command.getMessage());
-			lastPublicMessage = command.getMessage();
+		public State handleSendMessageRequest(SendMessageRequest request) throws StateException {
+			System.out.println(request.getMessage());
+			lastPublicMessage = request.getMessage();
 			return this;
 		}
 
 		@Override
-		public State handleSendPrivateMessageRequest(SendPrivateMessageRequest command) throws StateException {
-			System.out.println("PRIVATE " + command.getMessage());
+		public State handleSendPrivateMessageRequest(SendPrivateMessageRequest request) throws StateException {
+			System.out.println("PRIVATE " + request.getMessage());
 			return this;
 		}
 
 		@Override
-		public State applyLastMessageCommand(LastMessageCommand command) throws StateException {
+		public State applyLastMessageCommand(LastMessageCommand request) throws StateException {
 			System.out.println(lastPublicMessage);
 			return this;
 		}
 
 		@Override
-		public State applyExitCommand(ExitCommand command) throws StateException {
+		public State applyExitCommand(ExitCommand request) throws StateException {
 			return this;
-		}
+		} */
 
 		@Override
 		public String toString() {
 			return "client state online";
 		}
-	}    */
+	}
 }

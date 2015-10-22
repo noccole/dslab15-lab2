@@ -13,7 +13,6 @@ import java.net.DatagramSocket;
 import java.net.ServerSocket;
 import java.net.SocketException;
 import java.util.Map;
-import java.util.function.BiConsumer;
 
 public class Chatserver implements IChatserverCli, Runnable {
 	private final Shell shell;
@@ -61,7 +60,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 		new UdpHandler(serverUdpSocket, userService);
 		new Thread(new TcpHandler(serverSocket, userService));
 
-		new Thread(shell);
+		new Thread(shell).start();
 	}
 
 	@Override
@@ -69,15 +68,15 @@ public class Chatserver implements IChatserverCli, Runnable {
 	public String users() throws IOException {
 		final Map<String, User.Presence> userList = userService.getUserList();
 
-		final String result = "Online users:\n";
-		userList.forEach(new BiConsumer<String, User.Presence>() {
-			@Override
-			public void accept(String username, User.Presence presence) {
-				if (presence == User.Presence.Available) {
-					result.concat(username + "\n"); // FIXME
-				}
+		String result = "Online users:";
+		for (Map.Entry<String, User.Presence> entry : userList.entrySet()) {
+			final String username = entry.getKey();
+			final User.Presence presence = entry.getValue();
+
+			if (presence == User.Presence.Available) {
+				result += "\n" + username;
 			}
-		});
+		}
 
 		return result;
 	}

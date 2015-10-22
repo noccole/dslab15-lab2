@@ -21,11 +21,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.Socket;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
 
 public class Client implements IClientCli, Runnable {
 	private final Shell shell;
@@ -132,15 +132,15 @@ public class Client implements IClientCli, Runnable {
 		try {
 			ListResponse response = syncRequest(request);
 
-			final String result = "Online users:\n";
-			response.getUserList().forEach(new BiConsumer<String, User.Presence>() {
-				@Override
-				public void accept(String username, User.Presence presence) {
-					if (presence == User.Presence.Available) {
-						result.concat(username + "\n"); // FIXME
-					}
+			String result = "Online users:";
+			for (Map.Entry<String, User.Presence> entry : response.getUserList().entrySet()) {
+				final String username = entry.getKey();
+				final User.Presence presence = entry.getValue();
+
+				if (presence == User.Presence.Available) {
+					result += "\n" + username;
 				}
-			});
+			}
 
 			return result;
 		} catch (Exception e) {

@@ -11,7 +11,6 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.DatagramSocket;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.net.SocketException;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -59,24 +58,10 @@ public class Chatserver implements IChatserverCli, Runnable {
 			return;
 		}
 
+		new UdpHandler(serverUdpSocket, userService);
+		new Thread(new TcpHandler(serverSocket, userService));
 
-		//final CommandBus serverBus = new CommandBus();
-
-		UdpHandler udpHandler = new UdpHandler(serverUdpSocket, userService);
-
-		// add a local command executor
-		//final StateMachine serverStateMachine = new StateMachine(new StateServerMain());
-		//final CommandExecutor localExecutor = new LocalCommandExecutor(serverStateMachine);
-		//serverBus.addCommandExecutor(localExecutor);
-
-		while (true) {
-			try {
-				final Socket clientSocket = serverSocket.accept();
-				new ClientHandler(clientSocket, userService);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+		new Thread(shell);
 	}
 
 	@Override
@@ -84,11 +69,13 @@ public class Chatserver implements IChatserverCli, Runnable {
 	public String users() throws IOException {
 		final Map<String, User.Presence> userList = userService.getUserList();
 
-		final String result = new String();
+		final String result = "Online users:\n";
 		userList.forEach(new BiConsumer<String, User.Presence>() {
 			@Override
 			public void accept(String username, User.Presence presence) {
-				result.concat(username + ": " + presence.toString() + "\n");
+				if (presence == User.Presence.Available) {
+					result.concat(username + "\n");
+				}
 			}
 		});
 

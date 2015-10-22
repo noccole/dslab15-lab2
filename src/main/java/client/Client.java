@@ -1,10 +1,16 @@
 package client;
 
-import channels.*;
+import channels.Channel;
+import channels.ChannelException;
+import channels.MessageChannel;
+import channels.TcpChannel;
 import cli.Command;
 import cli.Shell;
 import commands.*;
+import entities.User;
+import executors.ChannelMessageListener;
 import executors.ChannelMessageSender;
+import executors.MessageListener;
 import executors.MessageSender;
 import states.State;
 import states.StateException;
@@ -15,12 +21,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 
 public class Client implements IClientCli, Runnable {
 	private final Shell shell;
 	private final Config config;
 
+	private MessageListener messageListener;
 	private MessageSender messageSender;
+	private ExecutorService executor = Executors.newCachedThreadPool();
 
 	/**
 	 * @param componentName
@@ -57,13 +70,16 @@ public class Client implements IClientCli, Runnable {
 			return;
 		}
 
+		messageListener = new ChannelMessageListener(channel);
 		messageSender = new ChannelMessageSender(channel);
+
+		new Thread(shell).start();
 	}
 
-	private void sendRequest(Request request) {
-		Packet<Message> packet = new NetworkPacket<>();
-		packet.pack(request);
-		messageSender.sendMessage(packet);
+	private <RequestType extends Request, ResponseType extends Response> ResponseType syncRequest(RequestType request) throws Exception {
+		final AsyncRequest<RequestType, ResponseType> asyncRequest = new AsyncRequest<>(request, messageListener, messageSender);
+		final Future<ResponseType> future = executor.submit(asyncRequest);
+		return future.get(3, TimeUnit.SECONDS);
 	}
 
 	@Override
@@ -72,21 +88,26 @@ public class Client implements IClientCli, Runnable {
 		LoginRequest request = new LoginRequest();
 		request.setUsername(username);
 		request.setPassword(password);
-		sendRequest(request);
 
-
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			LoginResponse response = syncRequest(request);
+			return response.isSuccess() ? "Successfully logged in." : "Wrong username or password.";
+		} catch (Exception e) {
+			return e.getMessage();
+		}
 	}
 
 	@Override
 	@Command
 	public String logout() throws IOException {
 		LogoutRequest request = new LogoutRequest();
-		sendRequest(request);
 
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			LogoutResponse response = syncRequest(request);
+			return "Successfully logged out.";
+		} catch (Exception e) {
+			return e.getMessage();
+		}
 	}
 
 	@Override
@@ -94,20 +115,37 @@ public class Client implements IClientCli, Runnable {
 	public String send(String message) throws IOException {
 		SendMessageRequest request = new SendMessageRequest();
 		request.setMessage(message);
-		sendRequest(request);
 
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			SendMessageResponse response = syncRequest(request);
+			return "Successfully send message.";
+		} catch (Exception e) {
+			return e.getMessage();
+		}
 	}
 
 	@Override
 	@Command
 	public String list() throws IOException {
 		ListRequest request = new ListRequest();
-		sendRequest(request);
 
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			ListResponse response = syncRequest(request);
+
+			final String result = "Online users:\n";
+			response.getUserList().forEach(new BiConsumer<String, User.Presence>() {
+				@Override
+				public void accept(String username, User.Presence presence) {
+					if (presence == User.Presence.Available) {
+						result.concat(username + "\n");
+					}
+				}
+			});
+
+			return result;
+		} catch (Exception e) {
+			return e.getMessage();
+		}
 	}
 
 	@Override
@@ -116,10 +154,15 @@ public class Client implements IClientCli, Runnable {
 		SendPrivateMessageRequest request = new SendPrivateMessageRequest();
 		request.setReceiver(username);
 		request.setMessage(message);
-		sendRequest(request);
 
-		// TODO Auto-generated method stub
-		return null;
+		// FIXME lookup and send via private message sender
+
+		try {
+			SendPrivateMessageResponse response = syncRequest(request);
+			return username + " replied with !ack.";
+		} catch (Exception e) {
+			return e.getMessage();
+		}
 	}
 
 	@Override
@@ -127,10 +170,13 @@ public class Client implements IClientCli, Runnable {
 	public String lookup(String username) throws IOException {
 		LookupRequest request = new LookupRequest();
 		request.setUsername(username);
-		sendRequest(request);
 
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			LookupResponse response = syncRequest(request);
+			return response.getPrivateAddress();
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	@Override
@@ -138,10 +184,13 @@ public class Client implements IClientCli, Runnable {
 	public String register(String privateAddress) throws IOException {
 		RegisterRequest request = new RegisterRequest();
 		request.setAddress(privateAddress);
-		sendRequest(request);
 
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			RegisterResponse response = syncRequest(request);
+			return "Successfully registered address for ME."; // FIXME replace ME with username and start listener
+		} catch (Exception e) {
+			return e.getMessage();
+		}
 	}
 	
 	@Override
@@ -178,91 +227,21 @@ public class Client implements IClientCli, Runnable {
 		return null;
 	}
 
-	/*private class StateOffline extends State {
-		@Override
-		public State handleLoginRequest(LoginRequest request) throws StateException {
-			return new StateLoggingIn();
-		}
-
-		@Override
-		public String toString() {
-			return "client state offline";
-		}
-	}
-
-	private class StateLoggingIn extends State {
-		@Override
-		public State applyLoginResult(LoginResponse result) throws StateException {
-			if (result.isSuccess()) {
-				System.out.println("Successfully logged in.");
-				return new StateOnline();
-			} else {
-				System.out.println("Wrong username or password.");
-				return new StateOffline();
-			}
-		}
-
-		@Override
-		public String toString() {
-			return "client state logging in";
-		}
-	}
-
-	private class StateLoggingOut extends State {
-		@Override
-		public State applyLogoutResult(LogoutResponse result) throws StateException {
-			System.out.println("Successfully logged out.");
-			return new StateOffline();
-		}
-
-		@Override
-		public String toString() {
-			return "client state logging out";
-		}
-	}  */
-
 	private class StateOnline extends State {
 		private String lastPublicMessage = "No message received !";
 
 		@Override
 		public StateResult handleMessageEvent(MessageEvent event) throws StateException {
+			lastPublicMessage = event.getUsername() + ": " + event.getMessage();
+
 			try {
-				shell.writeLine(event.getUsername() + ": " + event.getMessage());
+				shell.writeLine(lastPublicMessage);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 
 			return new StateResult(this);
 		}
-
-		/*@Override
-		public State handleLogoutRequest(LogoutRequest request) throws StateException {
-			return new StateLoggingOut();
-		}
-
-		@Override
-		public State handleSendMessageRequest(SendMessageRequest request) throws StateException {
-			System.out.println(request.getMessage());
-			lastPublicMessage = request.getMessage();
-			return this;
-		}
-
-		@Override
-		public State handleSendPrivateMessageRequest(SendPrivateMessageRequest request) throws StateException {
-			System.out.println("PRIVATE " + request.getMessage());
-			return this;
-		}
-
-		@Override
-		public State applyLastMessageCommand(LastMessageCommand request) throws StateException {
-			System.out.println(lastPublicMessage);
-			return this;
-		}
-
-		@Override
-		public State applyExitCommand(ExitCommand request) throws StateException {
-			return this;
-		} */
 
 		@Override
 		public String toString() {

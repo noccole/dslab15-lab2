@@ -2,6 +2,7 @@ package commands;
 
 import states.State;
 import states.StateException;
+import states.StateResult;
 
 public class LoginRequest extends Request {
     private String username;

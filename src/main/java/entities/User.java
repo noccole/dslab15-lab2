@@ -6,7 +6,7 @@ public class User {
         Offline
     }
 
-    private String username;
+    private final String username;
     private String password;
     private Presence presence;
     private String privateAddress;

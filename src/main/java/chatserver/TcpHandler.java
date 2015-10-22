@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class TcpHandler implements Runnable {
+class TcpHandler implements Runnable {
     private final ServerSocket serverSocket;
     private final UserService userService;
 

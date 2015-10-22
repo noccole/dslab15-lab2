@@ -1,6 +1,6 @@
 package channels;
 
-public class ChannelDecorator<T> implements Channel<T> {
+public class ChannelDecorator<T> implements Channel {
     private final Channel channel;
 
     public ChannelDecorator(Channel<T> channel) {
@@ -8,12 +8,12 @@ public class ChannelDecorator<T> implements Channel<T> {
     }
 
     @Override
-    public void send(Packet<T> packet) throws ChannelException {
+    public void send(Packet packet) throws ChannelException {
         channel.send(packet);
     }
 
     @Override
-    public Packet<T> receive() throws ChannelException {
+    public Packet receive() throws ChannelException {
         return channel.receive();
     }
 }

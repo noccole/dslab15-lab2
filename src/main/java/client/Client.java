@@ -137,7 +137,7 @@ public class Client implements IClientCli, Runnable {
 				@Override
 				public void accept(String username, User.Presence presence) {
 					if (presence == User.Presence.Available) {
-						result.concat(username + "\n");
+						result.concat(username + "\n"); // FIXME
 					}
 				}
 			});

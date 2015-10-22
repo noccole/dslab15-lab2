@@ -1,10 +1,10 @@
 package nameserver;
 
+import util.Config;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
-
-import util.Config;
 
 /**
  * Please note that this class is not needed for Lab 1, but will later be used

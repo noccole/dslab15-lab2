@@ -6,7 +6,7 @@ import states.StateException;
 import states.StateMachine;
 
 public class StateMachineMessageHandler extends MessageHandler {
-    private StateMachine stateMachine;
+    private final StateMachine stateMachine;
 
     public StateMachineMessageHandler(StateMachine stateMachine) {
         this.stateMachine = stateMachine;

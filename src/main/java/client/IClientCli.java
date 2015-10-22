@@ -17,7 +17,7 @@ public interface IClientCli {
 	 * @throws IOException
 	 *             if an I/O error occurs
 	 */
-	public String login(String username, String password) throws IOException;
+	String login(String username, String password) throws IOException;
 
 	/**
 	 * Performs a logout if necessary and closes open connections between client
@@ -27,7 +27,7 @@ public interface IClientCli {
 	 * @throws IOException
 	 *             if an I/O error occurs
 	 */
-	public String logout() throws IOException;
+	String logout() throws IOException;
 
 	/**
 	 * Sends a public message to all users that are currently online.
@@ -39,7 +39,7 @@ public interface IClientCli {
 	 * @throws IOException
 	 *             if an I/O error occurs
 	 */
-	public String send(String message) throws IOException;
+	String send(String message) throws IOException;
 
 	/**
 	 * Lists all online users. This command is the only command
@@ -50,7 +50,7 @@ public interface IClientCli {
 	 * @throws IOException
 	 *             if an I/O error occurs
 	 */
-	public String list() throws IOException;
+	String list() throws IOException;
 
 	/**
 	 * Sends a private message to the given user. In order to establish a
@@ -66,7 +66,7 @@ public interface IClientCli {
 	 * @throws IOException
 	 *             if an I/O error occurs
 	 */
-	public String msg(String username, String message) throws IOException;
+	String msg(String username, String message) throws IOException;
 
 	/**
 	 * Performs a lookup of the given username and returns the address (IP:port)
@@ -79,7 +79,7 @@ public interface IClientCli {
 	 * @throws IOException
 	 *             if an I/O error occurs
 	 */
-	public String lookup(String username) throws IOException;
+	String lookup(String username) throws IOException;
 
 	/**
 	 * Registers the private address (IP:port) that can be used by another user
@@ -95,7 +95,7 @@ public interface IClientCli {
 	 * @throws IOException
 	 *             if an I/O error occurs
 	 */
-	public String register(String privateAddress) throws IOException;
+	String register(String privateAddress) throws IOException;
 
 	/**
 	 * Prints the last received message, considering only public
@@ -104,7 +104,7 @@ public interface IClientCli {
 	 * @return a string containing the last received message
 	 * @throws IOException
 	 */
-	public String lastMsg() throws IOException;
+	String lastMsg() throws IOException;
 
 	/**
 	 * Performs a shutdown of the client and release all resources.<br/>
@@ -117,7 +117,7 @@ public interface IClientCli {
 	 * @throws IOException
 	 *             if an I/O error occurs
 	 */
-	public String exit() throws IOException;
+	String exit() throws IOException;
 
 	// --- Commands needed for Lab 2. Please note that you do not have to
 	// implement them for the first submission. ---
@@ -131,6 +131,6 @@ public interface IClientCli {
 	 * @throws IOException
 	 *             if an I/O error occurs
 	 */
-	public String authenticate(String username) throws IOException;
+	String authenticate(String username) throws IOException;
 
 }

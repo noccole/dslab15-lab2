@@ -19,7 +19,7 @@ public class AsyncRequest<RequestType extends Request, ResponseType extends Resp
     }
 
     private class EventHandler implements MessageListener.EventHandler {
-        private Object parent;
+        private final Object parent;
         private Message response;
 
         public EventHandler(Object parent) {

@@ -11,7 +11,7 @@ public abstract class MessageListener implements Runnable {
         void onMessageReceived(Packet<Message> message);
     }
 
-    private Set<EventHandler> eventHandlers = new HashSet<>();
+    private final Set<EventHandler> eventHandlers = new HashSet<>();
     private boolean run = true;
 
     @Override

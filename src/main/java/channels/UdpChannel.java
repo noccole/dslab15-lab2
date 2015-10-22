@@ -29,7 +29,12 @@ public class UdpChannel implements Channel<byte[]> {
             socketAddress = socket.getRemoteSocketAddress();
         }
 
-        final DatagramPacket datagramPacket = new DatagramPacket(data, data.length, socketAddress);
+        final DatagramPacket datagramPacket;
+        try {
+            datagramPacket = new DatagramPacket(data, data.length, socketAddress);
+        } catch (SocketException e) {
+            throw new ChannelException("could not generate datagram packet", e);
+        }
 
         try {
             socket.send(datagramPacket);

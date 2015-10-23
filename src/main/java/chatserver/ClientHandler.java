@@ -1,9 +1,6 @@
 package chatserver;
 
-import channels.Channel;
-import channels.ChannelException;
-import channels.MessageChannel;
-import channels.TcpChannel;
+import channels.*;
 import commands.*;
 import entities.User;
 import executors.*;
@@ -23,7 +20,7 @@ public class ClientHandler {
 
         Channel channel;
         try {
-            channel = new MessageChannel(new TcpChannel(socket));
+            channel = new MessageChannel(new Base64Channel(new TcpChannel(socket)));
         } catch (ChannelException e) {
             e.printStackTrace();
             return;

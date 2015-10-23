@@ -1,9 +1,6 @@
 package client;
 
-import channels.Channel;
-import channels.ChannelException;
-import channels.MessageChannel;
-import channels.TcpChannel;
+import channels.*;
 import cli.Command;
 import cli.Shell;
 import commands.*;
@@ -64,7 +61,7 @@ public class Client implements IClientCli, Runnable {
 
 		Channel channel;
 		try {
-			channel = new MessageChannel(new TcpChannel(socket));
+			channel = new MessageChannel(new Base64Channel(new TcpChannel(socket)));
 		} catch (ChannelException e) {
 			e.printStackTrace();
 			return;

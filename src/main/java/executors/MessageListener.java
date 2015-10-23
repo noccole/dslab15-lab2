@@ -22,7 +22,9 @@ public abstract class MessageListener implements Runnable {
                 for (EventHandler eventHandler : eventHandlers) {
                     eventHandler.onMessageReceived(message);
                 }
+                System.out.println("received message");
             } else {
+                System.out.println("null package");
                 stop();
             }
         }

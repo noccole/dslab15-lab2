@@ -25,6 +25,7 @@ public class TcpChannel implements Channel<byte[]> {
     @Override
     public void send(Packet packet) {
         out.println(packet.unpack());
+        System.out.println("tcp send: " + packet.unpack());
     }
 
     @Override
@@ -35,6 +36,8 @@ public class TcpChannel implements Channel<byte[]> {
         } catch (IOException e) {
             throw new ChannelException("could not read from stream", e);
         }
+
+        System.out.println("tcp recv: " + (data != null ? data.getBytes() : null));
 
         Packet packet = new NetworkPacket();
         packet.pack(data != null ? data.getBytes() : null);

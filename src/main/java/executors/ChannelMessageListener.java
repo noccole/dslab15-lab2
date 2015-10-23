@@ -14,9 +14,11 @@ public class ChannelMessageListener extends MessageListener {
 
     @Override
     protected Packet<Message> waitForMessage() {
+        System.out.println("wait for message");
         try {
             return channel.receive();
         } catch (ChannelException e) {
+            e.printStackTrace();
             return null;
         }
     }

@@ -1,6 +1,6 @@
 package chatserver;
 
-import channels.*;
+import channels.Channel;
 import commands.ListRequest;
 import commands.ListResponse;
 import entities.User;
@@ -11,22 +11,13 @@ import states.StateException;
 import states.StateMachine;
 import states.StateResult;
 
-import java.net.DatagramSocket;
 import java.util.Map;
 
-public class UdpHandler {
+public class ListHandler {
     private final UserService userService;
 
-    public UdpHandler(DatagramSocket socket, UserService userService) {
+    public ListHandler(Channel channel, UserService userService) {
         this.userService = userService;
-
-        Channel channel;
-        try {
-            channel = new MessageChannel(new Base64Channel(new UdpChannel(socket)));
-        } catch (ChannelException e) {
-            e.printStackTrace();
-            return;
-        }
 
         final MessageListener listener = new ChannelMessageListener(channel);
         final MessageSender sender = new ChannelMessageSender(channel);
@@ -41,7 +32,6 @@ public class UdpHandler {
         localBus.addMessageListener(listener);
     }
 
-
     private class StateListUsersService extends State {
         @Override
         public StateResult handleListRequest(ListRequest request) throws StateException {
@@ -55,7 +45,7 @@ public class UdpHandler {
 
         @Override
         public String toString() {
-            return "upd state static";
+            return "state list users service";
         }
     }
 }

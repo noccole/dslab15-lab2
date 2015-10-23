@@ -1,5 +1,6 @@
 package chatserver;
 
+import channels.*;
 import cli.Command;
 import cli.Shell;
 import entities.User;
@@ -47,6 +48,26 @@ public class Chatserver implements IChatserverCli, Runnable {
 		eventDistributor = new EventDistributor();
 	}
 
+	private ListHandler createListHandler() {
+		DatagramSocket serverUdpSocket;
+		try {
+			serverUdpSocket = new DatagramSocket(config.getInt("udp.port"));
+		} catch (SocketException e) {
+			e.printStackTrace();
+			return null;
+		}
+
+		Channel udpChannel;
+		try {
+			udpChannel = new MessageChannel(new Base64Channel(new UdpChannel(serverUdpSocket)));
+		} catch (ChannelException e) {
+			e.printStackTrace();
+			return null;
+		}
+
+		return new ListHandler(udpChannel, userService);
+	}
+
 	@Override
 	public void run() {
 		ServerSocket serverSocket;
@@ -57,15 +78,8 @@ public class Chatserver implements IChatserverCli, Runnable {
 			return;
 		}
 
-		DatagramSocket serverUdpSocket;
-		try {
-			serverUdpSocket = new DatagramSocket(config.getInt("udp.port"));
-		} catch (SocketException e) {
-			e.printStackTrace();
-			return;
-		}
+		createListHandler();
 
-		new UdpHandler(serverUdpSocket, userService);
 		new Thread(new TcpHandler(serverSocket, userService, eventDistributor)).start();
 
 		new Thread(shell).start();

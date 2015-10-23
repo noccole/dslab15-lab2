@@ -1,7 +1,6 @@
 package channels;
 
 import javax.xml.bind.DatatypeConverter;
-import java.io.UnsupportedEncodingException;
 
 public class Base64Channel implements Channel<byte[]> {
     private class Base64EncodedPacket extends PacketDecorator<byte[]> {
@@ -13,14 +12,12 @@ public class Base64Channel implements Channel<byte[]> {
         public byte[] unpack() {
             final String data = DatatypeConverter.printBase64Binary(super.unpack());
 
-            byte[] byteData;
             try {
-                byteData = (data != null ? data.getBytes("UTF-8") : null);
-            } catch (UnsupportedEncodingException e) {
-                byteData = null;
+                return Encoder.decodeString(data);
+            } catch (ChannelException e) {
+                System.err.println("could not encode package: " + e);
+                return super.unpack();
             }
-
-            return byteData;
         }
     }
 
@@ -32,10 +29,10 @@ public class Base64Channel implements Channel<byte[]> {
         @Override
         public byte[] unpack() {
             try {
-                final String data = new String(super.unpack(), "UTF-8");
+                final String data = Encoder.encodeByteArray(super.unpack());
                 return DatatypeConverter.parseBase64Binary(data);
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
+            } catch (ChannelException e) {
+                System.err.println("could not decode package: " + e);
                 return super.unpack();
             }
         }

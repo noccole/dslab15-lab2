@@ -28,6 +28,7 @@ public class UdpChannel implements Channel<byte[]> {
             throw new ChannelException("too much data for a datagram packet");
         }
 
+        // use socket address from packet when possible
         SocketAddress socketAddress = packet.getRemoteAddress();
         if (socketAddress == null) {
             socketAddress = socket.getRemoteSocketAddress();
@@ -43,7 +44,7 @@ public class UdpChannel implements Channel<byte[]> {
         try {
             socket.send(datagramPacket);
         } catch (IOException e) {
-            throw new ChannelException("could not send packet", e);
+            throw new ChannelException("could not send datagram packet", e);
         }
     }
 
@@ -55,7 +56,7 @@ public class UdpChannel implements Channel<byte[]> {
         try {
             socket.receive(datagramPacket);
         } catch (IOException e) {
-            throw new ChannelException("could not receive packet", e);
+            throw new ChannelException("could not receive datagram packet", e);
         }
 
         Packet packet = new NetworkPacket();

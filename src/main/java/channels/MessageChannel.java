@@ -19,7 +19,7 @@ public class MessageChannel implements Channel<Message> {
             ObjectOutputStream objectStream =  new ObjectOutputStream(byteStream);
             objectStream.writeObject(message);
         } catch (IOException e) {
-            throw new ChannelException("could not serialize message", e);
+            throw new ChannelException("could not serialize message: " + packet.unpack(), e);
         }
 
         final Packet<byte[]> bytePacket = new NetworkPacket();

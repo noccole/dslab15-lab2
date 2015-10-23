@@ -11,9 +11,8 @@ public class User {
     private Presence presence;
     private String privateAddress;
 
-    public User(String username, String password) {
+    public User(String username) {
         this.username = username;
-        this.password = password;
         this.presence = Presence.Offline;
     }
 

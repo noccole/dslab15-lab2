@@ -3,6 +3,7 @@ package chatserver;
 import cli.Command;
 import cli.Shell;
 import entities.User;
+import executors.EventDistributor;
 import repositories.ConfigUserRepository;
 import repositories.UserRepository;
 import service.UserService;
@@ -21,6 +22,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 	private final Config config;
 
 	private final UserService userService;
+	private final EventDistributor eventDistributor;
 
 	/**
 	 * @param componentName
@@ -41,6 +43,8 @@ public class Chatserver implements IChatserverCli, Runnable {
 		Config userConfig = new Config("user");
 		UserRepository userRepository = new ConfigUserRepository(userConfig);
 		userService = new UserService(userRepository);
+
+		eventDistributor = new EventDistributor();
 	}
 
 	@Override
@@ -62,7 +66,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 		}
 
 		new UdpHandler(serverUdpSocket, userService);
-		new Thread(new TcpHandler(serverSocket, userService)).start();
+		new Thread(new TcpHandler(serverSocket, userService, eventDistributor)).start();
 
 		new Thread(shell).start();
 	}

@@ -38,7 +38,10 @@ public class UdpHandler {
         final StateMachine stateMachine = new StateMachine(initialState);
         final MessageHandler handler = new StateMachineMessageHandler(stateMachine);
 
-        new CommandBus(listener, handler, sender);
+        final CommandBus localBus = new CommandBus();
+        localBus.addMessageSender(sender);
+        localBus.addMessageHandler(handler);
+        localBus.addMessageListener(listener);
     }
 
 

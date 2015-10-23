@@ -14,9 +14,12 @@ import java.net.Socket;
 
 public class ClientHandler {
     private final UserService userService;
+    private final EventDistributor eventDistributor;
+    private MessageSender sender = null;
 
-    public ClientHandler(Socket socket, UserService userService) {
+    public ClientHandler(Socket socket, UserService userService, EventDistributor eventDistributor) {
         this.userService = userService;
+        this.eventDistributor = eventDistributor;
 
         Channel channel;
         try {
@@ -27,13 +30,16 @@ public class ClientHandler {
         }
 
         final MessageListener listener = new ChannelMessageListener(channel);
-        final MessageSender sender = new ChannelMessageSender(channel);
+        sender = new ChannelMessageSender(channel);
 
         final State initialState = new StateOffline();
         final StateMachine stateMachine = new StateMachine(initialState);
         final MessageHandler handler = new StateMachineMessageHandler(stateMachine);
 
-        new CommandBus(listener, handler, sender);
+        final CommandBus localBus = new CommandBus();
+        localBus.addMessageSender(sender);
+        localBus.addMessageHandler(handler);
+        localBus.addMessageListener(listener);
     }
 
     private class StateOffline extends State {
@@ -74,12 +80,12 @@ public class ClientHandler {
 
         @Override
         public void onEntered() throws StateException {
-            //serverBus.addCommandExecutor(clientSideExecutor);
+            eventDistributor.subscribe(sender);
         }
 
         @Override
         public void onExited() throws StateException {
-            //serverBus.removeCommandExecutor(clientSideExecutor);
+            eventDistributor.unsubscribe(sender);
         }
 
         @Override
@@ -96,7 +102,7 @@ public class ClientHandler {
             final MessageEvent event = new MessageEvent();
             event.setUsername(user.getUsername());
             event.setMessage(request.getMessage());
-            // TODO send
+            eventDistributor.publish(event);
 
             final SendMessageResponse response = new SendMessageResponse(request);
 

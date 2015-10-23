@@ -5,14 +5,22 @@ import commands.Message;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public abstract class MessageListener implements Runnable {
+    private final static ExecutorService executorService = Executors.newCachedThreadPool();
+
     public interface EventHandler {
         void onMessageReceived(Packet<Message> message);
     }
 
     private final Set<EventHandler> eventHandlers = new HashSet<>();
     private boolean run = true;
+
+    public MessageListener() {
+        executorService.submit(this);
+    }
 
     @Override
     public void run() {

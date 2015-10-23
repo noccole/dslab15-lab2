@@ -5,12 +5,10 @@ import cli.Command;
 import cli.Shell;
 import commands.*;
 import entities.User;
-import executors.ChannelMessageListener;
-import executors.ChannelMessageSender;
-import executors.MessageListener;
-import executors.MessageSender;
+import executors.*;
 import states.State;
 import states.StateException;
+import states.StateMachine;
 import states.StateResult;
 import util.Config;
 
@@ -29,8 +27,11 @@ public class Client implements IClientCli, Runnable {
 	private final Config config;
 
 	private MessageListener messageListener;
+	private MessageHandler messageHandler;
 	private MessageSender messageSender;
 	private ExecutorService executor = Executors.newCachedThreadPool();
+
+	private final ClientMainState state = new ClientMainState();
 
 	/**
 	 * @param componentName
@@ -70,8 +71,12 @@ public class Client implements IClientCli, Runnable {
 		messageListener = new ChannelMessageListener(channel);
 		messageSender = new ChannelMessageSender(channel);
 
-		executor.submit(messageSender);
-		executor.submit(messageListener);
+		StateMachine stateMachine = new StateMachine(state);
+		messageHandler = new StateMachineMessageHandler(stateMachine);
+
+		final CommandBus localBus = new CommandBus();
+		localBus.addMessageHandler(messageHandler);
+		localBus.addMessageListener(messageListener);
 
 		new Thread(shell).start();
 	}
@@ -196,8 +201,7 @@ public class Client implements IClientCli, Runnable {
 	@Override
 	@Command
 	public String lastMsg() throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return state.getLastPublicMessage();
 	}
 
 	@Override
@@ -227,7 +231,7 @@ public class Client implements IClientCli, Runnable {
 		return null;
 	}
 
-	private class StateOnline extends State {
+	private class ClientMainState extends State {
 		private String lastPublicMessage = "No message received !";
 
 		@Override
@@ -241,6 +245,10 @@ public class Client implements IClientCli, Runnable {
 			}
 
 			return new StateResult(this);
+		}
+
+		public String getLastPublicMessage() {
+			return lastPublicMessage;
 		}
 
 		@Override

@@ -22,8 +22,6 @@ public class MessageChannel implements Channel<Message> {
             throw new ChannelException("could not serialize message", e);
         }
 
-        System.out.println("send msg size " + byteStream.size());
-
         final Packet<byte[]> bytePacket = new NetworkPacket();
         bytePacket.setRemoteAddress(packet.getRemoteAddress());
         bytePacket.pack(byteStream.toByteArray());
@@ -33,8 +31,6 @@ public class MessageChannel implements Channel<Message> {
     @Override
     public Packet<Message> receive() throws ChannelException {
         final Packet<byte[]> bytePacket = channel.receive();
-
-        System.out.println("recv msg size " + bytePacket.unpack().length);
 
         Message message;
         try {

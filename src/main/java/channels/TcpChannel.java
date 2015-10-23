@@ -1,12 +1,11 @@
 package channels;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 
 public class TcpChannel implements Channel<byte[]> {
+    private final static String DEFAULT_ENCODING = "UTF-8";
+
     private final Socket socket;
     private final BufferedReader in;
     private final PrintWriter out;
@@ -23,24 +22,35 @@ public class TcpChannel implements Channel<byte[]> {
     }
 
     @Override
-    public void send(Packet packet) {
-        out.println(packet.unpack());
-        System.out.println("tcp send: " + packet.unpack());
+    public void send(Packet<byte[]> packet) throws ChannelException {
+        final String data;
+        try {
+            data = new String(packet.unpack(), DEFAULT_ENCODING);
+        } catch (UnsupportedEncodingException e) {
+            throw new ChannelException(DEFAULT_ENCODING + " encoding failure", e);
+        }
+
+        out.println(data);
     }
 
     @Override
-    public Packet receive() throws ChannelException {
-        String data;
+    public Packet<byte[]> receive() throws ChannelException {
+        final String data;
         try {
             data = in.readLine();
         } catch (IOException e) {
             throw new ChannelException("could not read from stream", e);
         }
 
-        System.out.println("tcp recv: " + (data != null ? data.getBytes() : null));
+        final byte[] byteData;
+        try {
+            byteData = (data != null ? data.getBytes(DEFAULT_ENCODING) : null);
+        } catch (UnsupportedEncodingException e) {
+            throw new ChannelException(DEFAULT_ENCODING + " encoding failure", e);
+        }
 
         Packet packet = new NetworkPacket();
-        packet.pack(data != null ? data.getBytes() : null);
+        packet.pack(byteData);
         packet.setRemoteAddress(socket.getRemoteSocketAddress());
         return packet;
     }

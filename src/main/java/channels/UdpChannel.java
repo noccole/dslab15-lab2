@@ -24,6 +24,10 @@ public class UdpChannel implements Channel<byte[]> {
     public void send(Packet<byte[]> packet) throws ChannelException {
         final byte[] data = packet.unpack();
 
+        if (data.length > receiveBufferSize) {
+            throw new ChannelException("too much data for a datagram packet");
+        }
+
         SocketAddress socketAddress = packet.getRemoteAddress();
         if (socketAddress == null) {
             socketAddress = socket.getRemoteSocketAddress();

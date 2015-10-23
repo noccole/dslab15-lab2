@@ -15,7 +15,7 @@ import util.Config;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.net.Socket;
+import java.net.*;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -29,6 +29,10 @@ public class Client implements IClientCli, Runnable {
 	private MessageListener messageListener;
 	private MessageHandler messageHandler;
 	private MessageSender messageSender;
+
+	private MessageListener udpMessageListener;
+	private MessageSender udpMessageSender;
+
 	private ExecutorService executor = Executors.newCachedThreadPool();
 
 	private final ClientMainState state = new ClientMainState();
@@ -60,6 +64,15 @@ public class Client implements IClientCli, Runnable {
 			return;
 		}
 
+		DatagramSocket udpSocket;
+		try {
+			udpSocket = new DatagramSocket();
+			udpSocket.connect(InetAddress.getByName(config.getString("chatserver.host")), config.getInt("chatserver.udp.port"));
+		} catch (UnknownHostException | SocketException e) {
+			e.printStackTrace();
+			return;
+		}
+
 		Channel channel;
 		try {
 			channel = new MessageChannel(new Base64Channel(new TcpChannel(socket)));
@@ -77,6 +90,17 @@ public class Client implements IClientCli, Runnable {
 		final CommandBus localBus = new CommandBus();
 		localBus.addMessageHandler(messageHandler);
 		localBus.addMessageListener(messageListener);
+
+		Channel udpChannel;
+		try {
+			udpChannel = new MessageChannel(new Base64Channel(new UdpChannel(udpSocket)));
+		} catch (ChannelException e) {
+			e.printStackTrace();
+			return;
+		}
+
+		udpMessageListener = new ChannelMessageListener(udpChannel);
+		udpMessageSender = new ChannelMessageSender(udpChannel);
 
 		new Thread(shell).start();
 	}
@@ -135,7 +159,9 @@ public class Client implements IClientCli, Runnable {
 		ListRequest request = new ListRequest();
 
 		try {
-			ListResponse response = syncRequest(request);
+			final AsyncRequest<ListRequest, ListResponse> asyncRequest = new AsyncRequest<>(request, udpMessageListener, udpMessageSender);
+			final Future<ListResponse> future = executor.submit(asyncRequest);
+			ListResponse response =  future.get(3, TimeUnit.SECONDS);
 
 			String result = "Online users:";
 			for (Map.Entry<String, User.Presence> entry : response.getUserList().entrySet()) {

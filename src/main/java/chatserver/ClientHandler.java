@@ -1,6 +1,6 @@
 package chatserver;
 
-import channels.*;
+import channels.Channel;
 import commands.*;
 import entities.User;
 import executors.*;
@@ -10,24 +10,14 @@ import states.StateException;
 import states.StateMachine;
 import states.StateResult;
 
-import java.net.Socket;
-
 public class ClientHandler {
     private final UserService userService;
     private final EventDistributor eventDistributor;
     private MessageSender sender = null;
 
-    public ClientHandler(Socket socket, UserService userService, EventDistributor eventDistributor) {
+    public ClientHandler(Channel channel, UserService userService, EventDistributor eventDistributor) {
         this.userService = userService;
         this.eventDistributor = eventDistributor;
-
-        Channel channel;
-        try {
-            channel = new MessageChannel(new Base64Channel(new TcpChannel(socket)));
-        } catch (ChannelException e) {
-            e.printStackTrace();
-            return;
-        }
 
         final MessageListener listener = new ChannelMessageListener(channel);
         sender = new ChannelMessageSender(channel);

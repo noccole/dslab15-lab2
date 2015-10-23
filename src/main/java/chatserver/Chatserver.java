@@ -68,19 +68,26 @@ public class Chatserver implements IChatserverCli, Runnable {
 		return new ListHandler(udpChannel, userService);
 	}
 
-	@Override
-	public void run() {
+	private ServerSocketHandler createServerSocketHandler() {
 		ServerSocket serverSocket;
 		try {
 			serverSocket = new ServerSocket(config.getInt("tcp.port"));
 		} catch (IOException e) {
 			e.printStackTrace();
-			return;
+			return null;
 		}
 
+		return new ServerSocketHandler(serverSocket, userService, eventDistributor);
+	}
+
+	@Override
+	public void run() {
 		createListHandler();
 
-		new Thread(new TcpHandler(serverSocket, userService, eventDistributor)).start();
+		ServerSocketHandler serverSocketHandler = createServerSocketHandler();
+		if (serverSocketHandler != null) {
+			new Thread(serverSocketHandler).start();
+		}
 
 		new Thread(shell).start();
 	}

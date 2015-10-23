@@ -6,6 +6,7 @@ import executors.MessageListener;
 import executors.MessageSender;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.Semaphore;
 
 public class AsyncRequest<RequestType extends Request, ResponseType extends Response> implements Callable<ResponseType> {
     private final RequestType request;
@@ -19,7 +20,7 @@ public class AsyncRequest<RequestType extends Request, ResponseType extends Resp
     }
 
     private class EventHandler implements MessageListener.EventHandler {
-        private final Thread parentThread = Thread.currentThread();
+        private final Semaphore semaphore = new Semaphore(0);
         private Message response;
 
         @Override
@@ -32,13 +33,11 @@ public class AsyncRequest<RequestType extends Request, ResponseType extends Resp
         }
 
         public void waitForResponse() throws InterruptedException {
-            synchronized (parentThread) {
-                parentThread.wait();
-            }
+            semaphore.acquire();
         }
 
-        private synchronized void signal() {
-            parentThread.notify();
+        private void signal() {
+            semaphore.release();
         }
 
         public Message getResponse() {
@@ -67,7 +66,7 @@ public class AsyncRequest<RequestType extends Request, ResponseType extends Resp
         try {
             return (ResponseType) response;
         } catch (ClassCastException e) {
-            ErrorResponse errorResponse = (ErrorResponse)response; // potential ClassCastExceptions are ok here
+            ErrorResponse errorResponse = (ErrorResponse) response; // potential ClassCastExceptions are ok here
             throw new Exception(errorResponse.getReason());
         }
     }

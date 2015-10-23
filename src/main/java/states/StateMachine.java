@@ -12,8 +12,6 @@ public class StateMachine {
     public synchronized Message handleMessage(Message message) throws StateException {
         final StateResult stateResult = message.applyTo(state);
 
-        System.out.println(state + ": " + message + " -> " + stateResult);
-
         if (state != stateResult.getNextState()) {
             // change current state
             try {
@@ -29,8 +27,6 @@ public class StateMachine {
             } catch (StateException e) {
                 System.err.println("Exception on entering state '" + state + "': " + e);
             }
-
-            System.out.println("state changed to: " + state);
         }
 
         return stateResult.getResult();

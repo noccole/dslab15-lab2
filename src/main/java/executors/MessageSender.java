@@ -27,7 +27,6 @@ public abstract class MessageSender implements Runnable {
         while (run) {
             try {
                 consumeMessage(messages.take());
-                System.out.println("message send");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

@@ -2,8 +2,8 @@ package repositories;
 
 import entities.User;
 
-import java.util.List;
+import java.util.Collection;
 
 public interface UserRepository {
-    List<User> findAll() throws RepositoryException;
+    Collection<User> findAll() throws RepositoryException;
 }

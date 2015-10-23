@@ -3,8 +3,8 @@ package repositories;
 import entities.User;
 import util.Config;
 
+import java.util.Collection;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 
 public class ConfigUserRepository implements UserRepository {
@@ -17,10 +17,10 @@ public class ConfigUserRepository implements UserRepository {
     }
 
     @Override
-    public List<User> findAll() throws RepositoryException {
+    public Collection<User> findAll() throws RepositoryException {
         final Set<String> keys = config.listKeys();
 
-        final List<User> users = new LinkedList<>();
+        final Collection<User> users = new LinkedList<>();
         for (String key : keys) {
             if (key.endsWith(USER_PASSWORD_KEY_ENDING)) {
                 final String username = key.substring(0, key.length() - USER_PASSWORD_KEY_ENDING.length());

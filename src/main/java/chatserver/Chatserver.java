@@ -3,6 +3,8 @@ package chatserver;
 import cli.Command;
 import cli.Shell;
 import entities.User;
+import repositories.ConfigUserRepository;
+import repositories.UserRepository;
 import service.UserService;
 import util.Config;
 
@@ -36,7 +38,9 @@ public class Chatserver implements IChatserverCli, Runnable {
 		shell = new Shell(componentName, userRequestStream, userResponseStream);
 		shell.register(this);
 
-		userService = new UserService();
+		Config userConfig = new Config("user");
+		UserRepository userRepository = new ConfigUserRepository(userConfig);
+		userService = new UserService(userRepository);
 	}
 
 	@Override

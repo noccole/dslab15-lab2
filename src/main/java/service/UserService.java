@@ -1,20 +1,34 @@
 package service;
 
 import entities.User;
+import repositories.RepositoryException;
+import repositories.UserRepository;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class UserService {
-    private final ConcurrentHashMap<String, User> users = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, User> usersCache = new ConcurrentHashMap<>();
+
+    public UserService(UserRepository userRepository) /*throws ServiceException*/ {
+        try {
+            final Collection<User> users = userRepository.findAll();
+            for (User user : users) {
+                usersCache.put(user.getUsername(), user);
+            }
+        } catch (RepositoryException e) {
+            System.err.println("could not load users: " + e);
+            //throw new ServiceException("could not load users", e);
+        }
+    }
 
     public boolean login(User user, String password) {
-        //if (user.getPassword().equals(password)) {
+        if (user.getPassword().equals(password)) {
             user.setPresence(User.Presence.Available);
             return true;
-        /*} else {
+        } else {
             return false;
-        }*/
+        }
     }
 
     public void logout(User user) {
@@ -23,11 +37,11 @@ public class UserService {
     }
 
     public Collection<User> findAll() {
-        return users.values();
+        return usersCache.values();
     }
 
     public User find(String username) {
-        return users.get(username);
+        return usersCache.get(username);
     }
 
     public Map<String, User.Presence> getUserList() {

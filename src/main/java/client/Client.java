@@ -73,6 +73,9 @@ public class Client implements IClientCli, Runnable {
 		messageListener = new ChannelMessageListener(channel);
 		messageSender = new ChannelMessageSender(channel);
 
+		executor.submit(messageSender);
+		executor.submit(messageListener);
+
 		new Thread(shell).start();
 	}
 

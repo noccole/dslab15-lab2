@@ -19,20 +19,26 @@ public class AsyncRequest<RequestType extends Request, ResponseType extends Resp
     }
 
     private class EventHandler implements MessageListener.EventHandler {
-        private final Object parent;
+        private final Thread parentThread = Thread.currentThread();
         private Message response;
-
-        public EventHandler(Object parent) {
-            this.parent = parent;
-        }
 
         @Override
         public void onMessageReceived(Packet<Message> packet) {
             Message message = packet.unpack();
             if (message.getMessageId() == request.getMessageId()) {
                 response = message;
-                parent.notify();
+                signal();
             }
+        }
+
+        public void waitForResponse() throws InterruptedException {
+            synchronized (parentThread) {
+                parentThread.wait();
+            }
+        }
+
+        private synchronized void signal() {
+            parentThread.notify();
         }
 
         public Message getResponse() {
@@ -46,10 +52,10 @@ public class AsyncRequest<RequestType extends Request, ResponseType extends Resp
         requestPacket.pack(request);
         sender.sendMessage(requestPacket);
 
-        final EventHandler eventHandler = new EventHandler(this);
+        final EventHandler eventHandler = new EventHandler();
         try {
             listener.addEventHandler(eventHandler);
-            wait(); // wait for a notify from event handler
+            eventHandler.waitForResponse();
         } catch (InterruptedException e) {
             System.err.println("timeout, event handler did not notify us so far ...");
             e.printStackTrace();

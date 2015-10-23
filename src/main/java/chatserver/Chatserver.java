@@ -58,7 +58,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 		}
 
 		new UdpHandler(serverUdpSocket, userService);
-		new Thread(new TcpHandler(serverSocket, userService));
+		new Thread(new TcpHandler(serverSocket, userService)).start();
 
 		new Thread(shell).start();
 	}

@@ -11,7 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public abstract class MessageHandler implements Runnable {
+public abstract class MessageHandler extends RepeatingTask {
     private final static ExecutorService executorService = Executors.newCachedThreadPool();
 
     public interface EventHandler {
@@ -21,7 +21,6 @@ public abstract class MessageHandler implements Runnable {
 
     private final Set<EventHandler> eventHandlers = new HashSet<>();
     private final BlockingQueue<Packet<Message>> messages = new LinkedBlockingQueue<>();
-    private boolean run = true;
 
     public MessageHandler() {
         executorService.submit(this);
@@ -32,30 +31,28 @@ public abstract class MessageHandler implements Runnable {
     }
 
     @Override
-    public void run() {
-        while (run) {
-            try {
-                final Packet<Message> requestPacket = messages.take();
+    protected void perform() {
+        try {
+            final Packet<Message> requestPacket = messages.take();
 
-                final Message request = requestPacket.unpack();
-                final Message response = consumeMessage(request);
+            final Message request = requestPacket.unpack();
+            final Message response = consumeMessage(request);
 
-                if (response != null) {
-                    final Packet<Message> responsePacket = new NetworkPacket<>();
-                    responsePacket.setRemoteAddress(requestPacket.getRemoteAddress());
-                    responsePacket.pack(response);
+            if (response != null) {
+                final Packet<Message> responsePacket = new NetworkPacket<>();
+                responsePacket.setRemoteAddress(requestPacket.getRemoteAddress());
+                responsePacket.pack(response);
 
-                    for (EventHandler eventHandler : eventHandlers) {
-                        eventHandler.onMessageHandled(requestPacket, responsePacket);
-                    }
-                } else {
-                    for (EventHandler eventHandler : eventHandlers) {
-                        eventHandler.onMessageHandled(requestPacket);
-                    }
+                for (EventHandler eventHandler : eventHandlers) {
+                    eventHandler.onMessageHandled(requestPacket, responsePacket);
                 }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            } else {
+                for (EventHandler eventHandler : eventHandlers) {
+                    eventHandler.onMessageHandled(requestPacket);
+                }
             }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
@@ -68,8 +65,4 @@ public abstract class MessageHandler implements Runnable {
     }
 
     protected abstract Message consumeMessage(Message message);
-
-    public void stop() {
-        run = false;
-    }
 }

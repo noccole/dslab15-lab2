@@ -28,4 +28,13 @@ public class ChannelMessageListener extends MessageListener {
             return null;
         }
     }
+
+    @Override
+    protected void onStopped() {
+        try {
+            channel.close();
+        } catch (ChannelException e) {
+            e.printStackTrace();
+        }
+    }
 }

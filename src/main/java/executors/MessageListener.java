@@ -8,7 +8,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public abstract class MessageListener implements Runnable {
+public abstract class MessageListener extends RepeatingTask {
     private final static ExecutorService executorService = Executors.newCachedThreadPool();
 
     public interface EventHandler {
@@ -16,23 +16,20 @@ public abstract class MessageListener implements Runnable {
     }
 
     private final Set<EventHandler> eventHandlers = new HashSet<>();
-    private boolean run = true;
 
     public MessageListener() {
         executorService.submit(this);
     }
 
     @Override
-    public void run() {
-        while (run) {
-            final Packet<Message> message = waitForMessage();
-            if (message != null) {
-                for (EventHandler eventHandler : eventHandlers) {
-                    eventHandler.onMessageReceived(message);
-                }
-            } else {
-                stop();
+    protected void perform() {
+        final Packet<Message> message = waitForMessage();
+        if (message != null) {
+            for (EventHandler eventHandler : eventHandlers) {
+                eventHandler.onMessageReceived(message);
             }
+        } else {
+            stop();
         }
     }
 
@@ -45,8 +42,4 @@ public abstract class MessageListener implements Runnable {
     }
 
     protected abstract Packet<Message> waitForMessage();
-
-    public void stop() {
-        run = false;
-    }
 }

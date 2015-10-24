@@ -101,7 +101,7 @@ public class ClientHandler {
 
         @Override
         public StateResult handleRegisterRequest(RegisterRequest request) throws StateException {
-            user.setPrivateAddress(request.getAddress());
+            user.setPrivateAddress(request.getPrivateAddress());
 
             final RegisterResponse response = new RegisterResponse(request);
 

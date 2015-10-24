@@ -4,6 +4,7 @@ import channels.*;
 import cli.Command;
 import cli.Shell;
 import commands.*;
+import entities.PrivateAddress;
 import entities.User;
 import executors.*;
 import states.State;
@@ -186,20 +187,21 @@ public class Client implements IClientCli, Runnable {
 		request.setReceiver(username);
 		request.setMessage(message);
 
-		final String remoteAddress = lookup(username);
-		if (remoteAddress == null) {
-			return "Wrong username or user not reachable.";
+		// lookup user address
+		final PrivateAddress privateAddress;
+		{
+			LookupRequest lookupRequest = new LookupRequest();
+			lookupRequest.setUsername(username);
+
+			try {
+				LookupResponse response = syncRequest(lookupRequest);
+				privateAddress = response.getPrivateAddress();
+			} catch (Exception e) {
+				return "Wrong username or user not reachable.";
+			}
 		}
 
-		final String[] parts = remoteAddress.split(":");
-		if (parts.length != 2) {
-			return "Wrong username or user not reachable.";
-		}
-
-		final String hostname = parts[0];
-		final String port = parts[1];
-
-		final Socket socket = new Socket(hostname, Integer.valueOf(port));
+		final Socket socket = new Socket(privateAddress.getHostname(), privateAddress.getPort());
 		final Channel channel;
 		try {
 			channel = new MessageChannel(new Base64Channel(new TcpChannel(socket)));
@@ -234,7 +236,7 @@ public class Client implements IClientCli, Runnable {
 
 		try {
 			LookupResponse response = syncRequest(request);
-			return response.getPrivateAddress();
+			return String.valueOf(response.getPrivateAddress());
 		} catch (Exception e) {
 			return null;
 		}
@@ -243,13 +245,17 @@ public class Client implements IClientCli, Runnable {
 	@Override
 	@Command
 	public String register(String privateAddress) throws IOException {
-		RegisterRequest request = new RegisterRequest();
-		request.setAddress(privateAddress);
-
-		final String[] parts = privateAddress.split(":");
-		if (parts.length != 2) {
+		final String[] addressParts = privateAddress.split(":");
+		if (addressParts.length != 2) {
 			return "Invalid private address.";
 		}
+
+		final PrivateAddress address = new PrivateAddress();
+		address.setHostname(addressParts[0]);
+		address.setPort(Integer.valueOf(addressParts[1]));
+
+		final RegisterRequest request = new RegisterRequest();
+		request.setPrivateAddress(address);
 
 		try {
 			RegisterResponse response = syncRequest(request);
@@ -257,10 +263,7 @@ public class Client implements IClientCli, Runnable {
 			return e.getMessage();
 		}
 
-		final String hostname = parts[0];
-		final String port = parts[1];
-
-		final ServerSocket serverSocket = new ServerSocket(Integer.valueOf(port));
+		final ServerSocket serverSocket = new ServerSocket(address.getPort());
 		PrivateMessageSocketListener listener = new PrivateMessageSocketListener(serverSocket, shell);
 		new Thread(listener).start();
 

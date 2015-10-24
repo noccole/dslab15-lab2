@@ -9,7 +9,7 @@ public class User {
     private final String username;
     private String password;
     private Presence presence;
-    private String privateAddress;
+    private PrivateAddress privateAddress;
 
     public User(String username) {
         this.username = username;
@@ -36,26 +36,11 @@ public class User {
         this.presence = presence;
     }
 
-    public String getPrivateAddress() {
+    public PrivateAddress getPrivateAddress() {
         return privateAddress;
     }
 
-    public void setPrivateAddress(String privateAddress) {
+    public void setPrivateAddress(PrivateAddress privateAddress) {
         this.privateAddress = privateAddress;
-    }
-
-    @Override
-    public int hashCode() {
-        return username.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof User)) return false;
-
-        User user = (User) o;
-
-        return username.equals(user.username);
     }
 }

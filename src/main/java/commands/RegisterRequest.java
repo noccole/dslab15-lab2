@@ -1,18 +1,19 @@
 package commands;
 
+import entities.PrivateAddress;
 import states.State;
 import states.StateException;
 import states.StateResult;
 
 public class RegisterRequest extends Request {
-    private String address;
+    private PrivateAddress privateAddress;
 
-    public String getAddress() {
-        return address;
+    public PrivateAddress getPrivateAddress() {
+        return privateAddress;
     }
 
-    public void setAddress(String address) {
-        this.address = address;
+    public void setPrivateAddress(PrivateAddress privateAddress) {
+        this.privateAddress = privateAddress;
     }
 
     @Override

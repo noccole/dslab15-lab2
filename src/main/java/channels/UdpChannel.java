@@ -56,6 +56,7 @@ public class UdpChannel extends ChannelBase<byte[]> {
         try {
             socket.receive(datagramPacket);
         } catch (IOException e) {
+            close();
             throw new ChannelException("could not receive datagram packet", e);
         }
 
@@ -68,5 +69,6 @@ public class UdpChannel extends ChannelBase<byte[]> {
     @Override
     public void close() throws ChannelException {
         socket.close();
+        emitChannelClosed();
     }
 }

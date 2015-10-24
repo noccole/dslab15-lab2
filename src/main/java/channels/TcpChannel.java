@@ -33,7 +33,13 @@ public class TcpChannel extends ChannelBase<byte[]> {
         try {
             data = in.readLine();
         } catch (IOException e) {
+            close();
             throw new ChannelException("could not read from tcp stream", e);
+        }
+
+        if (data == null) {
+            close();
+            throw new ChannelException("tcp socket has been closed");
         }
 
         Packet packet = new NetworkPacket();
@@ -46,7 +52,9 @@ public class TcpChannel extends ChannelBase<byte[]> {
     public void close() throws ChannelException {
         try {
             socket.close();
+            emitChannelClosed();
         } catch (IOException e) {
+            emitChannelClosed();
             throw new ChannelException("error while closing tcp channel socket", e);
         }
     }

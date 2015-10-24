@@ -2,7 +2,7 @@ package channels;
 
 import javax.xml.bind.DatatypeConverter;
 
-public class Base64Channel implements Channel<byte[]> {
+public class Base64Channel extends ChannelDecorator<byte[]> {
     private class Base64EncodedPacket extends PacketDecorator<byte[]> {
         public Base64EncodedPacket(Packet packet) {
             super(packet);
@@ -38,19 +38,17 @@ public class Base64Channel implements Channel<byte[]> {
         }
     }
 
-    private final Channel<byte[]> channel;
-
     public Base64Channel(Channel<byte[]> channel) {
-        this.channel = channel;
+        super(channel);
     }
 
     @Override
     public void send(Packet packet) throws ChannelException {
-        channel.send(new Base64EncodedPacket(packet));
+        super.send(new Base64EncodedPacket(packet));
     }
 
     @Override
     public Packet receive() throws ChannelException {
-        return new Base64DecodedPacket(channel.receive());
+        return new Base64DecodedPacket(super.receive());
     }
 }

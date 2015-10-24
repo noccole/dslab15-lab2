@@ -27,6 +27,8 @@ public class Client implements IClientCli, Runnable {
 	private final Shell shell;
 	private final Config config;
 
+	private String username;
+
 	private MessageListener messageListener;
 	private MessageHandler messageHandler;
 	private MessageSender messageSender;
@@ -121,7 +123,12 @@ public class Client implements IClientCli, Runnable {
 
 		try {
 			LoginResponse response = syncRequest(request);
-			return response.isSuccess() ? "Successfully logged in." : "Wrong username or password.";
+			if (response.isSuccess()) {
+				this.username = username;
+				return "Successfully logged in.";
+			} else {
+				return "Wrong username or password.";
+			}
 		} catch (Exception e) {
 			return e.getMessage();
 		}
@@ -134,6 +141,7 @@ public class Client implements IClientCli, Runnable {
 
 		try {
 			LogoutResponse response = syncRequest(request);
+			this.username = null;
 			return "Successfully logged out.";
 		} catch (Exception e) {
 			return e.getMessage();
@@ -184,7 +192,7 @@ public class Client implements IClientCli, Runnable {
 	@Command
 	public String msg(String username, String message) throws IOException {
 		final SendPrivateMessageRequest request = new SendPrivateMessageRequest();
-		request.setReceiver(username);
+		request.setSender(this.username);
 		request.setMessage(message);
 
 		// lookup user address

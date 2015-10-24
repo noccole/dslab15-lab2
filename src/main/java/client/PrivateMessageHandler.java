@@ -38,7 +38,7 @@ public class PrivateMessageHandler {
         @Override
         public StateResult handleSendPrivateMessageRequest(SendPrivateMessageRequest request) throws StateException {
             try {
-                shell.writeLine(request.getMessage());
+                shell.writeLine("[PRV] " + request.getSender() + ": " + request.getMessage());
             } catch (IOException e) {
                 System.err.println("could not print private message: " + e);
             }

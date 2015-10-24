@@ -5,15 +5,15 @@ import states.StateException;
 import states.StateResult;
 
 public class SendPrivateMessageRequest extends Request {
-    private String receiver;
+    private String sender;
     private String message;
 
-    public String getReceiver() {
-        return receiver;
+    public String getSender() {
+        return sender;
     }
 
-    public void setReceiver(String receiver) {
-        this.receiver = receiver;
+    public void setSender(String sender) {
+        this.sender = sender;
     }
 
     public String getMessage() {

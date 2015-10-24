@@ -2,8 +2,7 @@ package client;
 
 import channels.Channel;
 import channels.ChannelException;
-import channels.MessageChannel;
-import channels.TcpChannel;
+import cli.Shell;
 import commands.SendPrivateMessageRequest;
 import commands.SendPrivateMessageResponse;
 import executors.*;
@@ -13,18 +12,14 @@ import states.StateMachine;
 import states.StateResult;
 
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
 
 public class PrivateMessageHandler {
-    public PrivateMessageHandler(Socket socket) {
-        Channel channel;
-        try {
-            channel = new MessageChannel(new TcpChannel(socket));
-        } catch (ChannelException e) {
-            e.printStackTrace();
-            return;
-        }
+    private final Channel channel;
+    private final Shell shell;
+
+    public PrivateMessageHandler(Channel channel, Shell shell) {
+        this.channel = channel;
+        this.shell = shell;
 
         final MessageListener listener = new ChannelMessageListener(channel);
         final MessageSender sender = new ChannelMessageSender(channel);
@@ -33,28 +28,20 @@ public class PrivateMessageHandler {
         final StateMachine stateMachine = new StateMachine(initialState);
         final MessageHandler handler = new StateMachineMessageHandler(stateMachine);
 
-        new CommandBus(listener, handler, sender);
-    }
-
-    /**
-     * BLOCKS!
-     * @param serverSocket
-     */
-    public static void listen(ServerSocket serverSocket) {
-        while (true) {
-            try {
-                final Socket clientSocket = serverSocket.accept();
-                new PrivateMessageHandler(clientSocket);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        final CommandBus localBus = new CommandBus();
+        localBus.addMessageSender(sender);
+        localBus.addMessageHandler(handler);
+        localBus.addMessageListener(listener);
     }
 
     private class StateOfferService extends State {
         @Override
         public StateResult handleSendPrivateMessageRequest(SendPrivateMessageRequest request) throws StateException {
-            //localBus.executeCommand(command); // TODO
+            try {
+                shell.writeLine(request.getMessage());
+            } catch (IOException e) {
+                System.err.println("could not print private message: " + e);
+            }
 
             SendPrivateMessageResponse response = new SendPrivateMessageResponse(request);
 
@@ -70,7 +57,11 @@ public class PrivateMessageHandler {
     private class StateShutdownService extends State {
         @Override
         public void onEntered() throws StateException {
-            // TODO
+            try {
+                channel.close();
+            } catch (ChannelException e) {
+                System.err.println("could not close channel: " + e);
+            }
         }
 
         @Override

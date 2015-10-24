@@ -182,18 +182,48 @@ public class Client implements IClientCli, Runnable {
 	@Override
 	@Command
 	public String msg(String username, String message) throws IOException {
-		SendPrivateMessageRequest request = new SendPrivateMessageRequest();
+		final SendPrivateMessageRequest request = new SendPrivateMessageRequest();
 		request.setReceiver(username);
 		request.setMessage(message);
 
-		// FIXME lookup and send via private message sender
-
-		try {
-			SendPrivateMessageResponse response = syncRequest(request);
-			return username + " replied with !ack.";
-		} catch (Exception e) {
-			return e.getMessage();
+		final String remoteAddress = lookup(username);
+		if (remoteAddress == null) {
+			return "Wrong username or user not reachable.";
 		}
+
+		final String[] parts = remoteAddress.split(":");
+		if (parts.length != 2) {
+			return "Wrong username or user not reachable.";
+		}
+
+		final String hostname = parts[0];
+		final String port = parts[1];
+
+		final Socket socket = new Socket(hostname, Integer.valueOf(port));
+		final Channel channel;
+		try {
+			channel = new MessageChannel(new Base64Channel(new TcpChannel(socket)));
+		} catch (ChannelException e) {
+			socket.close();
+			return "Wrong username or user not reachable.";
+		}
+
+		final MessageListener listener = new ChannelMessageListener(channel);
+		final MessageSender sender = new ChannelMessageSender(channel);
+
+		String result;
+		try {
+			final AsyncRequest<SendPrivateMessageRequest, SendPrivateMessageResponse> asyncRequest = new AsyncRequest<>(request, listener, sender);
+			final Future<SendPrivateMessageResponse> future = executor.submit(asyncRequest);
+			SendPrivateMessageResponse response = future.get(3, TimeUnit.SECONDS);
+			result = username + " replied with !ack.";
+		} catch (Exception e) {
+			result = e.getMessage();
+		} finally {
+			socket.close();
+		}
+
+		return result;
 	}
 
 	@Override
@@ -216,12 +246,25 @@ public class Client implements IClientCli, Runnable {
 		RegisterRequest request = new RegisterRequest();
 		request.setAddress(privateAddress);
 
+		final String[] parts = privateAddress.split(":");
+		if (parts.length != 2) {
+			return "Invalid private address.";
+		}
+
 		try {
 			RegisterResponse response = syncRequest(request);
-			return "Successfully registered address for ME."; // FIXME replace ME with username and start listener
 		} catch (Exception e) {
 			return e.getMessage();
 		}
+
+		final String hostname = parts[0];
+		final String port = parts[1];
+
+		final ServerSocket serverSocket = new ServerSocket(Integer.valueOf(port));
+		PrivateMessageSocketListener listener = new PrivateMessageSocketListener(serverSocket, shell);
+		new Thread(listener).start();
+
+		return "Successfully registered address for ME."; // FIXME replace ME with username and start listener
 	}
 	
 	@Override

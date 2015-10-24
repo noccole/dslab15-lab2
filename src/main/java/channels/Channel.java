@@ -9,6 +9,10 @@ public interface Channel<T> {
 
     void close() throws ChannelException;
 
+    void addEventHandler(EventHandler eventHandler);
+
+    void removeEventHandler(EventHandler eventHandler);
+
     class Encoder {
         private final static String DEFAULT_ENCODING = "UTF-8";
 
@@ -27,5 +31,9 @@ public interface Channel<T> {
                 throw new ChannelException("could not encode from " + DEFAULT_ENCODING, e);
             }
         }
+    }
+
+    interface EventHandler {
+        void onChannelClosed();
     }
 }

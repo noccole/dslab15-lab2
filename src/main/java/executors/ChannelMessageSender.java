@@ -10,6 +10,14 @@ public class ChannelMessageSender extends MessageSender {
 
     public ChannelMessageSender(Channel<Message> channel) {
         this.channel = channel;
+
+        final MessageSender parent = this;
+        channel.addEventHandler(new Channel.EventHandler() {
+            @Override
+            public void onChannelClosed() {
+                parent.stop();
+            }
+        });
     }
 
     @Override

@@ -10,6 +10,14 @@ public class ChannelMessageListener extends MessageListener {
 
     public ChannelMessageListener(Channel<Message> channel) {
         this.channel = channel;
+
+        final MessageListener parent = this;
+        channel.addEventHandler(new Channel.EventHandler() {
+            @Override
+            public void onChannelClosed() {
+                parent.stop();
+            }
+        });
     }
 
     @Override

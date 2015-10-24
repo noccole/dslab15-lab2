@@ -51,10 +51,9 @@ public class TcpChannel extends ChannelBase<byte[]> {
     @Override
     public void close() throws ChannelException {
         try {
+            emitChannelClosed();
             socket.close();
-            emitChannelClosed();
         } catch (IOException e) {
-            emitChannelClosed();
             throw new ChannelException("error while closing tcp channel socket", e);
         }
     }

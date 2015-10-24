@@ -68,7 +68,7 @@ public class UdpChannel extends ChannelBase<byte[]> {
 
     @Override
     public void close() throws ChannelException {
-        socket.close();
         emitChannelClosed();
+        socket.close();
     }
 }

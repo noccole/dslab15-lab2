@@ -41,4 +41,13 @@ public class TcpChannel implements Channel<byte[]> {
         packet.setRemoteAddress(socket.getRemoteSocketAddress());
         return packet;
     }
+
+    @Override
+    public void close() throws ChannelException {
+        try {
+            socket.close();
+        } catch (IOException e) {
+            throw new ChannelException("error while closing tcp channel socket", e);
+        }
+    }
 }

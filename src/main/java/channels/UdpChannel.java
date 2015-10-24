@@ -64,4 +64,9 @@ public class UdpChannel implements Channel<byte[]> {
         packet.setRemoteAddress(datagramPacket.getSocketAddress());
         return packet;
     }
+
+    @Override
+    public void close() throws ChannelException {
+        socket.close();
+    }
 }

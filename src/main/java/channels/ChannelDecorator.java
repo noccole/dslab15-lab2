@@ -16,4 +16,9 @@ public class ChannelDecorator<T> implements Channel {
     public Packet receive() throws ChannelException {
         return channel.receive();
     }
+
+    @Override
+    public void close() throws ChannelException {
+        channel.close();
+    }
 }

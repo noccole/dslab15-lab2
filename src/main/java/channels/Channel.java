@@ -7,6 +7,8 @@ public interface Channel<T> {
 
     Packet<T> receive() throws ChannelException;
 
+    void close() throws ChannelException;
+
     class Encoder {
         private final static String DEFAULT_ENCODING = "UTF-8";
 

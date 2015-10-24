@@ -48,4 +48,9 @@ public class MessageChannel implements Channel<Message> {
         packet.pack(message);
         return packet;
     }
+
+    @Override
+    public void close() throws ChannelException {
+        channel.close();
+    }
 }

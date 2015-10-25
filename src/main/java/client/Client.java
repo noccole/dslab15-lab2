@@ -90,10 +90,12 @@ public class Client implements IClientCli, Runnable {
 
 		StateMachine stateMachine = new StateMachine(state);
 		MessageHandler messageHandler = new StateMachineMessageHandler(stateMachine);
-
-		final CommandBus localBus = new CommandBus();
-		localBus.addMessageHandler(messageHandler);
-		localBus.addMessageListener(messageListener);
+		messageHandler.addEventHandler(new MessageHandler.EventHandler() {
+			@Override
+			public void onMessageHandled(Packet<Message> message, Packet<Message> result) {
+				messageSender.sendMessage(result);
+			}
+		});
 
 		executorService.submit(messageSender);
 		executorService.submit(messageListener);

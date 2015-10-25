@@ -1,6 +1,7 @@
 package chatserver;
 
 import channels.Channel;
+import channels.Packet;
 import commands.*;
 import entities.User;
 import executors.*;
@@ -31,10 +32,18 @@ public class ClientHandler {
         final StateMachine stateMachine = new StateMachine(initialState);
         final MessageHandler handler = new StateMachineMessageHandler(stateMachine);
 
-        final CommandBus localBus = new CommandBus();
-        localBus.addMessageSender(sender);
-        localBus.addMessageHandler(handler);
-        localBus.addMessageListener(listener);
+        listener.addEventHandler(new MessageListener.EventHandler() {
+            @Override
+            public void onMessageReceived(Packet<Message> message) {
+                handler.handleMessage(message);
+            }
+        });
+        handler.addEventHandler(new MessageHandler.EventHandler() {
+            @Override
+            public void onMessageHandled(Packet<Message> message, Packet<Message> result) {
+                sender.sendMessage(result);
+            }
+        });
 
         executorService.submit(sender);
         executorService.submit(handler);

@@ -2,7 +2,9 @@ package client;
 
 import channels.Channel;
 import channels.ChannelException;
+import channels.Packet;
 import cli.Shell;
+import commands.Message;
 import commands.SendPrivateMessageRequest;
 import commands.SendPrivateMessageResponse;
 import executors.*;
@@ -29,10 +31,18 @@ public class PrivateMessageHandler {
         final StateMachine stateMachine = new StateMachine(initialState);
         final MessageHandler handler = new StateMachineMessageHandler(stateMachine);
 
-        final CommandBus localBus = new CommandBus();
-        localBus.addMessageSender(sender);
-        localBus.addMessageHandler(handler);
-        localBus.addMessageListener(listener);
+        listener.addEventHandler(new MessageListener.EventHandler() {
+            @Override
+            public void onMessageReceived(Packet<Message> message) {
+                handler.handleMessage(message);
+            }
+        });
+        handler.addEventHandler(new MessageHandler.EventHandler() {
+            @Override
+            public void onMessageHandled(Packet<Message> message, Packet<Message> result) {
+                sender.sendMessage(result);
+            }
+        });
 
         executorService.submit(sender);
         executorService.submit(handler);

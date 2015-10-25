@@ -232,6 +232,9 @@ public class Client implements IClientCli, Runnable {
 		final MessageListener listener = new ChannelMessageListener(channel);
 		final MessageSender sender = new ChannelMessageSender(channel);
 
+		executorService.submit(sender);
+		executorService.submit(listener);
+
 		String result;
 		try {
 			final AsyncRequest<SendPrivateMessageRequest, SendPrivateMessageResponse> asyncRequest = new AsyncRequest<>(request, listener, sender);

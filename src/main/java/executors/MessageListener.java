@@ -14,7 +14,7 @@ public abstract class MessageListener extends RepeatingTask {
     private final Set<EventHandler> eventHandlers = new HashSet<>();
 
     @Override
-    protected void perform() {
+    protected void perform() throws InterruptedException {
         final Packet<Message> message = waitForMessage();
         if (message != null) {
             for (EventHandler eventHandler : eventHandlers) {

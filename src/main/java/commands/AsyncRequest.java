@@ -57,7 +57,6 @@ public class AsyncRequest<RequestType extends Request, ResponseType extends Resp
             eventHandler.waitForResponse();
         } catch (InterruptedException e) {
             System.err.println("timeout, event handler did not notify us so far ...");
-            e.printStackTrace();
         } finally {
             listener.removeEventHandler(eventHandler);
         }

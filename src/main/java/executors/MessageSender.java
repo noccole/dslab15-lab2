@@ -14,12 +14,8 @@ public abstract class MessageSender extends RepeatingTask {
     }
 
     @Override
-    protected void perform() {
-        try {
-            consumeMessage(messages.take());
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+    protected void perform() throws InterruptedException {
+        consumeMessage(messages.take());
     }
 
     protected abstract void consumeMessage(Packet<Message> message);

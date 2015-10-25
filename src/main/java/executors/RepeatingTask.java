@@ -10,7 +10,7 @@ public abstract class RepeatingTask implements RunnableFuture {
     private boolean done = false;
     private final AtomicBoolean cancelled = new AtomicBoolean(false);
 
-    protected abstract void perform();
+    protected abstract void perform() throws InterruptedException;
 
     protected void onStopped() {
 
@@ -19,7 +19,11 @@ public abstract class RepeatingTask implements RunnableFuture {
     @Override
     public void run() {
         if (!isCancelled()) {
-            perform();
+            try {
+                perform();
+            } catch (InterruptedException e) {
+                cancel(true);
+            }
         }
 
         done = true;

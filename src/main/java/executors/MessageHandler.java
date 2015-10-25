@@ -23,28 +23,24 @@ public abstract class MessageHandler extends RepeatingTask {
     }
 
     @Override
-    protected void perform() {
-        try {
-            final Packet<Message> requestPacket = messages.take();
+    protected void perform() throws InterruptedException {
+        final Packet<Message> requestPacket = messages.take();
 
-            final Message request = requestPacket.unpack();
-            final Message response = consumeMessage(request);
+        final Message request = requestPacket.unpack();
+        final Message response = consumeMessage(request);
 
-            if (response != null) {
-                final Packet<Message> responsePacket = new NetworkPacket<>();
-                responsePacket.setRemoteAddress(requestPacket.getRemoteAddress());
-                responsePacket.pack(response);
+        if (response != null) {
+            final Packet<Message> responsePacket = new NetworkPacket<>();
+            responsePacket.setRemoteAddress(requestPacket.getRemoteAddress());
+            responsePacket.pack(response);
 
-                for (EventHandler eventHandler : eventHandlers) {
-                    eventHandler.onMessageHandled(requestPacket, responsePacket);
-                }
-            } else {
-                for (EventHandler eventHandler : eventHandlers) {
-                    eventHandler.onMessageHandled(requestPacket);
-                }
+            for (EventHandler eventHandler : eventHandlers) {
+                eventHandler.onMessageHandled(requestPacket, responsePacket);
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        } else {
+            for (EventHandler eventHandler : eventHandlers) {
+                eventHandler.onMessageHandled(requestPacket);
+            }
         }
     }
 

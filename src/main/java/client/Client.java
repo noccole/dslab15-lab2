@@ -89,15 +89,17 @@ public class Client implements IClientCli, Runnable {
 		messageSender = new ChannelMessageSender(channel);
 
 		StateMachine stateMachine = new StateMachine(state);
-		MessageHandler messageHandler = new StateMachineMessageHandler(stateMachine);
-		messageHandler.addEventHandler(new MessageHandler.EventHandler() {
+		final MessageHandler messageHandler = new StateMachineMessageHandler(stateMachine);
+
+		messageListener.addEventHandler(new MessageListener.EventHandler() {
 			@Override
-			public void onMessageHandled(Packet<Message> message, Packet<Message> result) {
-				messageSender.sendMessage(result);
+			public void onMessageReceived(Packet<Message> message) {
+				messageHandler.handleMessage(message);
 			}
 		});
 
 		executorService.submit(messageSender);
+		executorService.submit(messageHandler);
 		executorService.submit(messageListener);
 
 		Channel udpChannel;
@@ -120,7 +122,7 @@ public class Client implements IClientCli, Runnable {
 	private <RequestType extends Request, ResponseType extends Response> ResponseType syncRequest(RequestType request) throws Exception {
 		final AsyncRequest<RequestType, ResponseType> asyncRequest = new AsyncRequest<>(request, messageListener, messageSender);
 		final Future<ResponseType> future = executor.submit(asyncRequest);
-		return future.get(3, TimeUnit.SECONDS);
+		return future.get(5, TimeUnit.SECONDS);
 	}
 
 	@Override

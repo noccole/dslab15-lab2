@@ -14,7 +14,7 @@ public abstract class RepeatingTask implements RunnableFuture {
 
     @Override
     public void run() {
-        if (!isCancelled()) {
+        while (!isCancelled()) {
             try {
                 perform();
             } catch (InterruptedException e) {

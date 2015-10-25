@@ -28,8 +28,6 @@ public abstract class MessageListener extends RepeatingTask {
             for (EventHandler eventHandler : eventHandlers) {
                 eventHandler.onMessageReceived(message);
             }
-        } else {
-            stop();
         }
     }
 

@@ -11,7 +11,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public abstract class MessageHandler extends RepeatingTask {
     public interface EventHandler {
-        void onMessageHandled(Packet<Message> message);
         void onMessageHandled(Packet<Message> message, Packet<Message> result);
     }
 
@@ -36,10 +35,6 @@ public abstract class MessageHandler extends RepeatingTask {
 
             for (EventHandler eventHandler : eventHandlers) {
                 eventHandler.onMessageHandled(requestPacket, responsePacket);
-            }
-        } else {
-            for (EventHandler eventHandler : eventHandlers) {
-                eventHandler.onMessageHandled(requestPacket);
             }
         }
     }

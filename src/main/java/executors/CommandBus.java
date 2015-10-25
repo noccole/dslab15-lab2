@@ -37,11 +37,6 @@ public class CommandBus {
         for (final MessageSender sender : senders) {
             handler.addEventHandler(new MessageHandler.EventHandler() {
                 @Override
-                public void onMessageHandled(Packet<Message> message) {
-                    // nothing to do
-                }
-
-                @Override
                 public void onMessageHandled(Packet<Message> message, Packet<Message> result) {
                     sender.sendMessage(result);
                 }
@@ -54,11 +49,6 @@ public class CommandBus {
     public void addMessageSender(final MessageSender sender) {
         for (MessageHandler handler : handlers) {
             handler.addEventHandler(new MessageHandler.EventHandler() {
-                @Override
-                public void onMessageHandled(Packet<Message> message) {
-                    // nothing to do
-                }
-
                 @Override
                 public void onMessageHandled(Packet<Message> message, Packet<Message> result) {
                     sender.sendMessage(result);

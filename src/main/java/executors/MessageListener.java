@@ -5,21 +5,13 @@ import commands.Message;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public abstract class MessageListener extends RepeatingTask {
-    private final static ExecutorService executorService = Executors.newCachedThreadPool();
-
     public interface EventHandler {
         void onMessageReceived(Packet<Message> message);
     }
 
     private final Set<EventHandler> eventHandlers = new HashSet<>();
-
-    public MessageListener() {
-        executorService.submit(this);
-    }
 
     @Override
     protected void perform() {

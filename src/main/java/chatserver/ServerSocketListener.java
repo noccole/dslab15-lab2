@@ -8,16 +8,20 @@ import service.UserService;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
 
 class ServerSocketListener extends RepeatingTask {
     private final ServerSocket serverSocket;
     private final UserService userService;
     private final EventDistributor eventDistributor;
+    private final ExecutorService executorService;
 
-    public ServerSocketListener(ServerSocket serverSocket, UserService userService, EventDistributor eventDistributor) {
+    public ServerSocketListener(ServerSocket serverSocket, UserService userService,
+                                EventDistributor eventDistributor, ExecutorService executorService) {
         this.serverSocket = serverSocket;
         this.userService = userService;
         this.eventDistributor = eventDistributor;
+        this.executorService = executorService;
     }
 
     @Override
@@ -34,7 +38,7 @@ class ServerSocketListener extends RepeatingTask {
                 return;
             }
 
-            new ClientHandler(channel, userService, eventDistributor);
+            new ClientHandler(channel, userService, eventDistributor, executorService);
         } catch (IOException e) {
             System.err.println("could not accept client connection: " + e);
         }

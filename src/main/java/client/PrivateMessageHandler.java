@@ -12,12 +12,13 @@ import states.StateMachine;
 import states.StateResult;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
 
 public class PrivateMessageHandler {
     private final Channel channel;
     private final Shell shell;
 
-    public PrivateMessageHandler(Channel channel, Shell shell) {
+    public PrivateMessageHandler(Channel channel, Shell shell, ExecutorService executorService) {
         this.channel = channel;
         this.shell = shell;
 
@@ -32,6 +33,10 @@ public class PrivateMessageHandler {
         localBus.addMessageSender(sender);
         localBus.addMessageHandler(handler);
         localBus.addMessageListener(listener);
+
+        executorService.submit(sender);
+        executorService.submit(handler);
+        executorService.submit(listener);
     }
 
     private class StateOfferService extends State {

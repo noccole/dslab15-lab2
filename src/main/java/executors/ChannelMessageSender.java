@@ -15,7 +15,7 @@ public class ChannelMessageSender extends MessageSender {
         channel.addEventHandler(new Channel.EventHandler() {
             @Override
             public void onChannelClosed() {
-                parent.stop();
+                parent.cancel(true);
             }
         });
     }

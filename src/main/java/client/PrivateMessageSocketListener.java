@@ -7,14 +7,17 @@ import executors.RepeatingTask;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
 
 public class PrivateMessageSocketListener extends RepeatingTask {
     private final ServerSocket serverSocket;
     private final Shell shell;
+    private final ExecutorService executorService;
 
-    public PrivateMessageSocketListener(ServerSocket serverSocket, Shell shell) {
+    public PrivateMessageSocketListener(ServerSocket serverSocket, Shell shell, ExecutorService executorService) {
         this.serverSocket = serverSocket;
         this.shell = shell;
+        this.executorService = executorService;
     }
 
     @Override
@@ -31,7 +34,7 @@ public class PrivateMessageSocketListener extends RepeatingTask {
                 return;
             }
 
-            new PrivateMessageHandler(channel, shell);
+            new PrivateMessageHandler(channel, shell, executorService);
         } catch (IOException e) {
             System.err.println("could not accept client connection: " + e);
         }

@@ -10,12 +10,17 @@ import states.StateException;
 import states.StateMachine;
 import states.StateResult;
 
+import java.util.concurrent.ExecutorService;
+
 public class ClientHandler {
+    private final Channel channel;
     private final UserService userService;
     private final EventDistributor eventDistributor;
     private MessageSender sender = null;
 
-    public ClientHandler(Channel channel, UserService userService, EventDistributor eventDistributor) {
+    public ClientHandler(Channel channel, UserService userService,
+                         EventDistributor eventDistributor, ExecutorService executorService) {
+        this.channel = channel;
         this.userService = userService;
         this.eventDistributor = eventDistributor;
 
@@ -30,6 +35,10 @@ public class ClientHandler {
         localBus.addMessageSender(sender);
         localBus.addMessageHandler(handler);
         localBus.addMessageListener(listener);
+
+        executorService.submit(sender);
+        executorService.submit(handler);
+        executorService.submit(listener);
     }
 
     private class StateOffline extends State {
@@ -63,6 +72,7 @@ public class ClientHandler {
 
     private class StateOnline extends State {
         private final User user;
+        private Channel.EventHandler channelEventHandler;
 
         public StateOnline(User user) {
             this.user = user;
@@ -70,12 +80,21 @@ public class ClientHandler {
 
         @Override
         public void onEntered() throws StateException {
+            channelEventHandler = new Channel.EventHandler() {
+                @Override
+                public void onChannelClosed() {
+                    userService.logout(user);
+                }
+            };
+            channel.addEventHandler(channelEventHandler);
+
             eventDistributor.subscribe(sender);
         }
 
         @Override
         public void onExited() throws StateException {
             eventDistributor.unsubscribe(sender);
+            channel.removeEventHandler(channelEventHandler);
         }
 
         @Override

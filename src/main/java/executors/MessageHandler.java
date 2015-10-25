@@ -7,13 +7,9 @@ import commands.Message;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public abstract class MessageHandler extends RepeatingTask {
-    private final static ExecutorService executorService = Executors.newCachedThreadPool();
-
     public interface EventHandler {
         void onMessageHandled(Packet<Message> message);
         void onMessageHandled(Packet<Message> message, Packet<Message> result);
@@ -21,10 +17,6 @@ public abstract class MessageHandler extends RepeatingTask {
 
     private final Set<EventHandler> eventHandlers = new HashSet<>();
     private final BlockingQueue<Packet<Message>> messages = new LinkedBlockingQueue<>();
-
-    public MessageHandler() {
-        executorService.submit(this);
-    }
 
     public void handleMessage(Packet<Message> message) {
         messages.add(message);

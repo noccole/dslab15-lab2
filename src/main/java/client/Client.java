@@ -24,6 +24,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 public class Client implements IClientCli, Runnable {
+	private final ExecutorService executorService = Executors.newCachedThreadPool();
+
 	private final Shell shell;
 	private final Config config;
 
@@ -93,6 +95,9 @@ public class Client implements IClientCli, Runnable {
 		localBus.addMessageHandler(messageHandler);
 		localBus.addMessageListener(messageListener);
 
+		executorService.submit(messageSender);
+		executorService.submit(messageListener);
+
 		Channel udpChannel;
 		try {
 			udpChannel = new MessageChannel(new Base64Channel(new UdpChannel(udpSocket)));
@@ -103,6 +108,9 @@ public class Client implements IClientCli, Runnable {
 
 		udpMessageListener = new ChannelMessageListener(udpChannel);
 		udpMessageSender = new ChannelMessageSender(udpChannel);
+
+		executorService.submit(udpMessageSender);
+		executorService.submit(udpMessageListener);
 
 		new Thread(shell).start();
 	}
@@ -271,8 +279,8 @@ public class Client implements IClientCli, Runnable {
 		}
 
 		final ServerSocket serverSocket = new ServerSocket(address.getPort());
-		PrivateMessageSocketListener listener = new PrivateMessageSocketListener(serverSocket, shell);
-		new Thread(listener).start();
+		PrivateMessageSocketListener listener = new PrivateMessageSocketListener(serverSocket, shell, executorService);
+		executorService.submit(listener);
 
 		return "Successfully registered address for ME."; // FIXME replace ME with username and start listener
 	}
@@ -286,8 +294,18 @@ public class Client implements IClientCli, Runnable {
 	@Override
 	@Command
 	public String exit() throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		logout();
+
+		executorService.shutdown();
+		try {
+			executorService.awaitTermination(5, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			System.err.println("could not shutdown executor service, force it ...");
+			executorService.shutdownNow();
+		}
+
+		shell.close();
+		return "Shut down completed! Bye ..";
 	}
 
 	/**

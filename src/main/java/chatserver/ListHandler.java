@@ -12,11 +12,12 @@ import states.StateMachine;
 import states.StateResult;
 
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 public class ListHandler {
     private final UserService userService;
 
-    public ListHandler(Channel channel, UserService userService) {
+    public ListHandler(Channel channel, UserService userService, ExecutorService executorService) {
         this.userService = userService;
 
         final MessageListener listener = new ChannelMessageListener(channel);
@@ -30,6 +31,10 @@ public class ListHandler {
         localBus.addMessageSender(sender);
         localBus.addMessageHandler(handler);
         localBus.addMessageListener(listener);
+
+        executorService.submit(sender);
+        executorService.submit(handler);
+        executorService.submit(listener);
     }
 
     private class StateListUsersService extends State {

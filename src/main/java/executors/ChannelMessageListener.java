@@ -15,7 +15,7 @@ public class ChannelMessageListener extends MessageListener {
         channel.addEventHandler(new Channel.EventHandler() {
             @Override
             public void onChannelClosed() {
-                parent.stop();
+                parent.cancel(true);
             }
         });
     }

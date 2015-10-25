@@ -17,8 +17,13 @@ import java.net.DatagramSocket;
 import java.net.ServerSocket;
 import java.net.SocketException;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class Chatserver implements IChatserverCli, Runnable {
+	private final ExecutorService executorService = Executors.newCachedThreadPool();
+
 	private final Shell shell;
 	private final Config config;
 
@@ -65,7 +70,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 			return null;
 		}
 
-		return new ListHandler(udpChannel, userService);
+		return new ListHandler(udpChannel, userService, executorService);
 	}
 
 	private ServerSocketListener createServerSocketHandler() {
@@ -77,7 +82,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 			return null;
 		}
 
-		return new ServerSocketListener(serverSocket, userService, eventDistributor);
+		return new ServerSocketListener(serverSocket, userService, eventDistributor, executorService);
 	}
 
 	@Override
@@ -86,7 +91,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 
 		ServerSocketListener serverSocketListener = createServerSocketHandler();
 		if (serverSocketListener != null) {
-			new Thread(serverSocketListener).start();
+			executorService.submit(serverSocketListener);
 		}
 
 		new Thread(shell).start();
@@ -113,7 +118,13 @@ public class Chatserver implements IChatserverCli, Runnable {
 	@Override
 	@Command
 	public String exit() throws IOException {
-		// TODO close all resources
+		executorService.shutdown();
+		try {
+			executorService.awaitTermination(5, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			System.err.println("could not shutdown executor service, force it ...");
+			executorService.shutdownNow();
+		}
 
 		shell.close();
 		return "Shut down completed! Bye ..";

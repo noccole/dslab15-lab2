@@ -20,6 +20,8 @@ public abstract class MessageListener extends RepeatingTask {
             for (EventHandler eventHandler : eventHandlers) {
                 eventHandler.onMessageReceived(message);
             }
+        } else {
+            throw new InterruptedException();
         }
     }
 
@@ -31,5 +33,9 @@ public abstract class MessageListener extends RepeatingTask {
         eventHandlers.remove(eventHandler);
     }
 
+    /**
+     *
+     * @return (null package will throw a InterruptedExceptoin)
+     */
     protected abstract Packet<Message> waitForMessage();
 }

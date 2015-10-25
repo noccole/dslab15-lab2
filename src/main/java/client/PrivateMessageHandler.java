@@ -43,7 +43,7 @@ public class PrivateMessageHandler {
                 System.err.println("could not print private message: " + e);
             }
 
-            SendPrivateMessageResponse response = new SendPrivateMessageResponse(request);
+            final SendPrivateMessageResponse response = new SendPrivateMessageResponse(request);
 
             return new StateResult(new StateShutdownService(), response);
         }

@@ -30,7 +30,6 @@ public class Client implements IClientCli, Runnable {
 	private String username;
 
 	private MessageListener messageListener;
-	private MessageHandler messageHandler;
 	private MessageSender messageSender;
 
 	private MessageListener udpMessageListener;
@@ -88,7 +87,7 @@ public class Client implements IClientCli, Runnable {
 		messageSender = new ChannelMessageSender(channel);
 
 		StateMachine stateMachine = new StateMachine(state);
-		messageHandler = new StateMachineMessageHandler(stateMachine);
+		MessageHandler messageHandler = new StateMachineMessageHandler(stateMachine);
 
 		final CommandBus localBus = new CommandBus();
 		localBus.addMessageHandler(messageHandler);

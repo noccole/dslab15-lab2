@@ -33,18 +33,24 @@ public abstract class MessageHandler extends RepeatingTask {
             responsePacket.setRemoteAddress(requestPacket.getRemoteAddress());
             responsePacket.pack(response);
 
-            for (EventHandler eventHandler : eventHandlers) {
-                eventHandler.onMessageHandled(requestPacket, responsePacket);
+            synchronized (eventHandlers) {
+                for (EventHandler eventHandler : eventHandlers) {
+                    eventHandler.onMessageHandled(requestPacket, responsePacket);
+                }
             }
         }
     }
 
     public void addEventHandler(EventHandler eventHandler) {
-        eventHandlers.add(eventHandler);
+        synchronized (eventHandlers) {
+            eventHandlers.add(eventHandler);
+        }
     }
 
     public void removeEventHandler(EventHandler eventHandler) {
-        eventHandlers.remove(eventHandler);
+        synchronized (eventHandlers) {
+            eventHandlers.remove(eventHandler);
+        }
     }
 
     protected abstract Message consumeMessage(Message message);

@@ -17,8 +17,10 @@ public abstract class MessageListener extends RepeatingTask {
     protected void perform() throws InterruptedException {
         final Packet<Message> message = waitForMessage();
         if (message != null) {
-            for (EventHandler eventHandler : eventHandlers) {
-                eventHandler.onMessageReceived(message);
+            synchronized (eventHandlers) {
+                for (EventHandler eventHandler : eventHandlers) {
+                    eventHandler.onMessageReceived(message);
+                }
             }
         } else {
             throw new InterruptedException();
@@ -26,11 +28,15 @@ public abstract class MessageListener extends RepeatingTask {
     }
 
     public void addEventHandler(EventHandler eventHandler) {
-        eventHandlers.add(eventHandler);
+        synchronized (eventHandlers) {
+            eventHandlers.add(eventHandler);
+        }
     }
 
     public void removeEventHandler(EventHandler eventHandler) {
-        eventHandlers.remove(eventHandler);
+        synchronized (eventHandlers) {
+            eventHandlers.remove(eventHandler);
+        }
     }
 
     /**

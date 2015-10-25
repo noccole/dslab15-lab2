@@ -9,12 +9,12 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-class ServerSocketHandler extends RepeatingTask {
+class ServerSocketListener extends RepeatingTask {
     private final ServerSocket serverSocket;
     private final UserService userService;
     private final EventDistributor eventDistributor;
 
-    public ServerSocketHandler(ServerSocket serverSocket, UserService userService, EventDistributor eventDistributor) {
+    public ServerSocketListener(ServerSocket serverSocket, UserService userService, EventDistributor eventDistributor) {
         this.serverSocket = serverSocket;
         this.userService = userService;
         this.eventDistributor = eventDistributor;

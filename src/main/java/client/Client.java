@@ -218,6 +218,10 @@ public class Client implements IClientCli, Runnable {
 			} catch (Exception e) {
 				return "Wrong username or user not reachable.";
 			}
+
+			if (privateAddress == null) {
+				return "Wrong username or user not reachable.";
+			}
 		}
 
 		final Socket socket = new Socket(privateAddress.getHostname(), privateAddress.getPort());

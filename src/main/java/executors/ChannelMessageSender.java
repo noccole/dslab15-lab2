@@ -34,7 +34,9 @@ public class ChannelMessageSender extends MessageSender {
         try {
             channel.close();
         } catch (ChannelException e) {
-            e.printStackTrace();
+            System.err.println("could not close channel: " + e);
         }
+
+        super.onStopped();
     }
 }

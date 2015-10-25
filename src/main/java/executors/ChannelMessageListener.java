@@ -28,15 +28,4 @@ public class ChannelMessageListener extends MessageListener {
             return null;
         }
     }
-
-    @Override
-    protected void onStopped() {
-        try {
-            channel.close();
-        } catch (ChannelException e) {
-            System.err.println("could not close channel: " + e);
-        }
-
-        super.onStopped();
-    }
 }

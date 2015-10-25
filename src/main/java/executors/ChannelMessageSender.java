@@ -28,15 +28,4 @@ public class ChannelMessageSender extends MessageSender {
             System.err.println("could not send message " + e);
         }
     }
-
-    @Override
-    protected void onStopped() {
-        try {
-            channel.close();
-        } catch (ChannelException e) {
-            System.err.println("could not close channel: " + e);
-        }
-
-        super.onStopped();
-    }
 }

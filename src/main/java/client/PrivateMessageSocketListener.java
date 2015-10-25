@@ -39,15 +39,4 @@ public class PrivateMessageSocketListener extends RepeatingTask {
             System.err.println("could not accept client connection: " + e);
         }
     }
-
-    @Override
-    protected void onStopped() {
-        try {
-            serverSocket.close();
-        } catch (IOException e) {
-            System.err.println("could not close server socket: " + e);
-        }
-
-        super.onStopped();
-    }
 }

@@ -3,6 +3,7 @@ package chatserver;
 import channels.*;
 import cli.Command;
 import cli.Shell;
+import commands.ExitEvent;
 import entities.User;
 import executors.EventDistributor;
 import repositories.ConfigUserRepository;
@@ -118,6 +119,9 @@ public class Chatserver implements IChatserverCli, Runnable {
 	@Override
 	@Command
 	public String exit() throws IOException {
+		// inform all clients
+		eventDistributor.publish(new ExitEvent());
+
 		executorService.shutdown();
 		try {
 			executorService.awaitTermination(5, TimeUnit.SECONDS);

@@ -42,4 +42,8 @@ public abstract class State {
     public StateResult handleMessageEvent(MessageEvent event) throws StateException {
         return new StateResult(this);
     }
+
+    public StateResult handleExitEvent(ExitEvent event) throws StateException {
+        return new StateResult(this);
+    }
 }

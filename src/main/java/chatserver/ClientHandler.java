@@ -1,6 +1,7 @@
 package chatserver;
 
 import channels.Channel;
+import channels.ChannelException;
 import channels.Packet;
 import commands.*;
 import entities.User;
@@ -71,6 +72,17 @@ public class ClientHandler {
             }
 
             return new StateResult(nextState, response);
+        }
+
+        @Override
+        public StateResult handleExitEvent(ExitEvent event) throws StateException {
+            try {
+                channel.close();
+            } catch (ChannelException e) {
+                System.err.println("could not close channel");
+            }
+
+            return new StateResult(this);
         }
 
         @Override
@@ -146,6 +158,19 @@ public class ClientHandler {
             }
 
             return new StateResult(this, response);
+        }
+
+        @Override
+        public StateResult handleExitEvent(ExitEvent event) throws StateException {
+            userService.logout(user);
+
+            try {
+                channel.close();
+            } catch (ChannelException e) {
+                System.err.println("could not close channel");
+            }
+
+            return new StateResult(new StateOffline());
         }
 
         @Override

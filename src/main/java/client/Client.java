@@ -346,6 +346,18 @@ public class Client implements IClientCli, Runnable {
 			return new StateResult(this);
 		}
 
+		@Override
+		public StateResult handleExitEvent(ExitEvent event) throws StateException {
+			try {
+				shell.writeLine("Received exit from server, shutdown ...");
+				exit();
+			} catch (IOException e) {
+				System.err.println("calling exit() failed");
+			}
+
+			return new StateResult(this);
+		}
+
 		public String getLastPublicMessage() {
 			return lastPublicMessage;
 		}

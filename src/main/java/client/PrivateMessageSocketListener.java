@@ -22,6 +22,11 @@ public class PrivateMessageSocketListener extends RepeatingTask {
 
     @Override
     protected void perform() {
+        if (serverSocket.isClosed()) {
+            cancel(true);
+            return;
+        }
+
         try {
             final Socket clientSocket = serverSocket.accept();
 

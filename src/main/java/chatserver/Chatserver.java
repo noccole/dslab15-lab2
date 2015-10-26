@@ -103,14 +103,12 @@ public class Chatserver implements IChatserverCli, Runnable {
 	public String users() throws IOException {
 		final Map<String, User.Presence> userList = userService.getUserList();
 
-		String result = "Online users:";
+		String result = "";
 		for (Map.Entry<String, User.Presence> entry : userList.entrySet()) {
 			final String username = entry.getKey();
 			final User.Presence presence = entry.getValue();
 
-			if (presence == User.Presence.Available) {
-				result += "\n" + username;
-			}
+			result += username + (presence == User.Presence.Offline ? " offline" : " online") + "\n";
 		}
 
 		return result;

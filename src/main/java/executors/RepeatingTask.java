@@ -12,6 +12,10 @@ public abstract class RepeatingTask implements RunnableFuture {
 
     protected abstract void perform() throws InterruptedException;
 
+    protected void onCancelled() {
+
+    }
+
     @Override
     public void run() {
         while (!isCancelled()) {
@@ -27,7 +31,12 @@ public abstract class RepeatingTask implements RunnableFuture {
 
     @Override
     public boolean cancel(boolean b) {
-        return cancelled.compareAndSet(false, true);
+        if (cancelled.compareAndSet(false, true)) {
+            onCancelled();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override

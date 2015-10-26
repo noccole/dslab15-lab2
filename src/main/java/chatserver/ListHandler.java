@@ -1,6 +1,7 @@
 package chatserver;
 
 import channels.Channel;
+import channels.ChannelException;
 import channels.Packet;
 import commands.ListRequest;
 import commands.ListResponse;
@@ -17,17 +18,23 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 public class ListHandler {
+    private final Channel channel;
     private final UserService userService;
 
+    private final MessageListener listener;
+    private final MessageSender sender;
+    private final MessageHandler handler;
+
     public ListHandler(Channel channel, UserService userService, ExecutorService executorService) {
+        this.channel = channel;
         this.userService = userService;
 
-        final MessageListener listener = new ChannelMessageListener(channel);
-        final MessageSender sender = new ChannelMessageSender(channel);
+        listener = new ChannelMessageListener(channel);
+        sender = new ChannelMessageSender(channel);
 
         final State initialState = new StateListUsersService();
         final StateMachine stateMachine = new StateMachine(initialState);
-        final MessageHandler handler = new StateMachineMessageHandler(stateMachine);
+        handler = new StateMachineMessageHandler(stateMachine);
 
         listener.addEventHandler(new MessageListener.EventHandler() {
             @Override
@@ -45,6 +52,18 @@ public class ListHandler {
         executorService.submit(sender);
         executorService.submit(handler);
         executorService.submit(listener);
+    }
+
+    public void stop() {
+        try {
+            channel.close();
+        } catch (ChannelException e) {
+            System.err.println("could not close channel: " + e);
+        }
+
+        listener.cancel(true);
+        handler.cancel(true);
+        sender.cancel(true);
     }
 
     private class StateListUsersService extends State {

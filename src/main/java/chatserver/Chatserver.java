@@ -31,8 +31,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 	private final UserService userService;
 	private final EventDistributor eventDistributor;
 
-	private DatagramSocket serverUdpSocket;
-	private ServerSocket serverSocket;
+	private ListHandler listHandler;
 
 	/**
 	 * @param componentName
@@ -58,6 +57,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 	}
 
 	private void startListHandler() {
+		final DatagramSocket serverUdpSocket;
 		try {
 			serverUdpSocket = new DatagramSocket(config.getInt("udp.port"));
 		} catch (SocketException e) {
@@ -73,10 +73,11 @@ public class Chatserver implements IChatserverCli, Runnable {
 			return;
 		}
 
-		new ListHandler(udpChannel, userService, executorService);
+		listHandler = new ListHandler(udpChannel, userService, executorService);
 	}
 
 	private void startServerSocketListener() {
+		final ServerSocket serverSocket;
 		try {
 			serverSocket = new ServerSocket(config.getInt("tcp.port"));
 		} catch (IOException e) {
@@ -118,8 +119,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 		// inform all clients
 		eventDistributor.publish(new ExitEvent());
 
-		serverSocket.close();
-		serverUdpSocket.close();
+		listHandler.stop();
 
 		executorService.shutdown();
 		try {

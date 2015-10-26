@@ -18,7 +18,10 @@ public class ClientHandler {
     private final Channel channel;
     private final UserService userService;
     private final EventDistributor eventDistributor;
-    private MessageSender sender = null;
+
+    private final MessageListener listener;
+    private final MessageSender sender;
+    private final MessageHandler handler;
 
     public ClientHandler(Channel channel, UserService userService,
                          EventDistributor eventDistributor, ExecutorService executorService) {
@@ -26,12 +29,12 @@ public class ClientHandler {
         this.userService = userService;
         this.eventDistributor = eventDistributor;
 
-        final MessageListener listener = new ChannelMessageListener(channel);
+        listener = new ChannelMessageListener(channel);
         sender = new ChannelMessageSender(channel);
 
         final State initialState = new StateOffline();
         final StateMachine stateMachine = new StateMachine(initialState);
-        final MessageHandler handler = new StateMachineMessageHandler(stateMachine);
+        handler = new StateMachineMessageHandler(stateMachine);
 
         listener.addEventHandler(new MessageListener.EventHandler() {
             @Override
@@ -49,6 +52,18 @@ public class ClientHandler {
         executorService.submit(sender);
         executorService.submit(handler);
         executorService.submit(listener);
+    }
+
+    public void stop() {
+        try {
+            channel.close();
+        } catch (ChannelException e) {
+            System.err.println("could not close channel: " + e);
+        }
+
+        listener.cancel(true);
+        handler.cancel(true);
+        sender.cancel(true);
     }
 
     private class StateOffline extends State {
@@ -163,13 +178,7 @@ public class ClientHandler {
         @Override
         public StateResult handleExitEvent(ExitEvent event) throws StateException {
             userService.logout(user);
-
-            try {
-                channel.close();
-            } catch (ChannelException e) {
-                System.err.println("could not close channel");
-            }
-
+            stop();
             return new StateResult(new StateOffline());
         }
 

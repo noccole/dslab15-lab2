@@ -24,6 +24,10 @@ public abstract class MessageHandler extends RepeatingTask {
     @Override
     protected void perform() throws InterruptedException {
         final Packet<Message> requestPacket = messages.take();
+        if (isCancelled()) {
+            // a fake message was added in onCancelled
+            throw new InterruptedException();
+        }
 
         final Message request = requestPacket.unpack();
         final Message response = consumeMessage(request);
@@ -51,6 +55,13 @@ public abstract class MessageHandler extends RepeatingTask {
         synchronized (eventHandlers) {
             eventHandlers.remove(eventHandler);
         }
+    }
+
+    @Override
+    protected void onCancelled() {
+        handleMessage(new NetworkPacket<Message>()); // fake a packet to unblock perform
+
+        super.onCancelled();
     }
 
     protected abstract Message consumeMessage(Message message);

@@ -20,16 +20,20 @@ public class PrivateMessageHandler {
     private final Channel channel;
     private final Shell shell;
 
+    private final MessageListener listener;
+    private final MessageSender sender;
+    private final MessageHandler handler;
+
     public PrivateMessageHandler(Channel channel, Shell shell, ExecutorService executorService) {
         this.channel = channel;
         this.shell = shell;
 
-        final MessageListener listener = new ChannelMessageListener(channel);
-        final MessageSender sender = new ChannelMessageSender(channel);
+        listener = new ChannelMessageListener(channel);
+        sender = new ChannelMessageSender(channel);
 
         final State initialState = new StateOfferService();
         final StateMachine stateMachine = new StateMachine(initialState);
-        final MessageHandler handler = new StateMachineMessageHandler(stateMachine);
+        handler = new StateMachineMessageHandler(stateMachine);
 
         listener.addEventHandler(new MessageListener.EventHandler() {
             @Override
@@ -47,6 +51,18 @@ public class PrivateMessageHandler {
         executorService.submit(sender);
         executorService.submit(handler);
         executorService.submit(listener);
+    }
+
+    public void stop() {
+        try {
+            channel.close();
+        } catch (ChannelException e) {
+            System.err.println("could not close channel: " + e);
+        }
+
+        listener.cancel(true);
+        handler.cancel(true);
+        sender.cancel(true);
     }
 
     private class StateOfferService extends State {
@@ -72,11 +88,7 @@ public class PrivateMessageHandler {
     private class StateShutdownService extends State {
         @Override
         public void onEntered() throws StateException {
-            try {
-                channel.close();
-            } catch (ChannelException e) {
-                System.err.println("could not close channel: " + e);
-            }
+            stop();
         }
 
         @Override

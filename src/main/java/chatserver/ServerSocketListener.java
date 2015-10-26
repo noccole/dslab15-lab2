@@ -48,4 +48,15 @@ class ServerSocketListener extends RepeatingTask {
             System.err.println("could not accept client connection: " + e);
         }
     }
+
+    @Override
+    protected void onCancelled() {
+        try {
+            serverSocket.close();
+        } catch (IOException e) {
+            System.err.println("could not close server socket: " + e);
+        }
+
+        super.onCancelled();
+    }
 }

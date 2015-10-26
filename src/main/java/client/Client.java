@@ -293,7 +293,7 @@ public class Client implements IClientCli, Runnable {
 		PrivateMessageSocketListener listener = new PrivateMessageSocketListener(serverSocket, shell, executorService);
 		executorService.submit(listener);
 
-		return "Successfully registered address for ME."; // FIXME replace ME with username and start listener
+		return "Successfully registered address for " + username + ".";
 	}
 	
 	@Override

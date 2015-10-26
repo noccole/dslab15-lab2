@@ -57,12 +57,12 @@ public class Chatserver implements IChatserverCli, Runnable {
 		eventDistributor = new EventDistributor();
 	}
 
-	private ListHandler createListHandler() {
+	private void startListHandler() {
 		try {
 			serverUdpSocket = new DatagramSocket(config.getInt("udp.port"));
 		} catch (SocketException e) {
 			e.printStackTrace();
-			return null;
+			return;
 		}
 
 		Channel udpChannel;
@@ -70,31 +70,28 @@ public class Chatserver implements IChatserverCli, Runnable {
 			udpChannel = new MessageChannel(new Base64Channel(new UdpChannel(serverUdpSocket)));
 		} catch (ChannelException e) {
 			e.printStackTrace();
-			return null;
+			return;
 		}
 
-		return new ListHandler(udpChannel, userService, executorService);
+		new ListHandler(udpChannel, userService, executorService);
 	}
 
-	private ServerSocketListener createServerSocketHandler() {
+	private void startServerSocketListener() {
 		try {
 			serverSocket = new ServerSocket(config.getInt("tcp.port"));
 		} catch (IOException e) {
 			e.printStackTrace();
-			return null;
+			return;
 		}
 
-		return new ServerSocketListener(serverSocket, userService, eventDistributor, executorService);
+		final ServerSocketListener listener = new ServerSocketListener(serverSocket, userService, eventDistributor, executorService);
+		executorService.submit(listener);
 	}
 
 	@Override
 	public void run() {
-		createListHandler();
-
-		ServerSocketListener serverSocketListener = createServerSocketHandler();
-		if (serverSocketListener != null) {
-			executorService.submit(serverSocketListener);
-		}
+		startListHandler();
+		startServerSocketListener();
 
 		new Thread(shell).start();
 	}

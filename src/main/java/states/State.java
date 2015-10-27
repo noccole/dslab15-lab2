@@ -1,6 +1,6 @@
 package states;
 
-import commands.*;
+import messages.*;
 
 public abstract class State {
     public void onEntered() throws StateException {

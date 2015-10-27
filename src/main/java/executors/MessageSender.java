@@ -1,7 +1,7 @@
 package executors;
 
 import channels.Packet;
-import commands.Message;
+import messages.Message;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;

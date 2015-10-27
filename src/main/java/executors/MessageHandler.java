@@ -2,7 +2,7 @@ package executors;
 
 import channels.NetworkPacket;
 import channels.Packet;
-import commands.Message;
+import messages.Message;
 
 import java.util.HashSet;
 import java.util.Set;

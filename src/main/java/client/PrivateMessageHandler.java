@@ -1,8 +1,8 @@
 package client;
 
 import channels.Channel;
-import commands.SendPrivateMessageRequest;
-import commands.SendPrivateMessageResponse;
+import messages.SendPrivateMessageRequest;
+import messages.SendPrivateMessageResponse;
 import states.State;
 import states.StateException;
 import states.StateResult;

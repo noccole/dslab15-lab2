@@ -1,4 +1,4 @@
-package commands;
+package messages;
 
 import entities.PrivateAddress;
 

@@ -1,17 +1,17 @@
-package commands;
+package messages;
 
 import states.State;
 import states.StateException;
 import states.StateResult;
 
-public class ListRequest extends Request {
+public class LogoutRequest extends Request {
     @Override
     public StateResult applyTo(State state) throws StateException {
-        return state.handleListRequest(this);
+        return state.handleLogoutRequest(this);
     }
 
     @Override
     public String toString() {
-        return "list";
+        return "logout";
     }
 }

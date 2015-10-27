@@ -1,4 +1,4 @@
-package commands;
+package messages;
 
 public class LogoutResponse extends Response {
     public LogoutResponse(LogoutRequest request) {

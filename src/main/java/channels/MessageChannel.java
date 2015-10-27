@@ -1,6 +1,6 @@
 package channels;
 
-import commands.Message;
+import messages.Message;
 
 import java.io.*;
 

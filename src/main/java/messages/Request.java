@@ -1,4 +1,4 @@
-package commands;
+package messages;
 
 import java.util.concurrent.atomic.AtomicLong;
 

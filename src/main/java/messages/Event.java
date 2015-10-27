@@ -1,4 +1,4 @@
-package commands;
+package messages;
 
 public abstract class Event implements Message {
     @Override

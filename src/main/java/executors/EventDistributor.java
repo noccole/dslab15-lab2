@@ -3,8 +3,8 @@ package executors;
 
 import channels.NetworkPacket;
 import channels.Packet;
-import commands.Event;
-import commands.Message;
+import messages.Event;
+import messages.Message;
 
 import java.util.HashSet;
 import java.util.Set;

@@ -1,7 +1,7 @@
 package client;
 
 import channels.Channel;
-import commands.*;
+import messages.*;
 import states.State;
 import states.StateException;
 import states.StateResult;

@@ -2,9 +2,9 @@ package chatserver;
 
 import channels.Channel;
 import channels.ChannelException;
-import commands.*;
 import entities.User;
 import executors.EventDistributor;
+import messages.*;
 import service.UserService;
 import shared.HandlerBase;
 import states.State;

@@ -1,12 +1,11 @@
-package commands;
+package messages;
 
 import states.State;
 import states.StateException;
 import states.StateResult;
 
-public class LoginRequest extends Request {
+public class LookupRequest extends Request {
     private String username;
-    private String password;
 
     public String getUsername() {
         return username;
@@ -16,21 +15,13 @@ public class LoginRequest extends Request {
         this.username = username;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     @Override
     public StateResult applyTo(State state) throws StateException {
-        return state.handleLoginRequest(this);
+        return state.handleLookupRequest(this);
     }
 
     @Override
     public String toString() {
-        return "login";
+        return "lookup";
     }
 }

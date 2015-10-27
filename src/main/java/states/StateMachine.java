@@ -1,6 +1,6 @@
 package states;
 
-import commands.Message;
+import messages.Message;
 
 public class StateMachine {
     private State state;

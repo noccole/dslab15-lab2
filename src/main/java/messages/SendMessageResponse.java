@@ -1,4 +1,4 @@
-package commands;
+package messages;
 
 public class SendMessageResponse extends Response {
     public SendMessageResponse(SendMessageRequest request) {

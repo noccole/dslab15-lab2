@@ -1,4 +1,4 @@
-package commands;
+package messages;
 
 public class SendPrivateMessageResponse extends Response {
     public SendPrivateMessageResponse(SendPrivateMessageRequest request) {

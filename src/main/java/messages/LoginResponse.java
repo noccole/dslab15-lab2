@@ -1,4 +1,4 @@
-package commands;
+package messages;
 
 public class LoginResponse extends Response {
     private boolean success;

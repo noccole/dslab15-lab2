@@ -1,4 +1,4 @@
-package commands;
+package messages;
 
 public class RegisterResponse extends Response {
     public RegisterResponse(RegisterRequest request) {

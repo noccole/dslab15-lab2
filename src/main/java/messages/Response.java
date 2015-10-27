@@ -1,4 +1,4 @@
-package commands;
+package messages;
 
 import states.State;
 import states.StateException;

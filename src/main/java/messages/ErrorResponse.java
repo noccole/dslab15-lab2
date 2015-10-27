@@ -1,4 +1,4 @@
-package commands;
+package messages;
 
 public class ErrorResponse extends Response {
     private String reason;

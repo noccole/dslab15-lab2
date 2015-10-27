@@ -3,8 +3,8 @@ package shared;
 import channels.Channel;
 import channels.ChannelException;
 import channels.Packet;
-import commands.Message;
 import executors.*;
+import messages.Message;
 import states.State;
 import states.StateMachine;
 

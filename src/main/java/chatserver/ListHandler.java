@@ -1,9 +1,9 @@
 package chatserver;
 
 import channels.Channel;
-import commands.ListRequest;
-import commands.ListResponse;
 import entities.User;
+import messages.ListRequest;
+import messages.ListResponse;
 import service.UserService;
 import shared.HandlerBase;
 import states.State;

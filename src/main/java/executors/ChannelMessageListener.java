@@ -3,7 +3,7 @@ package executors;
 import channels.Channel;
 import channels.ChannelException;
 import channels.Packet;
-import commands.Message;
+import messages.Message;
 
 public class ChannelMessageListener extends MessageListener {
     private final Channel<Message> channel;

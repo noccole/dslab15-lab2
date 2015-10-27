@@ -1,20 +1,11 @@
-package commands;
+package messages;
 
 import states.State;
 import states.StateException;
 import states.StateResult;
 
-public class SendPrivateMessageRequest extends Request {
-    private String sender;
+public class SendMessageRequest extends Request {
     private String message;
-
-    public String getSender() {
-        return sender;
-    }
-
-    public void setSender(String sender) {
-        this.sender = sender;
-    }
 
     public String getMessage() {
         return message;
@@ -26,11 +17,11 @@ public class SendPrivateMessageRequest extends Request {
 
     @Override
     public StateResult applyTo(State state) throws StateException {
-        return state.handleSendPrivateMessageRequest(this);
+        return state.handleSendMessageRequest(this);
     }
 
     @Override
     public String toString() {
-        return "send private message";
+        return "send message";
     }
 }

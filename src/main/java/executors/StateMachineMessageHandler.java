@@ -1,7 +1,7 @@
 package executors;
 
-import commands.ErrorResponse;
-import commands.Message;
+import messages.ErrorResponse;
+import messages.Message;
 import states.StateException;
 import states.StateMachine;
 

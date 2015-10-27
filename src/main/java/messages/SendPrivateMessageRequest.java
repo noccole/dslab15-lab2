@@ -1,19 +1,19 @@
-package commands;
+package messages;
 
 import states.State;
 import states.StateException;
 import states.StateResult;
 
-public class MessageEvent extends Event {
-    private String username;
+public class SendPrivateMessageRequest extends Request {
+    private String sender;
     private String message;
 
-    public String getUsername() {
-        return username;
+    public String getSender() {
+        return sender;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setSender(String sender) {
+        this.sender = sender;
     }
 
     public String getMessage() {
@@ -26,11 +26,11 @@ public class MessageEvent extends Event {
 
     @Override
     public StateResult applyTo(State state) throws StateException {
-        return state.handleMessageEvent(this);
+        return state.handleSendPrivateMessageRequest(this);
     }
 
     @Override
     public String toString() {
-        return "message event";
+        return "send private message";
     }
 }

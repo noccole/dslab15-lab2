@@ -6,11 +6,6 @@ import cli.Shell;
 import commands.*;
 import entities.PrivateAddress;
 import entities.User;
-import executors.*;
-import states.State;
-import states.StateException;
-import states.StateMachine;
-import states.StateResult;
 import util.Config;
 
 import java.io.IOException;
@@ -20,7 +15,6 @@ import java.net.*;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 public class Client implements IClientCli, Runnable {
@@ -30,16 +24,10 @@ public class Client implements IClientCli, Runnable {
 	private final Config config;
 
 	private String username;
+	private String lastPublicMessage = "No message received !";
 
-	private MessageListener messageListener;
-	private MessageSender messageSender;
-
-	private MessageListener udpMessageListener;
-	private MessageSender udpMessageSender;
-
-	private ExecutorService executor = Executors.newCachedThreadPool();
-
-	private final ClientMainState state = new ClientMainState();
+	private ClientHandler tcpRequester;
+	private ClientHandler udpRequester;
 
 	/**
 	 * @param componentName
@@ -58,21 +46,11 @@ public class Client implements IClientCli, Runnable {
 		shell.register(this);
 	}
 
-	@Override
-	public void run() {
+	private void startTcpHandler() {
 		Socket socket;
 		try {
 			socket = new Socket(config.getString("chatserver.host"), config.getInt("chatserver.tcp.port"));
 		} catch (IOException e) {
-			e.printStackTrace();
-			return;
-		}
-
-		DatagramSocket udpSocket;
-		try {
-			udpSocket = new DatagramSocket();
-			udpSocket.connect(InetAddress.getByName(config.getString("chatserver.host")), config.getInt("chatserver.udp.port"));
-		} catch (UnknownHostException | SocketException e) {
 			e.printStackTrace();
 			return;
 		}
@@ -85,44 +63,76 @@ public class Client implements IClientCli, Runnable {
 			return;
 		}
 
-		messageListener = new ChannelMessageListener(channel);
-		messageSender = new ChannelMessageSender(channel);
-
-		StateMachine stateMachine = new StateMachine(state);
-		final MessageHandler messageHandler = new StateMachineMessageHandler(stateMachine);
-
-		messageListener.addEventHandler(new MessageListener.EventHandler() {
+		tcpRequester = new ClientHandler(channel, executorService);
+		tcpRequester.addEventHandler(new ClientHandlerBase.EventHandler() {
 			@Override
-			public void onMessageReceived(Packet<Message> message) {
-				messageHandler.handleMessage(message);
+			public void onMessageReceived(String message) {
+				lastPublicMessage = message;
+
+				try {
+					shell.writeLine(message);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+
+			@Override
+			public void onExit() {
+				try {
+					exit();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		});
+	}
 
-		executorService.submit(messageSender);
-		executorService.submit(messageHandler);
-		executorService.submit(messageListener);
-
-		Channel udpChannel;
+	private void startUdpHandler() {
+		DatagramSocket socket;
 		try {
-			udpChannel = new MessageChannel(new Base64Channel(new UdpChannel(udpSocket)));
+			socket = new DatagramSocket();
+			socket.connect(InetAddress.getByName(config.getString("chatserver.host")), config.getInt("chatserver.udp.port"));
+		} catch (UnknownHostException | SocketException e) {
+			e.printStackTrace();
+			return;
+		}
+
+		Channel channel;
+		try {
+			channel = new MessageChannel(new Base64Channel(new UdpChannel(socket)));
 		} catch (ChannelException e) {
 			e.printStackTrace();
 			return;
 		}
 
-		udpMessageListener = new ChannelMessageListener(udpChannel);
-		udpMessageSender = new ChannelMessageSender(udpChannel);
+		udpRequester = new ClientHandler(channel, executorService);
+		udpRequester.addEventHandler(new ClientHandlerBase.EventHandler() {
+			@Override
+			public void onMessageReceived(String message) {
+				try {
+					shell.writeLine(message);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 
-		executorService.submit(udpMessageSender);
-		executorService.submit(udpMessageListener);
-
-		new Thread(shell).start();
+			@Override
+			public void onExit() {
+				try {
+					exit();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		});
 	}
 
-	private <RequestType extends Request, ResponseType extends Response> ResponseType syncRequest(RequestType request) throws Exception {
-		final AsyncRequest<RequestType, ResponseType> asyncRequest = new AsyncRequest<>(request, messageListener, messageSender);
-		final Future<ResponseType> future = executor.submit(asyncRequest);
-		return future.get(5, TimeUnit.SECONDS);
+	@Override
+	public void run() {
+		startUdpHandler();
+		startTcpHandler();
+
+		new Thread(shell).start();
 	}
 
 	@Override
@@ -133,7 +143,7 @@ public class Client implements IClientCli, Runnable {
 		request.setPassword(password);
 
 		try {
-			LoginResponse response = syncRequest(request);
+			LoginResponse response = tcpRequester.syncRequest(request);
 			if (response.isSuccess()) {
 				this.username = username;
 				return "Successfully logged in.";
@@ -151,7 +161,7 @@ public class Client implements IClientCli, Runnable {
 		LogoutRequest request = new LogoutRequest();
 
 		try {
-			LogoutResponse response = syncRequest(request);
+			LogoutResponse response = tcpRequester.syncRequest(request);
 			this.username = null;
 			return "Successfully logged out.";
 		} catch (Exception e) {
@@ -166,7 +176,7 @@ public class Client implements IClientCli, Runnable {
 		request.setMessage(message);
 
 		try {
-			SendMessageResponse response = syncRequest(request);
+			SendMessageResponse response = tcpRequester.syncRequest(request);
 			return "Successfully send message.";
 		} catch (Exception e) {
 			return e.getMessage();
@@ -179,9 +189,7 @@ public class Client implements IClientCli, Runnable {
 		ListRequest request = new ListRequest();
 
 		try {
-			final AsyncRequest<ListRequest, ListResponse> asyncRequest = new AsyncRequest<>(request, udpMessageListener, udpMessageSender);
-			final Future<ListResponse> future = executor.submit(asyncRequest);
-			ListResponse response =  future.get(3, TimeUnit.SECONDS);
+			ListResponse response =  udpRequester.syncRequest(request);
 
 			String result = "Online users:";
 			for (Map.Entry<String, User.Presence> entry : response.getUserList().entrySet()) {
@@ -213,7 +221,7 @@ public class Client implements IClientCli, Runnable {
 			lookupRequest.setUsername(username);
 
 			try {
-				LookupResponse response = syncRequest(lookupRequest);
+				LookupResponse response = tcpRequester.syncRequest(lookupRequest);
 				privateAddress = response.getPrivateAddress();
 			} catch (Exception e) {
 				return "Wrong username or user not reachable.";
@@ -233,23 +241,17 @@ public class Client implements IClientCli, Runnable {
 			return "Wrong username or user not reachable.";
 		}
 
-		final MessageListener listener = new ChannelMessageListener(channel);
-		final MessageSender sender = new ChannelMessageSender(channel);
-
-		executorService.submit(sender);
-		executorService.submit(listener);
+		final ClientHandler requester = new ClientHandler(channel, executorService);
 
 		String result;
 		try {
-			final AsyncRequest<SendPrivateMessageRequest, SendPrivateMessageResponse> asyncRequest = new AsyncRequest<>(request, listener, sender);
-			final Future<SendPrivateMessageResponse> future = executor.submit(asyncRequest);
-			SendPrivateMessageResponse response = future.get(3, TimeUnit.SECONDS);
+			SendPrivateMessageResponse response = requester.syncRequest(request);
 			result = username + " replied with !ack.";
 		} catch (Exception e) {
 			result = e.getMessage();
-		} finally {
-			socket.close();
 		}
+
+		requester.stop();
 
 		return result;
 	}
@@ -261,7 +263,7 @@ public class Client implements IClientCli, Runnable {
 		request.setUsername(username);
 
 		try {
-			LookupResponse response = syncRequest(request);
+			LookupResponse response = tcpRequester.syncRequest(request);
 			return String.valueOf(response.getPrivateAddress());
 		} catch (Exception e) {
 			return null;
@@ -284,7 +286,7 @@ public class Client implements IClientCli, Runnable {
 		request.setPrivateAddress(address);
 
 		try {
-			RegisterResponse response = syncRequest(request);
+			RegisterResponse response = tcpRequester.syncRequest(request);
 		} catch (Exception e) {
 			return e.getMessage();
 		}
@@ -299,13 +301,16 @@ public class Client implements IClientCli, Runnable {
 	@Override
 	@Command
 	public String lastMsg() throws IOException {
-		return state.getLastPublicMessage();
+		return lastPublicMessage;
 	}
 
 	@Override
 	@Command
 	public String exit() throws IOException {
 		logout();
+
+		tcpRequester.stop();
+		udpRequester.stop();
 
 		executorService.shutdown();
 		try {
@@ -337,43 +342,5 @@ public class Client implements IClientCli, Runnable {
 	public String authenticate(String username) throws IOException {
 		// TODO Auto-generated method stub
 		return null;
-	}
-
-	private class ClientMainState extends State {
-		private String lastPublicMessage = "No message received !";
-
-		@Override
-		public StateResult handleMessageEvent(MessageEvent event) throws StateException {
-			lastPublicMessage = event.getUsername() + ": " + event.getMessage();
-
-			try {
-				shell.writeLine(lastPublicMessage);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-
-			return new StateResult(this);
-		}
-
-		@Override
-		public StateResult handleExitEvent(ExitEvent event) throws StateException {
-			try {
-				shell.writeLine("Received exit from server, shutdown ...");
-				exit();
-			} catch (IOException e) {
-				System.err.println("calling exit() failed");
-			}
-
-			return new StateResult(this);
-		}
-
-		public String getLastPublicMessage() {
-			return lastPublicMessage;
-		}
-
-		@Override
-		public String toString() {
-			return "client state online";
-		}
 	}
 }

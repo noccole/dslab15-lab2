@@ -9,7 +9,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 
-public class PrivateMessageSocketListener extends RepeatingTask {
+class PrivateMessageSocketListener extends RepeatingTask {
     private final ServerSocket serverSocket;
     private final Shell shell;
     private final ExecutorService executorService;

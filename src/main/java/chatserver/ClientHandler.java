@@ -14,7 +14,7 @@ import states.StateResult;
 
 import java.util.concurrent.ExecutorService;
 
-public class ClientHandler {
+class ClientHandler {
     private final Channel channel;
     private final UserService userService;
     private final EventDistributor eventDistributor;

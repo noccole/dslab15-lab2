@@ -16,7 +16,7 @@ import states.StateResult;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 
-public class PrivateMessageHandler {
+class PrivateMessageHandler {
     private final Channel channel;
     private final Shell shell;
 

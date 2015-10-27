@@ -1,38 +1,28 @@
-package chatserver;
+package shared;
 
 import channels.Channel;
 import channels.ChannelException;
 import channels.Packet;
-import commands.ListRequest;
-import commands.ListResponse;
 import commands.Message;
-import entities.User;
 import executors.*;
-import service.UserService;
 import states.State;
-import states.StateException;
 import states.StateMachine;
-import states.StateResult;
 
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
-class ListHandler {
-    private final Channel channel;
-    private final UserService userService;
+public abstract class HandlerBase {
+    private Channel channel;
 
-    private final MessageListener listener;
-    private final MessageSender sender;
-    private final MessageHandler handler;
+    private MessageListener listener;
+    private MessageHandler handler;
+    private MessageSender sender;
 
-    public ListHandler(Channel channel, UserService userService, ExecutorService executorService) {
+    protected void init(Channel channel, ExecutorService executorService, State initialState) {
         this.channel = channel;
-        this.userService = userService;
 
         listener = new ChannelMessageListener(channel);
         sender = new ChannelMessageSender(channel);
 
-        final State initialState = new StateListUsersService();
         final StateMachine stateMachine = new StateMachine(initialState);
         handler = new StateMachineMessageHandler(stateMachine);
 
@@ -54,6 +44,18 @@ class ListHandler {
         executorService.submit(listener);
     }
 
+    protected MessageListener getListener() {
+        return listener;
+    }
+
+    protected MessageHandler getHandler() {
+        return handler;
+    }
+
+    protected MessageSender getSender() {
+        return sender;
+    }
+
     public void stop() {
         try {
             channel.close();
@@ -64,22 +66,5 @@ class ListHandler {
         listener.cancel(true);
         handler.cancel(true);
         sender.cancel(true);
-    }
-
-    private class StateListUsersService extends State {
-        @Override
-        public StateResult handleListRequest(ListRequest request) throws StateException {
-            final Map<String, User.Presence> userList = userService.getUserList();
-
-            final ListResponse response = new ListResponse(request);
-            response.setUserList(userList);
-
-            return new StateResult(this, response);
-        }
-
-        @Override
-        public String toString() {
-            return "state list users service";
-        }
     }
 }

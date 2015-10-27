@@ -112,7 +112,7 @@ class ClientHandler extends HandlerBase {
 
         @Override
         public StateResult handleRegisterRequest(RegisterRequest request) throws StateException {
-            user.setPrivateAddress(request.getPrivateAddress());
+            user.addPrivateAddress(request.getPrivateAddress());
 
             final RegisterResponse response = new RegisterResponse(request);
 
@@ -123,12 +123,16 @@ class ClientHandler extends HandlerBase {
         public StateResult handleLookupRequest(LookupRequest request) throws StateException {
             final User requestedUser = userService.find(request.getUsername());
 
-            final LookupResponse response = new LookupResponse(request);
             if (requestedUser != null) {
-                response.setPrivateAddress(requestedUser.getPrivateAddress());
-            }
+                final LookupResponse response = new LookupResponse(request);
+                response.setPrivateAddresses(requestedUser.getPrivateAddresses());
 
-            return new StateResult(this, response);
+                return new StateResult(this, response);
+            } else {
+                final ErrorResponse response = new ErrorResponse(request);
+                response.setReason("user '" + request.getUsername() + "' not found");
+                return new StateResult(this, response);
+            }
         }
 
         @Override

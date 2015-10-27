@@ -1,5 +1,8 @@
 package entities;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 public class User {
     public enum Presence {
         Available,
@@ -9,7 +12,7 @@ public class User {
     private final String username;
     private String password;
     private Presence presence;
-    private PrivateAddress privateAddress;
+    private Collection<PrivateAddress> privateAddresses = new ArrayList<>();
 
     public User(String username) {
         this.username = username;
@@ -36,11 +39,15 @@ public class User {
         this.presence = presence;
     }
 
-    public PrivateAddress getPrivateAddress() {
-        return privateAddress;
+    public Collection<PrivateAddress> getPrivateAddresses() {
+        return privateAddresses;
     }
 
-    public void setPrivateAddress(PrivateAddress privateAddress) {
-        this.privateAddress = privateAddress;
+    public void addPrivateAddress(PrivateAddress address) {
+        privateAddresses.add(address);
+    }
+
+    public void clearPrivateAddresses() {
+        privateAddresses.clear();
     }
 }

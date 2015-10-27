@@ -2,19 +2,21 @@ package messages;
 
 import entities.PrivateAddress;
 
+import java.util.Collection;
+
 public class LookupResponse extends Response {
-    private PrivateAddress privateAddress;
+    private Collection<PrivateAddress> privateAddresses;
 
     public LookupResponse(LookupRequest request) {
         super(request);
     }
 
-    public PrivateAddress getPrivateAddress() {
-        return privateAddress;
+    public Collection<PrivateAddress> getPrivateAddresses() {
+        return privateAddresses;
     }
 
-    public void setPrivateAddress(PrivateAddress privateAddress) {
-        this.privateAddress = privateAddress;
+    public void setPrivateAddresses(Collection<PrivateAddress> privateAddresses) {
+        this.privateAddresses = privateAddresses;
     }
 
     @Override

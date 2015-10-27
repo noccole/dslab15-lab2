@@ -32,7 +32,7 @@ public class UserService {
     }
 
     public void logout(User user) {
-        user.setPrivateAddress(null);
+        user.clearPrivateAddresses();
         user.setPresence(User.Presence.Offline);
     }
 

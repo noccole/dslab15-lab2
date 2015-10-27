@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.*;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -218,45 +219,41 @@ public class Client implements IClientCli, Runnable {
 		request.setMessage(message);
 
 		// lookup user address
-		final PrivateAddress privateAddress;
+		final Collection<PrivateAddress> privateAddresses;
 		{
 			LookupRequest lookupRequest = new LookupRequest();
 			lookupRequest.setUsername(username);
 
 			try {
 				LookupResponse response = tcpRequester.syncRequest(lookupRequest);
-				privateAddress = response.getPrivateAddress();
+				privateAddresses = response.getPrivateAddresses();
 			} catch (Exception e) {
 				return "Wrong username or user not reachable.";
 			}
+		}
 
-			if (privateAddress == null) {
-				return "Wrong username or user not reachable.";
+		for (PrivateAddress privateAddress : privateAddresses) {
+			final Socket socket = new Socket(privateAddress.getHostname(), privateAddress.getPort());
+			final Channel channel;
+			try {
+				channel = new MessageChannel(new Base64Channel(new TcpChannel(socket)));
+			} catch (ChannelException e) {
+				socket.close();
+				continue; // try next address
+			}
+
+			final ClientHandler requester = new ClientHandler(channel, executorService);
+			try {
+				SendPrivateMessageResponse response = requester.syncRequest(request);
+				requester.stop();
+				return username + " replied with !ack."; // success
+			} catch (Exception e) {
+				requester.stop();
+				continue; // try next address
 			}
 		}
 
-		final Socket socket = new Socket(privateAddress.getHostname(), privateAddress.getPort());
-		final Channel channel;
-		try {
-			channel = new MessageChannel(new Base64Channel(new TcpChannel(socket)));
-		} catch (ChannelException e) {
-			socket.close();
-			return "Wrong username or user not reachable.";
-		}
-
-		final ClientHandler requester = new ClientHandler(channel, executorService);
-
-		String result;
-		try {
-			SendPrivateMessageResponse response = requester.syncRequest(request);
-			result = username + " replied with !ack.";
-		} catch (Exception e) {
-			result = e.getMessage();
-		}
-
-		requester.stop();
-
-		return result;
+		return "Wrong username or user not reachable.";
 	}
 
 	@Override
@@ -267,9 +264,14 @@ public class Client implements IClientCli, Runnable {
 
 		try {
 			LookupResponse response = tcpRequester.syncRequest(request);
-			return String.valueOf(response.getPrivateAddress());
+
+			String result = "";
+			for (PrivateAddress privateAddress : response.getPrivateAddresses()) {
+				result += String.valueOf(privateAddress) + "\n";
+			}
+			return result;
 		} catch (Exception e) {
-			return null;
+			return "";
 		}
 	}
 

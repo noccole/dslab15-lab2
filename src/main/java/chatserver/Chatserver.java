@@ -102,7 +102,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 		startListHandler();
 		startServerSocketListener();
 
-		new Thread(shell).start();
+		executorService.submit(shell);
 	}
 
 	@Override
@@ -150,7 +150,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 		final Config config = new Config("chatserver");
 		final Chatserver chatserver = new Chatserver(args[0], config, System.in, System.out);
 
-		new Thread(chatserver).start();
+		chatserver.run();
 	}
 
 }

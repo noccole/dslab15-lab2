@@ -135,7 +135,7 @@ public class Client implements IClientCli, Runnable {
 		startUdpHandler();
 		startTcpHandler();
 
-		new Thread(shell).start();
+		executorService.submit(shell);
 	}
 
 	@Override
@@ -340,7 +340,7 @@ public class Client implements IClientCli, Runnable {
 		final Config config = new Config("client");
 		final Client client = new Client(args[0], config, System.in, System.out);
 
-		new Thread(client).start();
+		client.run();
 	}
 
 	// --- Commands needed for Lab 2. Please note that you do not have to

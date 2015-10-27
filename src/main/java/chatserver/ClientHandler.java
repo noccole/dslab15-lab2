@@ -2,26 +2,21 @@ package chatserver;
 
 import channels.Channel;
 import channels.ChannelException;
-import channels.Packet;
 import commands.*;
 import entities.User;
-import executors.*;
+import executors.EventDistributor;
 import service.UserService;
+import shared.HandlerBase;
 import states.State;
 import states.StateException;
-import states.StateMachine;
 import states.StateResult;
 
 import java.util.concurrent.ExecutorService;
 
-class ClientHandler {
+class ClientHandler extends HandlerBase {
     private final Channel channel;
     private final UserService userService;
     private final EventDistributor eventDistributor;
-
-    private final MessageListener listener;
-    private final MessageSender sender;
-    private final MessageHandler handler;
 
     public ClientHandler(Channel channel, UserService userService,
                          EventDistributor eventDistributor, ExecutorService executorService) {
@@ -29,41 +24,7 @@ class ClientHandler {
         this.userService = userService;
         this.eventDistributor = eventDistributor;
 
-        listener = new ChannelMessageListener(channel);
-        sender = new ChannelMessageSender(channel);
-
-        final State initialState = new StateOffline();
-        final StateMachine stateMachine = new StateMachine(initialState);
-        handler = new StateMachineMessageHandler(stateMachine);
-
-        listener.addEventHandler(new MessageListener.EventHandler() {
-            @Override
-            public void onMessageReceived(Packet<Message> message) {
-                handler.handleMessage(message);
-            }
-        });
-        handler.addEventHandler(new MessageHandler.EventHandler() {
-            @Override
-            public void onMessageHandled(Packet<Message> message, Packet<Message> result) {
-                sender.sendMessage(result);
-            }
-        });
-
-        executorService.submit(sender);
-        executorService.submit(handler);
-        executorService.submit(listener);
-    }
-
-    public void stop() {
-        try {
-            channel.close();
-        } catch (ChannelException e) {
-            System.err.println("could not close channel: " + e);
-        }
-
-        listener.cancel(true);
-        handler.cancel(true);
-        sender.cancel(true);
+        init(channel, executorService, new StateOffline());
     }
 
     private class StateOffline extends State {
@@ -99,11 +60,6 @@ class ClientHandler {
 
             return new StateResult(this);
         }
-
-        @Override
-        public String toString() {
-            return "client state offline";
-        }
     }
 
     private class StateOnline extends State {
@@ -124,12 +80,12 @@ class ClientHandler {
             };
             channel.addEventHandler(channelEventHandler);
 
-            eventDistributor.subscribe(sender);
+            eventDistributor.subscribe(getSender());
         }
 
         @Override
         public void onExited() throws StateException {
-            eventDistributor.unsubscribe(sender);
+            eventDistributor.unsubscribe(getSender());
             channel.removeEventHandler(channelEventHandler);
         }
 
@@ -180,11 +136,6 @@ class ClientHandler {
             userService.logout(user);
             stop();
             return new StateResult(new StateOffline());
-        }
-
-        @Override
-        public String toString() {
-            return "client state online";
         }
     }
 }

@@ -32,8 +32,7 @@ class ClientHandler extends ClientHandlerBase {
     private class ClientMainState extends State {
         @Override
         public StateResult handleMessageEvent(MessageEvent event) throws StateException {
-            final String message = event.getUsername() + ": " + event.getMessage();
-            emitMessageReceived(message);
+            emitMessageReceived(event.getUsername() + ": " + event.getMessage());
 
             return new StateResult(this);
         }
@@ -43,11 +42,6 @@ class ClientHandler extends ClientHandlerBase {
             emitExit();
 
             return new StateResult(this);
-        }
-
-        @Override
-        public String toString() {
-            return "client state online";
         }
     }
 }

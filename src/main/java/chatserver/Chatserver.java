@@ -9,6 +9,9 @@ import executors.EventDistributor;
 import repositories.ConfigUserRepository;
 import repositories.UserRepository;
 import service.UserService;
+import shared.HandlerBase;
+import shared.HandlerFactory;
+import shared.SocketConnectionListener;
 import util.Config;
 
 import java.io.IOException;
@@ -85,7 +88,12 @@ public class Chatserver implements IChatserverCli, Runnable {
 			return;
 		}
 
-		final ServerSocketListener listener = new ServerSocketListener(serverSocket, userService, eventDistributor, executorService);
+		final SocketConnectionListener listener = new SocketConnectionListener(serverSocket, new HandlerFactory() {
+			@Override
+			public HandlerBase createHandler(Channel channel) {
+				return new ClientHandler(channel, userService, eventDistributor, executorService);
+			}
+		});
 		executorService.submit(listener);
 	}
 

@@ -6,6 +6,9 @@ import cli.Shell;
 import commands.*;
 import entities.PrivateAddress;
 import entities.User;
+import shared.HandlerBase;
+import shared.HandlerFactory;
+import shared.SocketConnectionListener;
 import util.Config;
 
 import java.io.IOException;
@@ -292,7 +295,12 @@ public class Client implements IClientCli, Runnable {
 		}
 
 		final ServerSocket serverSocket = new ServerSocket(address.getPort());
-		PrivateMessageSocketListener listener = new PrivateMessageSocketListener(serverSocket, shell, executorService);
+		final SocketConnectionListener listener = new SocketConnectionListener(serverSocket, new HandlerFactory() {
+			@Override
+			public HandlerBase createHandler(Channel channel) {
+				return new PrivateMessageHandler(channel, executorService);
+			}
+		});
 		executorService.submit(listener);
 
 		return "Successfully registered address for " + username + ".";

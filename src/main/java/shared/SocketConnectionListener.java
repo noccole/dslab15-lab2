@@ -1,23 +1,29 @@
-package client;
+package shared;
 
 import channels.*;
-import cli.Shell;
 import executors.RepeatingTask;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.ExecutorService;
 
-class PrivateMessageSocketListener extends RepeatingTask {
+public class SocketConnectionListener extends RepeatingTask {
     private final ServerSocket serverSocket;
-    private final Shell shell;
-    private final ExecutorService executorService;
+    private final ChannelFactory channelFactory;
+    private final HandlerFactory handlerFactory;
 
-    public PrivateMessageSocketListener(ServerSocket serverSocket, Shell shell, ExecutorService executorService) {
+    public SocketConnectionListener(ServerSocket serverSocket, HandlerFactory handlerFactory) {
+        this(serverSocket, handlerFactory, new ChannelFactory() {
+            public MessageChannel createChannel(Socket clientSocket) throws ChannelException {
+                return new MessageChannel(new Base64Channel(new TcpChannel(clientSocket)));
+            }
+        });
+    }
+
+    public SocketConnectionListener(ServerSocket serverSocket, HandlerFactory handlerFactory, ChannelFactory channelFactory) {
         this.serverSocket = serverSocket;
-        this.shell = shell;
-        this.executorService = executorService;
+        this.handlerFactory = handlerFactory;
+        this.channelFactory = channelFactory;
     }
 
     @Override
@@ -32,14 +38,14 @@ class PrivateMessageSocketListener extends RepeatingTask {
 
             final Channel channel;
             try {
-                channel = new MessageChannel(new Base64Channel(new TcpChannel(clientSocket)));
+                channel = channelFactory.createChannel(clientSocket);
             } catch (ChannelException e) {
                 System.err.println("could not create a new channel for user socket: " + e);
                 clientSocket.close();
                 return;
             }
 
-            new PrivateMessageHandler(channel, shell, executorService);
+            handlerFactory.createHandler(channel);
         } catch (IOException e) {
             System.err.println("could not accept client connection: " + e);
         }

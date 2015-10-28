@@ -19,7 +19,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.LogManager;
 
@@ -34,7 +33,6 @@ public class Client implements IClientCli, Runnable {
 
 	private ClientHandler tcpRequester;
 	private ClientHandler udpRequester;
-	private Future shellFuture;
 
 	/**
 	 * @param componentName
@@ -132,7 +130,7 @@ public class Client implements IClientCli, Runnable {
 
 	@Override
 	public void run() {
-		shellFuture = executorService.submit(shell);
+		executorService.submit(shell);
 
 		if (!startUdpHandler()) {
 			exit();
@@ -380,7 +378,6 @@ public class Client implements IClientCli, Runnable {
 			executorService.shutdownNow();
 		}
 
-		shellFuture.cancel(true);
 		shell.close();
 
 		return "Shut down completed! Bye ..";

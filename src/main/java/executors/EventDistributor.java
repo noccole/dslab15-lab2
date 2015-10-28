@@ -34,4 +34,12 @@ public class EventDistributor {
             senders.remove(sender);
         }
     }
+
+    public void waitForAllMessagesSend() {
+        synchronized (senders) {
+            for (MessageSender sender : senders) {
+                sender.waitForAllMessagesSend();
+            }
+        }
+    }
 }

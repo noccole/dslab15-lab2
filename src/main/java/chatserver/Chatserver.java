@@ -23,7 +23,6 @@ import java.net.SocketException;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.LogManager;
 
@@ -37,7 +36,6 @@ public class Chatserver implements IChatserverCli, Runnable {
 	private final EventDistributor eventDistributor;
 
 	private ListHandler listHandler;
-	private Future shellFuture;
 
 	/**
 	 * @param componentName
@@ -106,7 +104,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 
 	@Override
 	public void run() {
-		shellFuture = executorService.submit(shell);
+		executorService.submit(shell);
 
 		if (!startListHandler()) {
 			exit();
@@ -137,6 +135,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 	public String exit() {
 		// inform all clients
 		eventDistributor.publish(new ExitEvent());
+		eventDistributor.waitForAllMessagesSend();
 
 		if (listHandler != null) {
 			listHandler.stop();
@@ -150,7 +149,6 @@ public class Chatserver implements IChatserverCli, Runnable {
 			executorService.shutdownNow();
 		}
 
-		shellFuture.cancel(true);
 		shell.close();
 
 		return "Shut down completed! Bye ..";

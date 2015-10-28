@@ -35,9 +35,11 @@ public class Shell implements Runnable, Closeable {
 	private Map<String, ShellCommandDefinition> commandMap = new ConcurrentHashMap<>();
 	private ConversionService conversionService = new DefaultConversionService();
 
-	private OutputStream out;
-	private BufferedReader in;
-	private Closeable readMonitor;
+	private final OutputStream out;
+	private final BufferedReader in;
+	private final Closeable readMonitor;
+
+	private volatile Thread thread;
 
 	/**
 	 * Creates a new {@code Shell} instance.
@@ -70,6 +72,8 @@ public class Shell implements Runnable, Closeable {
 	 */
 	@Override
 	public void run() {
+		thread = Thread.currentThread();
+
 		try {
 			for (String line; !Thread.currentThread().isInterrupted()
 					&& (line = readLine()) != null;) {
@@ -210,6 +214,7 @@ public class Shell implements Runnable, Closeable {
 	 */
 	@Override
 	public void close() {
+		thread.interrupt();
 		if (readMonitor != stdin) {
 			try {
 				readMonitor.close();

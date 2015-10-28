@@ -8,6 +8,12 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class UserService {
+    public interface EventHandler {
+        void onUserPresenceChanged(User user);
+    }
+
+    private final Set<EventHandler> eventHandlers = new HashSet<>();
+
     private final ConcurrentHashMap<String, User> usersCache = new ConcurrentHashMap<>();
 
     public UserService(UserRepository userRepository) /*throws ServiceException*/ {
@@ -26,6 +32,7 @@ public class UserService {
         synchronized (user) {
             if (user.getPresence() == User.Presence.Offline && user.getPassword().equals(password)) {
                 user.setPresence(User.Presence.Available);
+                emitUserPresenceChanged(user);
                 return true;
             } else {
                 return false;
@@ -35,8 +42,11 @@ public class UserService {
 
     public void logout(final User user) {
         synchronized (user) {
-            user.clearPrivateAddresses();
-            user.setPresence(User.Presence.Offline);
+            if (user.getPresence() != User.Presence.Offline) {
+                user.clearPrivateAddresses();
+                user.setPresence(User.Presence.Offline);
+                emitUserPresenceChanged(user);
+            }
         }
     }
 
@@ -57,5 +67,25 @@ public class UserService {
         }
 
         return userStates;
+    }
+
+    private void emitUserPresenceChanged(User user) {
+        synchronized (eventHandlers) {
+            for (EventHandler eventHandler : eventHandlers) {
+                eventHandler.onUserPresenceChanged(user);
+            }
+        }
+    }
+
+    public void addEventHandler(EventHandler eventHandler) {
+        synchronized (eventHandlers) {
+            eventHandlers.add(eventHandler);
+        }
+    }
+
+    public void removeEventHandler(EventHandler eventHandler) {
+        synchronized (eventHandlers) {
+            eventHandlers.remove(eventHandler);
+        }
     }
 }

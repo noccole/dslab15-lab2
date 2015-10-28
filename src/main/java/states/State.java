@@ -46,4 +46,8 @@ public abstract class State {
     public StateResult handleExitEvent(ExitEvent event) throws StateException {
         return new StateResult(this);
     }
+
+    public StateResult handleUserStateChangedEvent(UserPresenceChangedEvent event) throws StateException {
+        return new StateResult(this);
+    }
 }

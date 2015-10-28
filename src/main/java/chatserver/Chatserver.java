@@ -6,6 +6,7 @@ import cli.Shell;
 import entities.User;
 import executors.EventDistributor;
 import messages.ExitEvent;
+import messages.UserPresenceChangedEvent;
 import repositories.ConfigUserRepository;
 import repositories.UserRepository;
 import service.UserService;
@@ -53,11 +54,20 @@ public class Chatserver implements IChatserverCli, Runnable {
 		shell = new Shell(componentName, userRequestStream, userResponseStream);
 		shell.register(this);
 
+		eventDistributor = new EventDistributor();
+
 		Config userConfig = new Config("user");
 		UserRepository userRepository = new ConfigUserRepository(userConfig);
 		userService = new UserService(userRepository);
-
-		eventDistributor = new EventDistributor();
+        userService.addEventHandler(new UserService.EventHandler() {
+			@Override
+			public void onUserPresenceChanged(User user) { // send presence changed events instead of always using !users or !list ;)
+				final UserPresenceChangedEvent userPresenceChangedEvent = new UserPresenceChangedEvent();
+				userPresenceChangedEvent.setUsername(user.getUsername());
+				userPresenceChangedEvent.setPresence(user.getPresence());
+				eventDistributor.publish(userPresenceChangedEvent);
+			}
+		});
 	}
 
 	private boolean startListHandler() {

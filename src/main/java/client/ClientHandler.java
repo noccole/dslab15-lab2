@@ -1,6 +1,7 @@
 package client;
 
 import channels.Channel;
+import entities.User;
 import messages.*;
 import states.State;
 import states.StateException;
@@ -51,6 +52,15 @@ class ClientHandler extends ClientHandlerBase {
             LOGGER.info("ClientHandler::StateHandleEvents::handleExitEvent with parameters: " + event);
 
             return new StateResult(new StateExit());
+        }
+
+        @Override
+        public StateResult handleUserStateChangedEvent(UserPresenceChangedEvent event) throws StateException {
+            LOGGER.info("ClientHandler::StateHandleEvents::handleUserStateChangedEvent with parameters: " + event);
+
+            emitMessageReceived(event.getUsername() + " went " + (event.getPresence() == User.Presence.Offline ? "offline" : "online") + " ...");
+
+            return new StateResult(this);
         }
     }
 

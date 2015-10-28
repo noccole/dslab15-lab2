@@ -50,21 +50,21 @@ public class Client implements IClientCli, Runnable {
 		shell.register(this);
 	}
 
-	private void startTcpHandler() {
-		Socket socket;
+	private boolean startTcpHandler() {
+		final Socket socket;
 		try {
 			socket = new Socket(config.getString("chatserver.host"), config.getInt("chatserver.tcp.port"));
 		} catch (IOException e) {
-			e.printStackTrace();
-			return;
+			System.err.println("could not open tcp socket");
+			return false;
 		}
 
-		Channel channel;
+		final Channel channel;
 		try {
 			channel = new MessageChannel(new Base64Channel(new TcpChannel(socket)));
 		} catch (ChannelException e) {
-			e.printStackTrace();
-			return;
+			System.err.println("could not create tcp channel");
+			return false;
 		}
 
 		tcpRequester = new ClientHandler(channel, executorService);
@@ -76,37 +76,35 @@ public class Client implements IClientCli, Runnable {
 				try {
 					shell.writeLine(message);
 				} catch (IOException e) {
-					e.printStackTrace();
+					System.err.println("could not write message");
 				}
 			}
 
 			@Override
 			public void onExit() {
-				try {
-					exit();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				exit();
 			}
 		});
+
+		return true;
 	}
 
-	private void startUdpHandler() {
-		DatagramSocket socket;
+	private boolean startUdpHandler() {
+		final DatagramSocket socket;
 		try {
 			socket = new DatagramSocket();
 			socket.connect(InetAddress.getByName(config.getString("chatserver.host")), config.getInt("chatserver.udp.port"));
 		} catch (UnknownHostException | SocketException e) {
-			e.printStackTrace();
-			return;
+			System.err.println("could not open udp socket");
+			return false;
 		}
 
-		Channel channel;
+		final Channel channel;
 		try {
 			channel = new MessageChannel(new Base64Channel(new UdpChannel(socket)));
 		} catch (ChannelException e) {
-			e.printStackTrace();
-			return;
+			System.err.println("could not create udp channel");
+			return false;
 		}
 
 		udpRequester = new ClientHandler(channel, executorService);
@@ -116,38 +114,40 @@ public class Client implements IClientCli, Runnable {
 				try {
 					shell.writeLine(message);
 				} catch (IOException e) {
-					e.printStackTrace();
+					System.err.println("could not write message");
 				}
 			}
 
 			@Override
 			public void onExit() {
-				try {
-					exit();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				exit();
 			}
 		});
+
+		return true;
 	}
 
 	@Override
 	public void run() {
-		startUdpHandler();
-		startTcpHandler();
-
 		executorService.submit(shell);
+
+		if (!startUdpHandler()) {
+			exit();
+		}
+		if (!startTcpHandler()) {
+			exit();
+		}
 	}
 
 	@Override
 	@Command
-	public String login(String username, String password) throws IOException {
-		LoginRequest request = new LoginRequest();
+	public String login(String username, String password) {
+		final LoginRequest request = new LoginRequest();
 		request.setUsername(username);
 		request.setPassword(password);
 
 		try {
-			LoginResponse response = tcpRequester.syncRequest(request);
+			final LoginResponse response = tcpRequester.syncRequest(request);
 			if (response.isSuccess()) {
 				this.username = username;
 				return "Successfully logged in.";
@@ -161,11 +161,11 @@ public class Client implements IClientCli, Runnable {
 
 	@Override
 	@Command
-	public String logout() throws IOException {
-		LogoutRequest request = new LogoutRequest();
+	public String logout() {
+		final LogoutRequest request = new LogoutRequest();
 
 		try {
-			LogoutResponse response = tcpRequester.syncRequest(request);
+			final LogoutResponse response = tcpRequester.syncRequest(request);
 			this.username = null;
 			return "Successfully logged out.";
 		} catch (Exception e) {
@@ -175,12 +175,12 @@ public class Client implements IClientCli, Runnable {
 
 	@Override
 	@Command
-	public String send(String message) throws IOException {
-		SendMessageRequest request = new SendMessageRequest();
+	public String send(String message) {
+		final SendMessageRequest request = new SendMessageRequest();
 		request.setMessage(message);
 
 		try {
-			SendMessageResponse response = tcpRequester.syncRequest(request);
+			final SendMessageResponse response = tcpRequester.syncRequest(request);
 			return "Successfully send message.";
 		} catch (Exception e) {
 			return e.getMessage();
@@ -189,11 +189,11 @@ public class Client implements IClientCli, Runnable {
 
 	@Override
 	@Command
-	public String list() throws IOException {
-		ListRequest request = new ListRequest();
+	public String list() {
+		final ListRequest request = new ListRequest();
 
 		try {
-			ListResponse response =  udpRequester.syncRequest(request);
+			final ListResponse response =  udpRequester.syncRequest(request);
 
 			String result = "Online users:";
 			for (Map.Entry<String, User.Presence> entry : response.getUserList().entrySet()) {
@@ -213,7 +213,7 @@ public class Client implements IClientCli, Runnable {
 
 	@Override
 	@Command
-	public String msg(String username, String message) throws IOException {
+	public String msg(String username, String message) {
 		final SendPrivateMessageRequest request = new SendPrivateMessageRequest();
 		request.setSender(this.username);
 		request.setMessage(message);
@@ -221,11 +221,11 @@ public class Client implements IClientCli, Runnable {
 		// lookup user address
 		final Collection<PrivateAddress> privateAddresses;
 		{
-			LookupRequest lookupRequest = new LookupRequest();
+			final LookupRequest lookupRequest = new LookupRequest();
 			lookupRequest.setUsername(username);
 
 			try {
-				LookupResponse response = tcpRequester.syncRequest(lookupRequest);
+				final LookupResponse response = tcpRequester.syncRequest(lookupRequest);
 				privateAddresses = response.getPrivateAddresses();
 			} catch (Exception e) {
 				return "Wrong username or user not reachable.";
@@ -233,12 +233,24 @@ public class Client implements IClientCli, Runnable {
 		}
 
 		for (PrivateAddress privateAddress : privateAddresses) {
-			final Socket socket = new Socket(privateAddress.getHostname(), privateAddress.getPort());
+			final Socket socket;
+			try {
+				socket = new Socket(privateAddress.getHostname(), privateAddress.getPort());
+			} catch (IOException e) {
+				System.err.println("could not open private message socket: " + e);
+				continue; // try next address
+			}
+
 			final Channel channel;
 			try {
 				channel = new MessageChannel(new Base64Channel(new TcpChannel(socket)));
 			} catch (ChannelException e) {
-				socket.close();
+				System.err.println("could not create private message channel: " + e);
+				try {
+					socket.close();
+				} catch (IOException e1) {
+					System.err.println("could not close private message socket: " + e1);
+				}
 				continue; // try next address
 			}
 
@@ -258,12 +270,12 @@ public class Client implements IClientCli, Runnable {
 
 	@Override
 	@Command
-	public String lookup(String username) throws IOException {
-		LookupRequest request = new LookupRequest();
+	public String lookup(String username) {
+		final LookupRequest request = new LookupRequest();
 		request.setUsername(username);
 
 		try {
-			LookupResponse response = tcpRequester.syncRequest(request);
+			final LookupResponse response = tcpRequester.syncRequest(request);
 
 			String result = "";
 			for (PrivateAddress privateAddress : response.getPrivateAddresses()) {
@@ -277,7 +289,7 @@ public class Client implements IClientCli, Runnable {
 
 	@Override
 	@Command
-	public String register(String privateAddress) throws IOException {
+	public String register(String privateAddress) {
 		final String[] addressParts = privateAddress.split(":");
 		if (addressParts.length != 2) {
 			return "Invalid private address.";
@@ -287,16 +299,28 @@ public class Client implements IClientCli, Runnable {
 		address.setHostname(addressParts[0]);
 		address.setPort(Integer.valueOf(addressParts[1]));
 
+		// try to open the server socket, if it succeeds then register the private address
+		final ServerSocket serverSocket;
+		try {
+			serverSocket = new ServerSocket(address.getPort());
+		} catch (IOException e) {
+			return "Could not open private message server socket.";
+		}
+
 		final RegisterRequest request = new RegisterRequest();
 		request.setPrivateAddress(address);
 
 		try {
-			RegisterResponse response = tcpRequester.syncRequest(request);
+			final RegisterResponse response = tcpRequester.syncRequest(request);
 		} catch (Exception e) {
+			try {
+				serverSocket.close();
+			} catch (IOException e1) {
+				System.err.println("Could not close private message server socket");
+			}
 			return e.getMessage();
 		}
 
-		final ServerSocket serverSocket = new ServerSocket(address.getPort());
 		final SocketConnectionListener listener = new SocketConnectionListener(serverSocket, new HandlerFactory() {
 			@Override
 			public HandlerBase createHandler(Channel channel) {
@@ -310,17 +334,21 @@ public class Client implements IClientCli, Runnable {
 	
 	@Override
 	@Command
-	public String lastMsg() throws IOException {
+	public String lastMsg() {
 		return lastPublicMessage;
 	}
 
 	@Override
 	@Command
-	public String exit() throws IOException {
+	public String exit() {
 		logout();
 
-		tcpRequester.stop();
-		udpRequester.stop();
+		if (tcpRequester != null) {
+			tcpRequester.stop();
+		}
+		if (udpRequester != null) {
+			udpRequester.stop();
+		}
 
 		executorService.shutdown();
 		try {
@@ -331,6 +359,7 @@ public class Client implements IClientCli, Runnable {
 		}
 
 		shell.close();
+
 		return "Shut down completed! Bye ..";
 	}
 

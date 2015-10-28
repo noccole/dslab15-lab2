@@ -16,7 +16,7 @@ class ClientHandler extends ClientHandlerBase {
     public ClientHandler(Channel channel, ExecutorService executorService) {
         this.executorService = executorService;
 
-        init(channel, executorService, new ClientMainState());
+        init(channel, executorService, new StateHandleEvents());
     }
 
     public <RequestType extends Request, ResponseType extends Response> Future<ResponseType> asyncRequest(RequestType request) {
@@ -29,7 +29,7 @@ class ClientHandler extends ClientHandlerBase {
         return future.get(5, TimeUnit.SECONDS);
     }
 
-    private class ClientMainState extends State {
+    private class StateHandleEvents extends State {
         @Override
         public StateResult handleMessageEvent(MessageEvent event) throws StateException {
             emitMessageReceived(event.getUsername() + ": " + event.getMessage());
@@ -39,9 +39,14 @@ class ClientHandler extends ClientHandlerBase {
 
         @Override
         public StateResult handleExitEvent(ExitEvent event) throws StateException {
-            emitExit();
+            return new StateResult(new StateExit());
+        }
+    }
 
-            return new StateResult(this);
+    private class StateExit extends State {
+        @Override
+        public void onEntered() throws StateException {
+            emitExit();
         }
     }
 }

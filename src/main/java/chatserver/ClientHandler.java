@@ -1,7 +1,6 @@
 package chatserver;
 
 import channels.Channel;
-import channels.ChannelException;
 import entities.User;
 import executors.EventDistributor;
 import messages.*;
@@ -40,7 +39,7 @@ class ClientHandler extends HandlerBase {
             final LoginResponse response = new LoginResponse(request);
             response.setSuccess(success);
 
-            State nextState;
+            final State nextState;
             if (success) {
                 nextState = new StateOnline(user);
             } else {
@@ -52,13 +51,7 @@ class ClientHandler extends HandlerBase {
 
         @Override
         public StateResult handleExitEvent(ExitEvent event) throws StateException {
-            try {
-                channel.close();
-            } catch (ChannelException e) {
-                System.err.println("could not close channel");
-            }
-
-            return new StateResult(this);
+            return new StateResult(new StateExit());
         }
     }
 
@@ -87,6 +80,8 @@ class ClientHandler extends HandlerBase {
         public void onExited() throws StateException {
             eventDistributor.unsubscribe(getSender());
             channel.removeEventHandler(channelEventHandler);
+
+            userService.logout(user); // guarantee that the user is logged out when we leave this state
         }
 
         @Override
@@ -137,9 +132,14 @@ class ClientHandler extends HandlerBase {
 
         @Override
         public StateResult handleExitEvent(ExitEvent event) throws StateException {
-            userService.logout(user);
+            return new StateResult(new StateExit());
+        }
+    }
+
+    private class StateExit extends State {
+        @Override
+        public void onEntered() throws StateException {
             stop();
-            return new StateResult(new StateOffline());
         }
     }
 }

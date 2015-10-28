@@ -59,33 +59,35 @@ public class Chatserver implements IChatserverCli, Runnable {
 		eventDistributor = new EventDistributor();
 	}
 
-	private void startListHandler() {
+	private boolean startListHandler() {
 		final DatagramSocket serverUdpSocket;
 		try {
 			serverUdpSocket = new DatagramSocket(config.getInt("udp.port"));
 		} catch (SocketException e) {
-			e.printStackTrace();
-			return;
+			System.err.println("could not open udp server socket");
+			return false;
 		}
 
-		Channel udpChannel;
+		final Channel udpChannel;
 		try {
 			udpChannel = new MessageChannel(new Base64Channel(new UdpChannel(serverUdpSocket)));
 		} catch (ChannelException e) {
-			e.printStackTrace();
-			return;
+			System.err.println("could not create a udp channel");
+			return false;
 		}
 
 		listHandler = new ListHandler(udpChannel, userService, executorService);
+
+		return true;
 	}
 
-	private void startServerSocketListener() {
+	private boolean startServerSocketListener() {
 		final ServerSocket serverSocket;
 		try {
 			serverSocket = new ServerSocket(config.getInt("tcp.port"));
 		} catch (IOException e) {
-			e.printStackTrace();
-			return;
+			System.err.println("could not open tcp server socket");
+			return false;
 		}
 
 		final SocketConnectionListener listener = new SocketConnectionListener(serverSocket, new HandlerFactory() {
@@ -95,19 +97,25 @@ public class Chatserver implements IChatserverCli, Runnable {
 			}
 		});
 		executorService.submit(listener);
+
+		return true;
 	}
 
 	@Override
 	public void run() {
-		startListHandler();
-		startServerSocketListener();
-
 		executorService.submit(shell);
+
+		if (!startListHandler()) {
+			exit();
+		}
+		if (!startServerSocketListener()) {
+			exit();
+		}
 	}
 
 	@Override
 	@Command
-	public String users() throws IOException {
+	public String users() {
 		final Map<String, User.Presence> userList = userService.getUserList();
 
 		String result = "";
@@ -123,11 +131,13 @@ public class Chatserver implements IChatserverCli, Runnable {
 
 	@Override
 	@Command
-	public String exit() throws IOException {
+	public String exit() {
 		// inform all clients
 		eventDistributor.publish(new ExitEvent());
 
-		listHandler.stop();
+		if (listHandler != null) {
+			listHandler.stop();
+		}
 
 		executorService.shutdown();
 		try {
@@ -138,6 +148,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 		}
 
 		shell.close();
+
 		return "Shut down completed! Bye ..";
 	}
 

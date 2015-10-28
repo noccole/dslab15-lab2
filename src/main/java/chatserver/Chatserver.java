@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.LogManager;
 
 public class Chatserver implements IChatserverCli, Runnable {
 	private final ExecutorService executorService = Executors.newCachedThreadPool();
@@ -158,6 +159,8 @@ public class Chatserver implements IChatserverCli, Runnable {
 	 *            component
 	 */
 	public static void main(String[] args) {
+		LogManager.getLogManager().reset(); // disable logging
+
 		final Config config = new Config("chatserver");
 		final Chatserver chatserver = new Chatserver(args[0], config, System.in, System.out);
 

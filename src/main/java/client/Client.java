@@ -20,10 +20,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.logging.LogManager;
 
 public class Client implements IClientCli, Runnable {
 	private final ExecutorService executorService = Executors.newCachedThreadPool();
@@ -391,11 +388,7 @@ public class Client implements IClientCli, Runnable {
 	 *            the first argument is the name of the {@link Client} component
 	 */
 	public static void main(String[] args) {
-		final Handler handler = new ConsoleHandler();
-		handler.setLevel(Level.ALL);
-		final Logger logger = Logger.getAnonymousLogger();
-		logger.addHandler(handler);
-		logger.setLevel(Level.ALL);
+		LogManager.getLogManager().reset(); // disable logging
 
 		final Config config = new Config("client");
 		final Client client = new Client(args[0], config, System.in, System.out);

@@ -303,6 +303,8 @@ public class Client implements IClientCli, Runnable {
 		final ServerSocket serverSocket;
 		try {
 			serverSocket = new ServerSocket(address.getPort());
+		} catch (IllegalArgumentException e) {
+			return e.getMessage();
 		} catch (IOException e) {
 			return "Could not open private message server socket.";
 		}

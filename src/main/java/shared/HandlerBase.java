@@ -57,14 +57,17 @@ public abstract class HandlerBase {
     }
 
     public void stop() {
+        listener.cancel(true);
+        handler.cancel(true);
+
+        // wait until sender queue is empty
+        sender.waitForAllMessagesSend();
+        sender.cancel(true);
+
         try {
             channel.close();
         } catch (ChannelException e) {
             System.err.println("could not close channel: " + e);
         }
-
-        listener.cancel(true);
-        handler.cancel(true);
-        sender.cancel(true);
     }
 }

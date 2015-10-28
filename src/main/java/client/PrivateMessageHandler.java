@@ -26,17 +26,7 @@ class PrivateMessageHandler extends ClientHandlerBase {
 
             final SendPrivateMessageResponse response = new SendPrivateMessageResponse(request);
 
-            return new StateResult(new StateShutdownService(), response);
-        }
-    }
-
-    private class StateShutdownService extends State {
-        @Override
-        public void onEntered() throws StateException {
-            LOGGER.entering("StateShutdownService", "onEntered");
-            LOGGER.info("PrivateMessageHandler::StateShutdownService::onEntered");
-
-            stop();
+            return new StateResult(this, response);
         }
     }
 }

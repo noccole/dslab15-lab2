@@ -1,9 +1,11 @@
-package messages;
+package executors;
 
 import channels.NetworkPacket;
 import channels.Packet;
-import executors.MessageListener;
-import executors.MessageSender;
+import messages.ErrorResponse;
+import messages.Message;
+import messages.Request;
+import messages.Response;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Semaphore;

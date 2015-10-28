@@ -2,6 +2,7 @@ package client;
 
 import channels.Channel;
 import entities.User;
+import executors.AsyncRequest;
 import messages.*;
 import states.State;
 import states.StateException;

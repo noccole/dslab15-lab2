@@ -330,7 +330,24 @@ public class Client implements IClientCli, Runnable {
 		final SocketConnectionListener listener = new SocketConnectionListener(serverSocket, new HandlerFactory() {
 			@Override
 			public HandlerBase createHandler(Channel channel) {
-				return new PrivateMessageHandler(channel, executorService);
+				final PrivateMessageHandler handler = new PrivateMessageHandler(channel, executorService);
+				handler.addEventHandler(new ClientHandlerBase.EventHandler() {
+					@Override
+					public void onMessageReceived(String message) {
+						try {
+							shell.writeLine(message);
+						} catch (IOException e) {
+							System.err.println("could not write message");
+						}
+					}
+
+					@Override
+					public void onExit() {
+
+					}
+				});
+
+				return handler;
 			}
 		});
 		executorService.submit(listener);

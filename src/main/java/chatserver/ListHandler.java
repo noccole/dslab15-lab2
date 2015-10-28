@@ -12,8 +12,11 @@ import states.StateResult;
 
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Logger;
 
 class ListHandler extends HandlerBase {
+    private static final Logger LOGGER = Logger.getAnonymousLogger();
+
     private final UserService userService;
 
     public ListHandler(Channel channel, UserService userService, ExecutorService executorService) {
@@ -25,6 +28,8 @@ class ListHandler extends HandlerBase {
     private class StateListUsersService extends State {
         @Override
         public StateResult handleListRequest(ListRequest request) throws StateException {
+            LOGGER.info("ListHandler::StateListUsersService::handleListRequest with parameters: " + request);
+
             final Map<String, User.Presence> userList = userService.getUserList();
 
             final ListResponse response = new ListResponse(request);

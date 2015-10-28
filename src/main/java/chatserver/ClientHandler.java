@@ -11,8 +11,11 @@ import states.StateException;
 import states.StateResult;
 
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Logger;
 
 class ClientHandler extends HandlerBase {
+    private static final Logger LOGGER = Logger.getAnonymousLogger();
+
     private final Channel channel;
     private final UserService userService;
     private final EventDistributor eventDistributor;
@@ -29,6 +32,8 @@ class ClientHandler extends HandlerBase {
     private class StateOffline extends State {
         @Override
         public StateResult handleLoginRequest(LoginRequest request) throws StateException {
+            LOGGER.info("ClientHandler::StateOffline::handleLoginRequest with parameters: " + request);
+
             boolean success = false;
 
             final User user = userService.find(request.getUsername());
@@ -51,6 +56,8 @@ class ClientHandler extends HandlerBase {
 
         @Override
         public StateResult handleExitEvent(ExitEvent event) throws StateException {
+            LOGGER.info("ClientHandler::StateOffline::handleExitEvent with parameters: " + event);
+
             return new StateResult(new StateExit());
         }
     }
@@ -65,6 +72,8 @@ class ClientHandler extends HandlerBase {
 
         @Override
         public void onEntered() throws StateException {
+            LOGGER.info("ClientHandler::StateOnline::onEntered");
+
             channelEventHandler = new Channel.EventHandler() {
                 @Override
                 public void onChannelClosed() {
@@ -78,6 +87,8 @@ class ClientHandler extends HandlerBase {
 
         @Override
         public void onExited() throws StateException {
+            LOGGER.info("ClientHandler::StateOnline::onExited");
+
             eventDistributor.unsubscribe(getSender());
             channel.removeEventHandler(channelEventHandler);
 
@@ -86,6 +97,8 @@ class ClientHandler extends HandlerBase {
 
         @Override
         public StateResult handleLogoutRequest(LogoutRequest request) throws StateException {
+            LOGGER.info("ClientHandler::StateOnline::handleLogoutRequest with parameters: " + request);
+
             userService.logout(user);
 
             final LogoutResponse response = new LogoutResponse(request);
@@ -95,6 +108,8 @@ class ClientHandler extends HandlerBase {
 
         @Override
         public StateResult handleSendMessageRequest(SendMessageRequest request) throws StateException {
+            LOGGER.info("ClientHandler::StateOnline::handleSendMessageRequest with parameters: " + request);
+
             final MessageEvent event = new MessageEvent();
             event.setUsername(user.getUsername());
             event.setMessage(request.getMessage());
@@ -107,6 +122,8 @@ class ClientHandler extends HandlerBase {
 
         @Override
         public StateResult handleRegisterRequest(RegisterRequest request) throws StateException {
+            LOGGER.info("ClientHandler::StateOnline::handleRegisterRequest with parameters: " + request);
+
             user.addPrivateAddress(request.getPrivateAddress());
 
             final RegisterResponse response = new RegisterResponse(request);
@@ -116,6 +133,8 @@ class ClientHandler extends HandlerBase {
 
         @Override
         public StateResult handleLookupRequest(LookupRequest request) throws StateException {
+            LOGGER.info("ClientHandler::StateOnline::handleLookupRequest with parameters: " + request);
+
             final User requestedUser = userService.find(request.getUsername());
 
             if (requestedUser != null) {
@@ -132,6 +151,8 @@ class ClientHandler extends HandlerBase {
 
         @Override
         public StateResult handleExitEvent(ExitEvent event) throws StateException {
+            LOGGER.info("ClientHandler::StateOnline::handleExitEvent with parameters: " + event);
+
             return new StateResult(new StateExit());
         }
     }
@@ -139,6 +160,8 @@ class ClientHandler extends HandlerBase {
     private class StateExit extends State {
         @Override
         public void onEntered() throws StateException {
+            LOGGER.info("ClientHandler::StateExit::onEntered");
+
             stop();
         }
     }

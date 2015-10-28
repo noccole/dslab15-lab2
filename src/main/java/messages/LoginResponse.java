@@ -1,18 +1,25 @@
 package messages;
 
 public class LoginResponse extends Response {
-    private boolean success;
+    public enum ResponseCode {
+        Success,
+        WrongPassword,
+        UnknownUser,
+        UserAlreadyLoggedIn
+    }
+
+    private ResponseCode response;
 
     public LoginResponse(LoginRequest request) {
         super(request);
     }
 
-    public boolean isSuccess() {
-        return success;
+    public ResponseCode getResponse() {
+        return response;
     }
 
-    public void setSuccess(boolean success) {
-        this.success = success;
+    public void setResponse(ResponseCode response) {
+        this.response = response;
     }
 
     @Override

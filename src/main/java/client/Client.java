@@ -149,11 +149,16 @@ public class Client implements IClientCli, Runnable {
 
 		try {
 			final LoginResponse response = tcpRequester.syncRequest(request);
-			if (response.isSuccess()) {
-				this.username = username;
-				return "Successfully logged in.";
-			} else {
-				return "Wrong username or password.";
+			switch (response.getResponse()) {
+				case Success:
+					return "Successfully logged in.";
+				case WrongPassword:	// fall through
+				case UnknownUser:
+					return "Wrong username or password.";
+				case UserAlreadyLoggedIn:
+					return "User is already logged in.";
+				default:
+					return "Unknown error.";
 			}
 		} catch (Exception e) {
 			return e.getMessage();

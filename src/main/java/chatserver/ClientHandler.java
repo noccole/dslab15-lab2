@@ -34,18 +34,28 @@ class ClientHandler extends HandlerBase {
         public StateResult handleLoginRequest(LoginRequest request) throws StateException {
             LOGGER.info("ClientHandler::StateOffline::handleLoginRequest with parameters: " + request);
 
-            boolean success = false;
+            LoginResponse.ResponseCode responseCode;
 
             final User user = userService.find(request.getUsername());
             if (user != null) {
-                success = userService.login(user, request.getPassword());
+                if (user.getPresence() == User.Presence.Offline) {
+                    if (userService.login(user, request.getPassword())) {
+                        responseCode = LoginResponse.ResponseCode.Success;
+                    } else {
+                        responseCode = LoginResponse.ResponseCode.WrongPassword;
+                    }
+                } else {
+                    responseCode = LoginResponse.ResponseCode.UserAlreadyLoggedIn;
+                }
+            } else {
+                responseCode = LoginResponse.ResponseCode.UnknownUser;
             }
 
             final LoginResponse response = new LoginResponse(request);
-            response.setSuccess(success);
+            response.setResponse(responseCode);
 
             final State nextState;
-            if (success) {
+            if (responseCode == LoginResponse.ResponseCode.Success) {
                 nextState = new StateOnline(user);
             } else {
                 nextState = this;

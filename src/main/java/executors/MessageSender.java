@@ -1,5 +1,6 @@
 package executors;
 
+import channels.NetworkPacket;
 import channels.Packet;
 import messages.Message;
 
@@ -22,11 +23,18 @@ public abstract class MessageSender extends RepeatingTask {
 
     @Override
     protected void perform() throws InterruptedException {
-        consumeMessage(messages.take());
+        final Packet<Message> message = messages.take();
+        if (isCancelled()) {
+            // a fake message was added in onCancelled
+            messageQueueIsEmpty.signalAll();
+            throw new InterruptedException();
+        }
+
+        consumeMessage(message);
 
         messagesLock.lock();
         if (messages.isEmpty()) {
-            messageQueueIsEmpty.signal();
+            messageQueueIsEmpty.signalAll();
         }
         messagesLock.unlock();
     }
@@ -39,5 +47,12 @@ public abstract class MessageSender extends RepeatingTask {
             messageQueueIsEmpty.awaitUninterruptibly();
         }
         messagesLock.unlock();
+    }
+
+    @Override
+    protected void onCancelled() {
+        sendMessage(new NetworkPacket<Message>()); // fake a packet to unblock perform
+
+        super.onCancelled();
     }
 }

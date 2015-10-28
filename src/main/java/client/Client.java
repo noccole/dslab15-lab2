@@ -148,7 +148,7 @@ public class Client implements IClientCli, Runnable {
 		request.setPassword(password);
 
 		try {
-			final LoginResponse response = tcpRequester.syncRequest(request);
+			final LoginResponse response = tcpRequester.syncRequest(request, LoginResponse.class);
 			switch (response.getResponse()) {
 				case Success:
 					return "Successfully logged in.";
@@ -171,7 +171,7 @@ public class Client implements IClientCli, Runnable {
 		final LogoutRequest request = new LogoutRequest();
 
 		try {
-			final LogoutResponse response = tcpRequester.syncRequest(request);
+			final LogoutResponse response = tcpRequester.syncRequest(request, LogoutResponse.class);
 			this.username = null;
 			return "Successfully logged out.";
 		} catch (Exception e) {
@@ -186,7 +186,7 @@ public class Client implements IClientCli, Runnable {
 		request.setMessage(message);
 
 		try {
-			final SendMessageResponse response = tcpRequester.syncRequest(request);
+			final SendMessageResponse response = tcpRequester.syncRequest(request, SendMessageResponse.class);
 			return "Successfully send message.";
 		} catch (Exception e) {
 			return e.getMessage();
@@ -199,7 +199,7 @@ public class Client implements IClientCli, Runnable {
 		final ListRequest request = new ListRequest();
 
 		try {
-			final ListResponse response =  udpRequester.syncRequest(request);
+			final ListResponse response =  udpRequester.syncRequest(request, ListResponse.class);
 
 			String result = "Online users:";
 			for (Map.Entry<String, User.Presence> entry : response.getUserList().entrySet()) {
@@ -231,7 +231,7 @@ public class Client implements IClientCli, Runnable {
 			lookupRequest.setUsername(username);
 
 			try {
-				final LookupResponse response = tcpRequester.syncRequest(lookupRequest);
+				final LookupResponse response = tcpRequester.syncRequest(lookupRequest, LookupResponse.class);
 				privateAddresses = response.getPrivateAddresses();
 			} catch (Exception e) {
 				return "Wrong username or user not reachable.";
@@ -262,7 +262,7 @@ public class Client implements IClientCli, Runnable {
 
 			final ClientHandler requester = new ClientHandler(channel, executorService);
 			try {
-				SendPrivateMessageResponse response = requester.syncRequest(request);
+				final SendPrivateMessageResponse response = requester.syncRequest(request, SendPrivateMessageResponse.class);
 				requester.stop();
 				return username + " replied with !ack."; // success
 			} catch (Exception e) {
@@ -281,7 +281,7 @@ public class Client implements IClientCli, Runnable {
 		request.setUsername(username);
 
 		try {
-			final LookupResponse response = tcpRequester.syncRequest(request);
+			final LookupResponse response = tcpRequester.syncRequest(request, LookupResponse.class);
 
 			String result = "";
 			for (PrivateAddress privateAddress : response.getPrivateAddresses()) {
@@ -319,7 +319,7 @@ public class Client implements IClientCli, Runnable {
 		request.setPrivateAddress(address);
 
 		try {
-			final RegisterResponse response = tcpRequester.syncRequest(request);
+			final RegisterResponse response = tcpRequester.syncRequest(request, RegisterResponse.class);
 		} catch (Exception e) {
 			try {
 				serverSocket.close();

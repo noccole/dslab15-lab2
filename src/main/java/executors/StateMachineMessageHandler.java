@@ -24,7 +24,7 @@ public class StateMachineMessageHandler extends MessageHandler {
             return stateMachine.handleMessage(request);
         } catch (StateException e) {
             ErrorResponse response = new ErrorResponse(request);
-            response.setReason(e.toString());
+            response.setReason(e.getMessage());
             return response;
         }
     }

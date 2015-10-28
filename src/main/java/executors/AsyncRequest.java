@@ -12,11 +12,13 @@ import java.util.concurrent.Semaphore;
 
 public class AsyncRequest<RequestType extends Request, ResponseType extends Response> implements Callable<ResponseType> {
     private final RequestType request;
+    private final Class<ResponseType> responseClass;
     private final MessageListener listener;
     private final MessageSender sender;
 
-    public AsyncRequest(RequestType request, MessageListener listener, MessageSender sender) {
+    public AsyncRequest(RequestType request, Class<ResponseType> responseClass, MessageListener listener, MessageSender sender) {
         this.request = request;
+        this.responseClass = responseClass;
         this.listener = listener;
         this.sender = sender;
     }
@@ -63,11 +65,11 @@ public class AsyncRequest<RequestType extends Request, ResponseType extends Resp
             listener.removeEventHandler(eventHandler);
         }
 
-        Message response = eventHandler.getResponse();
+        final Message response = eventHandler.getResponse();
         try {
-            return (ResponseType) response;
+            return responseClass.cast(response);
         } catch (ClassCastException e) {
-            ErrorResponse errorResponse = (ErrorResponse) response; // potential ClassCastExceptions are ok here
+            final ErrorResponse errorResponse = ErrorResponse.class.cast(response); // potential ClassCastExceptions are ok here
             throw new Exception(errorResponse.getReason());
         }
     }

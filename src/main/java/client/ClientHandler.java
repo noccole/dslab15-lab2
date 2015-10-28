@@ -24,17 +24,17 @@ class ClientHandler extends ClientHandlerBase {
         init(channel, executorService, new StateHandleEvents());
     }
 
-    public <RequestType extends Request, ResponseType extends Response> Future<ResponseType> asyncRequest(RequestType request) {
+    public <RequestType extends Request, ResponseType extends Response> Future<ResponseType> asyncRequest(RequestType request, Class<ResponseType> responseClass) {
         LOGGER.info("ClientHandler::asyncRequest with parameters: " + request);
 
-        final AsyncRequest<RequestType, ResponseType> asyncRequest = new AsyncRequest<>(request, getListener(), getSender());
+        final AsyncRequest<RequestType, ResponseType> asyncRequest = new AsyncRequest<>(request, responseClass, getListener(), getSender());
         return executorService.submit(asyncRequest);
     }
 
-    public <RequestType extends Request, ResponseType extends Response> ResponseType syncRequest(RequestType request) throws Exception {
+    public <RequestType extends Request, ResponseType extends Response> ResponseType syncRequest(RequestType request, Class<ResponseType> responseClass) throws Exception {
         LOGGER.info("ClientHandler::syncRequest with parameters: " + request);
 
-        final Future<ResponseType> future = asyncRequest(request);
+        final Future<ResponseType> future = asyncRequest(request, responseClass);
         return future.get(5, TimeUnit.SECONDS);
     }
 

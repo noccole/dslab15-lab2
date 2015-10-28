@@ -22,18 +22,22 @@ public class UserService {
         }
     }
 
-    public boolean login(User user, String password) {
-        if (user.getPassword().equals(password)) {
-            user.setPresence(User.Presence.Available);
-            return true;
-        } else {
-            return false;
+    public boolean login(final User user, String password) {
+        synchronized (user) {
+            if (user.getPresence() == User.Presence.Offline && user.getPassword().equals(password)) {
+                user.setPresence(User.Presence.Available);
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 
-    public void logout(User user) {
-        user.clearPrivateAddresses();
-        user.setPresence(User.Presence.Offline);
+    public void logout(final User user) {
+        synchronized (user) {
+            user.clearPrivateAddresses();
+            user.setPresence(User.Presence.Offline);
+        }
     }
 
     public Collection<User> findAll() {

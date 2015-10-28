@@ -32,7 +32,7 @@ class ClientHandler extends HandlerBase {
             boolean success = false;
 
             final User user = userService.find(request.getUsername());
-            if (user != null && user.getPresence() == User.Presence.Offline) {
+            if (user != null) {
                 success = userService.login(user, request.getPassword());
             }
 

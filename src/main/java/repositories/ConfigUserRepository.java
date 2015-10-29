@@ -7,6 +7,9 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Set;
 
+/**
+ * UserRepository implementation which loads users from the config file
+ */
 public class ConfigUserRepository implements UserRepository {
     private final Config config;
 

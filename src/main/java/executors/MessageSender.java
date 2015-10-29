@@ -15,6 +15,11 @@ public abstract class MessageSender extends RepeatingTask {
     private final Condition messageQueueIsEmpty = messagesLock.newCondition();
     private final BlockingQueue<Packet<Message>> messages = new LinkedBlockingQueue<>();
 
+    /**
+     * Send the given message
+     *
+     * @param message Message which should be send
+     */
     public void sendMessage(Packet<Message> message) {
         messagesLock.lock();
         messages.add(message);
@@ -39,8 +44,16 @@ public abstract class MessageSender extends RepeatingTask {
         messagesLock.unlock();
     }
 
+    /**
+     * Will be called for each queued message which should be send.
+     *
+     * @param message
+     */
     protected abstract void consumeMessage(Packet<Message> message);
 
+    /**
+     * Wait until all queued messages are send (blocks!)
+     */
     public void waitForAllMessagesSend() {
         messagesLock.lock();
         if (!messages.isEmpty() && !isCancelled()) {

@@ -30,15 +30,4 @@ public class NetworkPacket<T> implements Packet<T> {
     public String toString() {
         return unpack().toString();
     }
-
-    /**
-     *
-     * @return Network packet *without* payload
-     */
-    @Override
-    public Packet clone() {
-        Packet<T> packet = new NetworkPacket();
-        packet.setRemoteAddress(remoteAddress);
-        return packet;
-    }
 }

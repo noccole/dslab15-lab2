@@ -20,6 +20,9 @@ public abstract class ChannelBase<T> implements Channel<T> {
         }
     }
 
+    /**
+     * Emit the onChannelClosed signal
+     */
     protected void emitChannelClosed() {
         synchronized (eventHandlers) {
             for (EventHandler eventHandler : eventHandlers) {

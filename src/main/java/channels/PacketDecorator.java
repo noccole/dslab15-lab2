@@ -33,9 +33,4 @@ abstract class PacketDecorator<T> implements Packet<T> {
     public String toString() {
         return packet.toString();
     }
-
-    @Override
-    public Packet clone() {
-        return packet.clone();
-    }
 }

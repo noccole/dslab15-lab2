@@ -2,6 +2,10 @@ package channels;
 
 import javax.xml.bind.DatatypeConverter;
 
+/**
+ * Can be used to decorate byte[] channels.
+ * Encodes/decodes the transferred data as Base 64
+ */
 public class Base64Channel extends ChannelDecorator<byte[]> {
     private class Base64EncodedPacket extends PacketDecorator<byte[]> {
         public Base64EncodedPacket(Packet packet) {

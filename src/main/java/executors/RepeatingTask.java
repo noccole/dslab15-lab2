@@ -10,8 +10,18 @@ public abstract class RepeatingTask implements RunnableFuture {
     private boolean done = false;
     private final AtomicBoolean cancelled = new AtomicBoolean(false);
 
+    /**
+     * Will be called periodically as long as no InterruptedException happened and cancel was not called.
+     *
+     * @throws InterruptedException
+     */
     protected abstract void perform() throws InterruptedException;
 
+    /**
+     * Will be called when cancel is invoked.
+     *
+     * Can be used e.g. to unblock perform.
+     */
     protected void onCancelled() {
 
     }
@@ -29,6 +39,11 @@ public abstract class RepeatingTask implements RunnableFuture {
         done = true;
     }
 
+    /**
+     * Cancel the repeating task execution, the task will not loop anymore.
+     * @param b unused
+     * @return True if the task was cancelled, false if it was already cancelled.
+     */
     @Override
     public boolean cancel(boolean b) {
         if (cancelled.compareAndSet(false, true)) {

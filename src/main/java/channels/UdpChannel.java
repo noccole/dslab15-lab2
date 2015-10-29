@@ -6,6 +6,9 @@ import java.net.DatagramSocket;
 import java.net.SocketAddress;
 import java.net.SocketException;
 
+/**
+ * Udp Channel Implementation
+ */
 public class UdpChannel extends ChannelBase<byte[]> {
     private final DatagramSocket socket;
     private final int receiveBufferSize;

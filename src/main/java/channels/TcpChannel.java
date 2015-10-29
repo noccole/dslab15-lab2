@@ -6,6 +6,9 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+/**
+ * Tcp Channel Implementation
+ */
 public class TcpChannel extends ChannelBase<byte[]> {
     private final Socket socket;
     private final BufferedReader in;

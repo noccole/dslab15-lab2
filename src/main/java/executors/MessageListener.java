@@ -8,6 +8,11 @@ import java.util.Set;
 
 public abstract class MessageListener extends RepeatingTask {
     public interface EventHandler {
+        /**
+         * Will be emitted whenever a message was received.
+         *
+         * @param message Message which was received.
+         */
         void onMessageReceived(Packet<Message> message);
     }
 
@@ -44,8 +49,9 @@ public abstract class MessageListener extends RepeatingTask {
     }
 
     /**
+     * Waits until a message was received
      *
-     * @return (null package will throw a InterruptedExceptoin)
+     * @return Received message (null package will throw a InterruptedExceptoin)
      */
     protected abstract Packet<Message> waitForMessage();
 }

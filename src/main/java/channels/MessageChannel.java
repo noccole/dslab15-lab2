@@ -4,6 +4,9 @@ import messages.Message;
 
 import java.io.*;
 
+/**
+ * Sends/receives Messages via/from a byte[] channel
+ */
 public class MessageChannel implements Channel<Message> {
     private final Channel<byte[]> channel;
 

@@ -47,7 +47,9 @@ public class SocketConnectionListener extends RepeatingTask {
 
             handlerFactory.createHandler(channel);
         } catch (IOException e) {
-            System.err.println("could not accept client connection: " + e);
+            if (!serverSocket.isClosed()) {
+                System.err.println("could not accept client connection: " + e);
+            }
         }
     }
 

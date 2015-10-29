@@ -115,7 +115,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 
 	@Override
 	public void run() {
-		executorService.submit(shell);
+		new Thread(shell).start();
 
 		if (!startListHandler()) {
 			exit();
@@ -144,6 +144,8 @@ public class Chatserver implements IChatserverCli, Runnable {
 	@Override
 	@Command
 	public String exit() {
+		executorService.shutdown();
+
 		// inform all clients
 		eventDistributor.publish(new ExitEvent());
 		eventDistributor.waitForAllMessagesSend();
@@ -155,15 +157,17 @@ public class Chatserver implements IChatserverCli, Runnable {
 			socketListener.cancel(true);
 		}
 
-		shell.close();
-
-		executorService.shutdown();
 		try {
-			executorService.awaitTermination(5, TimeUnit.SECONDS);
+			if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+				executorService.shutdownNow();
+				executorService.awaitTermination(5, TimeUnit.SECONDS);
+			}
 		} catch (InterruptedException e) {
-			System.err.println("could not shutdown executor service, force it ...");
+			System.err.println("Could not shutdown executor service, force it ...");
 			executorService.shutdownNow();
 		}
+
+		shell.close();
 
 		return "Shut down completed! Bye ..";
 	}

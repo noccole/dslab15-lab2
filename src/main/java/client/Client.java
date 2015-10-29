@@ -133,7 +133,7 @@ public class Client implements IClientCli, Runnable {
 
 	@Override
 	public void run() {
-		executorService.submit(shell);
+		new Thread(shell).start();
 
 		if (!startUdpHandler()) {
 			exit();
@@ -372,6 +372,8 @@ public class Client implements IClientCli, Runnable {
 	public String exit() {
 		logout();
 
+		executorService.shutdown();
+
 		if (tcpRequester != null) {
 			tcpRequester.stop();
 		}
@@ -383,15 +385,17 @@ public class Client implements IClientCli, Runnable {
 			socketListener.cancel(true);
 		}
 
-		shell.close();
-
-		executorService.shutdown();
 		try {
-			executorService.awaitTermination(5, TimeUnit.SECONDS);
+			if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+				executorService.shutdownNow();
+				executorService.awaitTermination(5, TimeUnit.SECONDS);
+			}
 		} catch (InterruptedException e) {
-			System.err.println("could not shutdown executor service, force it ...");
+			System.err.println("Could not shutdown executor service, force it ...");
 			executorService.shutdownNow();
 		}
+
+		shell.close();
 
 		return "Shut down completed! Bye ..";
 	}

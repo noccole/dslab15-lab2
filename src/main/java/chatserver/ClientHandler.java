@@ -2,11 +2,11 @@ package chatserver;
 
 import channels.Channel;
 import entities.User;
-import executors.EventDistributor;
-import executors.MessageSender;
 import messages.*;
 import service.UserService;
+import shared.EventDistributor;
 import shared.HandlerBase;
+import shared.MessageSender;
 import states.State;
 import states.StateException;
 import states.StateResult;

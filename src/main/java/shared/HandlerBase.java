@@ -3,7 +3,6 @@ package shared;
 import channels.Channel;
 import channels.ChannelException;
 import channels.Packet;
-import executors.*;
 import messages.Message;
 import states.State;
 import states.StateMachine;

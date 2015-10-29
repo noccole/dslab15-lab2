@@ -1,4 +1,4 @@
-package executors;
+package shared;
 
 
 import channels.NetworkPacket;

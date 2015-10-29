@@ -1,4 +1,4 @@
-package executors;
+package shared;
 
 import channels.Channel;
 import channels.ChannelException;
@@ -7,32 +7,32 @@ import messages.Message;
 
 import java.util.logging.Logger;
 
-public class ChannelMessageSender extends MessageSender {
+public class ChannelMessageListener extends MessageListener {
     private static final Logger LOGGER = Logger.getAnonymousLogger();
 
     private final Channel<Message> channel;
 
-    public ChannelMessageSender(Channel<Message> channel) {
+    public ChannelMessageListener(Channel<Message> channel) {
         this.channel = channel;
 
-        final MessageSender parent = this;
+        final MessageListener parent = this;
         channel.addEventHandler(new Channel.EventHandler() {
             @Override
             public void onChannelClosed() {
-                LOGGER.info("ChannelMessageSender -> Channel::onChannelClosed");
+                LOGGER.info("ChannelMessageListener -> Channel::onChannelClosed");
                 parent.cancel(true);
             }
         });
     }
 
     @Override
-    protected void consumeMessage(Packet<Message> message) {
-        LOGGER.info("ChannelMessageSender::consumeMessage with parameters: " + message);
-
+    protected Packet<Message> waitForMessage() {
         try {
-            channel.send(message);
+            final Packet<Message> packet = channel.receive();
+            LOGGER.info("ChannelMessageListener::waitForMessage received packet: " + packet);
+            return packet;
         } catch (ChannelException e) {
-            System.err.println("could not send message " + e);
+            return null;
         }
     }
 }

@@ -1,4 +1,4 @@
-package executors;
+package shared;
 
 import channels.Packet;
 import messages.Message;

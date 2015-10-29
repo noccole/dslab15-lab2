@@ -42,6 +42,13 @@ public abstract class HandlerBase {
         executorService.submit(sender);
         executorService.submit(handler);
         executorService.submit(listener);
+
+        channel.addEventHandler(new Channel.EventHandler() {
+            @Override
+            public void onChannelClosed() {
+                stop();
+            }
+        });
     }
 
     protected MessageListener getListener() {

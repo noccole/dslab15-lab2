@@ -1,0 +1,31 @@
+*	Chatserver	server
+*	Client		alice
+*	Client		bill
+
+alice:  !login alice.vienna.at 12345
+>		verify("success")
+
+bill:   !login bill.de 23456
+>		verify("success")
+
+alice:	!send this is a public message.
+>		verify("success")
+
+alice:  !lastMsg
+>       verify(".*No message received !*", T(test.util.Flag).REGEX)
+
+bill:   !lastMsg
+>       verify(".*alice.vienna.at: this is a public message.*", T(test.util.Flag).REGEX)
+
+bill:	!send Hello from bill!
+>		verify("success")
+
+bill:   !lastMsg
+>       verify(".*alice.vienna.at: this is a public message.*", T(test.util.Flag).REGEX)
+
+alice:  !lastMsg
+>       verify(".*bill.de: Hello from bill!*", T(test.util.Flag).REGEX)
+
+bill:   !exit
+alice:	!exit
+server:	!exit

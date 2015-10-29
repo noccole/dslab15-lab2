@@ -149,8 +149,8 @@ public class Chatserver implements IChatserverCli, Runnable {
 		executorService.shutdown();
 
 		// inform all clients
-		eventDistributor.publish(new ExitEvent());
-		eventDistributor.waitForAllMessagesSend();
+		//eventDistributor.publish(new ExitEvent()); not needed in the assignment
+		//eventDistributor.waitForAllMessagesSend();
 
 		if (listHandler != null) {
 			listHandler.stop();

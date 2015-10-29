@@ -156,6 +156,7 @@ public class Client implements IClientCli, Runnable {
 			final LoginResponse response = tcpRequester.syncRequest(request, LoginResponse.class);
 			switch (response.getResponse()) {
 				case Success:
+					this.username = username;
 					return "Successfully logged in.";
 				case WrongPassword:	// fall through
 				case UnknownUser:

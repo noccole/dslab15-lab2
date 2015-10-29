@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.*;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -33,6 +34,8 @@ public class Client implements IClientCli, Runnable {
 
 	private ClientHandler tcpRequester;
 	private ClientHandler udpRequester;
+
+	private Collection<SocketConnectionListener> socketListeners = new LinkedList<>();
 
 	/**
 	 * @param componentName
@@ -352,6 +355,7 @@ public class Client implements IClientCli, Runnable {
 				return handler;
 			}
 		});
+		socketListeners.add(listener);
 		executorService.submit(listener);
 
 		return "Successfully registered address for " + username + ".";
@@ -375,6 +379,12 @@ public class Client implements IClientCli, Runnable {
 			udpRequester.stop();
 		}
 
+		for (SocketConnectionListener socketListener : socketListeners) {
+			socketListener.cancel(true);
+		}
+
+		shell.close();
+
 		executorService.shutdown();
 		try {
 			executorService.awaitTermination(5, TimeUnit.SECONDS);
@@ -382,8 +392,6 @@ public class Client implements IClientCli, Runnable {
 			System.err.println("could not shutdown executor service, force it ...");
 			executorService.shutdownNow();
 		}
-
-		shell.close();
 
 		return "Shut down completed! Bye ..";
 	}

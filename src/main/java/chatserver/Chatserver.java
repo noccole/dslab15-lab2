@@ -52,6 +52,8 @@ public class Chatserver implements IChatserverCli, Runnable {
 	public Chatserver(String componentName, Config config, InputStream userRequestStream, PrintStream userResponseStream) {
 		this.config = config;
 
+		LogManager.getLogManager().reset(); // disable logging
+
 		shell = new Shell(componentName, userRequestStream, userResponseStream);
 		shell.register(this);
 
@@ -178,8 +180,6 @@ public class Chatserver implements IChatserverCli, Runnable {
 	 *            component
 	 */
 	public static void main(String[] args) {
-		LogManager.getLogManager().reset(); // disable logging
-
 		final Config config = new Config("chatserver");
 		final Chatserver chatserver = new Chatserver(args[0], config, System.in, System.out);
 

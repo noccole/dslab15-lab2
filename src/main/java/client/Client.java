@@ -50,6 +50,8 @@ public class Client implements IClientCli, Runnable {
 	public Client(String componentName, Config config, InputStream userRequestStream, PrintStream userResponseStream) {
 		this.config = config;
 
+		LogManager.getLogManager().reset(); // disable logging
+
 		shell = new Shell(componentName, userRequestStream, userResponseStream);
 		shell.register(this);
 	}
@@ -405,8 +407,6 @@ public class Client implements IClientCli, Runnable {
 	 *            the first argument is the name of the {@link Client} component
 	 */
 	public static void main(String[] args) {
-		LogManager.getLogManager().reset(); // disable logging
-
 		final Config config = new Config("client");
 		final Client client = new Client(args[0], config, System.in, System.out);
 

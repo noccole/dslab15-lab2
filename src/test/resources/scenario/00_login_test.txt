@@ -10,5 +10,20 @@ alice.vienna.at:	!list
 chatserver:			!users
 >					verify(".*alice.*online.*bill.*offline.*", T(test.util.Flag).REGEX)
 
+alice.vienna.at:	!logout
+>					verify("success")
+
+chatserver:			!users
+>					verify(".*alice.*offline.*bill.*offline.*", T(test.util.Flag).REGEX)
+
+alice.vienna.at:	!login alice.vienna.at 12345
+>					verify("success")
+
+alice.vienna.at:	!list
+>					verify(".*alice.*", T(test.util.Flag).REGEX)
+
+chatserver:			!users
+>					verify(".*alice.*online.*bill.*offline.*", T(test.util.Flag).REGEX)
+
 chatserver: 		!exit
 alice.vienna.at:	!exit

@@ -17,13 +17,17 @@ public abstract class MessageListener extends RepeatingTask {
     protected void perform() throws InterruptedException {
         final Packet<Message> message = waitForMessage();
         if (message != null) {
-            synchronized (eventHandlers) {
-                for (EventHandler eventHandler : eventHandlers) {
-                    eventHandler.onMessageReceived(message);
-                }
-            }
+            emitMessageReceived(message);
         } else {
             throw new InterruptedException();
+        }
+    }
+
+    private void emitMessageReceived(Packet<Message> message) {
+        synchronized (eventHandlers) {
+            for (EventHandler eventHandler : eventHandlers) {
+                eventHandler.onMessageReceived(message);
+            }
         }
     }
 

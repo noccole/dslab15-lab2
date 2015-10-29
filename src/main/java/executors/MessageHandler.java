@@ -37,10 +37,14 @@ public abstract class MessageHandler extends RepeatingTask {
             responsePacket.setRemoteAddress(requestPacket.getRemoteAddress());
             responsePacket.pack(response);
 
-            synchronized (eventHandlers) {
-                for (EventHandler eventHandler : eventHandlers) {
-                    eventHandler.onMessageHandled(requestPacket, responsePacket);
-                }
+            emitMessageHandled(requestPacket, responsePacket);
+        }
+    }
+
+    private void emitMessageHandled(Packet<Message> message, Packet<Message> result) {
+        synchronized (eventHandlers) {
+            for (EventHandler eventHandler : eventHandlers) {
+                eventHandler.onMessageHandled(message, result);
             }
         }
     }

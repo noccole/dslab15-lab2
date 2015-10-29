@@ -1,34 +1,34 @@
-*	Chatserver	chatserver
-*	Client		alice.vienna.at
-*	Client		bill.de
+*	Chatserver	server
+*	Client		alice
+*	Client		bill
 
-alice.vienna.at:	!login alice.vienna.at 12345
->					verify("success")
+alice:  !login alice.vienna.at 12345
+>		verify("success")
 
-bill.de:	        !login bill.de 23456
->					verify("success")
+bill:   !login bill.de 23456
+>		verify("success")
 
-alice.vienna.at:	!msg bill.de this is a private message which should not work
->					verify(".*not reachable.*", T(test.util.Flag).REGEX)
+alice:	!msg bill.de this is a private message which should not work
+>		verify(".*not reachable.*", T(test.util.Flag).REGEX)
 
-bill.de:	        !register localhost:55555
->					verify("success")
+bill:   !register localhost:55555
+>		verify("success")
 
-alice.vienna.at:	!lookup bill.de
->					verify(".*localhost:55555*", T(test.util.Flag).REGEX)
+alice:	!lookup bill.de
+>		verify(".*localhost:55555*", T(test.util.Flag).REGEX)
 
-alice.vienna.at:	!msg bill.de this is a private message which should work.
->					verify(".*bill.de replied with !ack.*", T(test.util.Flag).REGEX)
+alice:	!msg bill.de this is a private message which should work.
+>		verify(".*bill.de replied with !ack.*", T(test.util.Flag).REGEX)
 
-bill.de:	        !lastMsg
->					verify(".*this is a private message which should work.*.No message received.*", T(test.util.Flag).REGEX)
+bill:   !lastMsg
+>		verify(".*this is a private message which should work.*.No message received.*", T(test.util.Flag).REGEX)
 
-alice.vienna.at:	!register localhost:55556
->                   verify("success")
+alice:	!register localhost:55556
+>       verify("success")
 
-bill.de:	        !msg alice.vienna.at Hello back.
->					verify(".*alice.vienna.at replied with !ack.*", T(test.util.Flag).REGEX)
+bill:   !msg alice.vienna.at Hello back.
+>		verify(".*alice.vienna.at replied with !ack.*", T(test.util.Flag).REGEX)
 
-bill.de:	        !exit
-alice.vienna.at:	!exit
-chatserver: 		!exit
+bill:   !exit
+alice:	!exit
+server:	!exit

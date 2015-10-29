@@ -75,11 +75,8 @@ public class Shell implements Runnable, Closeable {
 		thread = Thread.currentThread();
 
 		try {
-			while (!thread.isInterrupted()) {
-				while (!in.ready()) {
-					Thread.sleep(50);
-				}
-				String line = readLine();
+			for (String line; !Thread.currentThread().isInterrupted()
+					&& (line = readLine()) != null;) {
 				write(String.format("%s\t\t%s> %s%n",
 						DATE_FORMAT.get().format(new Date()), name, line)
 						.getBytes());
@@ -102,8 +99,6 @@ public class Shell implements Runnable, Closeable {
 				System.out.println(ex.getClass().getName() + ": "
 						+ ex.getMessage());
 			}
-		} catch (InterruptedException e) {
-
 		}
 	}
 

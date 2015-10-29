@@ -87,6 +87,15 @@ public class Client implements IClientCli, Runnable {
 			}
 
 			@Override
+			public void onPresenceChanged(String presenceMessage) {
+				try {
+					shell.writeLine(presenceMessage);
+				} catch (IOException e) {
+					System.err.println("could not write message");
+				}
+			}
+
+			@Override
 			public void onExit() {
 				exit();
 			}
@@ -119,6 +128,15 @@ public class Client implements IClientCli, Runnable {
 			public void onMessageReceived(String message) {
 				try {
 					shell.writeLine(message);
+				} catch (IOException e) {
+					System.err.println("could not write message");
+				}
+			}
+
+			@Override
+			public void onPresenceChanged(String presenceMessage) {
+				try {
+					shell.writeLine(presenceMessage);
 				} catch (IOException e) {
 					System.err.println("could not write message");
 				}
@@ -347,6 +365,11 @@ public class Client implements IClientCli, Runnable {
 						} catch (IOException e) {
 							System.err.println("could not write message");
 						}
+					}
+
+					@Override
+					public void onPresenceChanged(String presenceMessage) {
+
 					}
 
 					@Override

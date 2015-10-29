@@ -59,7 +59,7 @@ class ClientHandler extends ClientHandlerBase {
         public StateResult handleUserStateChangedEvent(UserPresenceChangedEvent event) throws StateException {
             LOGGER.info("ClientHandler::StateHandleEvents::handleUserStateChangedEvent with parameters: " + event);
 
-            emitMessageReceived(event.getUsername() + " went " + (event.getPresence() == User.Presence.Offline ? "offline" : "online") + " ...");
+            emitPresenceChanged(event.getUsername() + " went " + (event.getPresence() == User.Presence.Offline ? "offline" : "online") + " ...");
 
             return new StateResult(this);
         }

@@ -37,6 +37,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 	private final EventDistributor eventDistributor;
 
 	private ListHandler listHandler;
+	private SocketConnectionListener socketListener;
 
 	/**
 	 * @param componentName
@@ -101,13 +102,13 @@ public class Chatserver implements IChatserverCli, Runnable {
 			return false;
 		}
 
-		final SocketConnectionListener listener = new SocketConnectionListener(serverSocket, new HandlerFactory() {
+		socketListener = new SocketConnectionListener(serverSocket, new HandlerFactory() {
 			@Override
 			public HandlerBase createHandler(Channel channel) {
 				return new ClientHandler(channel, userService, eventDistributor, executorService);
 			}
 		});
-		executorService.submit(listener);
+		executorService.submit(socketListener);
 
 		return true;
 	}
@@ -150,6 +151,11 @@ public class Chatserver implements IChatserverCli, Runnable {
 		if (listHandler != null) {
 			listHandler.stop();
 		}
+		if (socketListener != null) {
+			socketListener.cancel(true);
+		}
+
+		shell.close();
 
 		executorService.shutdown();
 		try {
@@ -158,8 +164,6 @@ public class Chatserver implements IChatserverCli, Runnable {
 			System.err.println("could not shutdown executor service, force it ...");
 			executorService.shutdownNow();
 		}
-
-		shell.close();
 
 		return "Shut down completed! Bye ..";
 	}

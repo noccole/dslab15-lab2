@@ -3,6 +3,7 @@ package chatserver;
 import channels.Channel;
 import entities.User;
 import executors.EventDistributor;
+import executors.MessageSender;
 import messages.*;
 import service.UserService;
 import shared.HandlerBase;
@@ -10,6 +11,7 @@ import states.State;
 import states.StateException;
 import states.StateResult;
 
+import java.util.HashSet;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 
@@ -123,7 +125,9 @@ class ClientHandler extends HandlerBase {
             final MessageEvent event = new MessageEvent();
             event.setUsername(user.getUsername());
             event.setMessage(request.getMessage());
-            eventDistributor.publish(event);
+            eventDistributor.publish(event, new HashSet<MessageSender>() {{
+                add(getSender()); // don't forward this event to our sender
+            }});
 
             final SendMessageResponse response = new SendMessageResponse(request);
 

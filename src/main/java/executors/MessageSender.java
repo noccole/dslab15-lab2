@@ -43,7 +43,7 @@ public abstract class MessageSender extends RepeatingTask {
 
     public void waitForAllMessagesSend() {
         messagesLock.lock();
-        if (!messages.isEmpty()) {
+        if (!messages.isEmpty() && !isCancelled()) {
             messageQueueIsEmpty.awaitUninterruptibly();
         }
         messagesLock.unlock();

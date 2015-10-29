@@ -62,15 +62,6 @@ public class Chatserver implements IChatserverCli, Runnable {
 		Config userConfig = new Config("user");
 		UserRepository userRepository = new ConfigUserRepository(userConfig);
 		userService = new UserService(userRepository);
-        userService.addEventHandler(new UserService.EventHandler() {
-			@Override
-			public void onUserPresenceChanged(User user) { // send presence changed events instead of always using !users or !list ;)
-				final UserPresenceChangedEvent userPresenceChangedEvent = new UserPresenceChangedEvent();
-				userPresenceChangedEvent.setUsername(user.getUsername());
-				userPresenceChangedEvent.setPresence(user.getPresence());
-				eventDistributor.publish(userPresenceChangedEvent);
-			}
-		});
 	}
 
 	private boolean startListHandler() {

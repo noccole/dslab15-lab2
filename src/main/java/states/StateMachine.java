@@ -2,7 +2,11 @@ package states;
 
 import messages.Message;
 
+import java.util.logging.Logger;
+
 public class StateMachine {
+    private static final Logger LOGGER = Logger.getAnonymousLogger();
+
     private State state;
 
     public StateMachine(State initialState) {
@@ -17,7 +21,7 @@ public class StateMachine {
             try {
                 state.onExited();
             } catch (StateException e) {
-                System.err.println("Exception on leaving state '" + state + "': " + e);
+                LOGGER.warning("Exception on leaving state '" + state + "': " + e);
             }
 
             state = stateResult.getNextState();
@@ -25,7 +29,7 @@ public class StateMachine {
             try {
                 state.onEntered();
             } catch (StateException e) {
-                System.err.println("Exception on entering state '" + state + "': " + e);
+                LOGGER.warning("Exception on entering state '" + state + "': " + e);
             }
         }
 

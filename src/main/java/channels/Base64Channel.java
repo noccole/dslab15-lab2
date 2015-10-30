@@ -1,12 +1,15 @@
 package channels;
 
 import javax.xml.bind.DatatypeConverter;
+import java.util.logging.Logger;
 
 /**
  * Can be used to decorate byte[] channels.
  * Encodes/decodes the transferred data as Base 64
  */
 public class Base64Channel extends ChannelDecorator<byte[]> {
+    private static final Logger LOGGER = Logger.getAnonymousLogger();
+
     private class Base64EncodedPacket extends PacketDecorator<byte[]> {
         public Base64EncodedPacket(Packet packet) {
             super(packet);
@@ -19,7 +22,7 @@ public class Base64Channel extends ChannelDecorator<byte[]> {
             try {
                 return Encoder.decodeString(data);
             } catch (ChannelException e) {
-                System.err.println("could not encode package: " + e);
+                LOGGER.warning("could not encode package: " + e);
                 return super.unpack();
             }
         }
@@ -36,7 +39,7 @@ public class Base64Channel extends ChannelDecorator<byte[]> {
                 final String data = Encoder.encodeByteArray(super.unpack());
                 return DatatypeConverter.parseBase64Binary(data);
             } catch (ChannelException e) {
-                System.err.println("could not decode package: " + e);
+                LOGGER.warning("could not decode package: " + e);
                 return super.unpack();
             }
         }

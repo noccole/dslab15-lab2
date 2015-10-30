@@ -6,8 +6,11 @@ import repositories.UserRepository;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 public class UserService {
+    private static final Logger LOGGER = Logger.getAnonymousLogger();
+
     public interface EventHandler {
         void onUserPresenceChanged(User user);
     }
@@ -23,7 +26,7 @@ public class UserService {
                 usersCache.put(user.getUsername(), user);
             }
         } catch (RepositoryException e) {
-            System.err.println("could not load users: " + e);
+            LOGGER.warning("could not load users: " + e);
         }
     }
 

@@ -23,8 +23,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 public class Chatserver implements IChatserverCli, Runnable {
+	private static final Logger LOGGER = Logger.getAnonymousLogger();
+
 	private final ExecutorService executorService = Executors.newCachedThreadPool();
 
 	private final Shell shell;
@@ -74,7 +77,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 		try {
 			serverUdpSocket = new DatagramSocket(config.getInt("udp.port"));
 		} catch (SocketException e) {
-			System.err.println("could not open udp server socket");
+			LOGGER.warning("could not open udp server socket");
 			return false;
 		}
 
@@ -82,7 +85,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 		try {
 			udpChannel = new MessageChannel(new Base64Channel(new UdpChannel(serverUdpSocket)));
 		} catch (ChannelException e) {
-			System.err.println("could not create a udp channel");
+			LOGGER.warning("could not create a udp channel");
 			return false;
 		}
 
@@ -96,7 +99,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 		try {
 			serverSocket = new ServerSocket(config.getInt("tcp.port"));
 		} catch (IOException e) {
-			System.err.println("could not open tcp server socket");
+			LOGGER.warning("could not open tcp server socket");
 			return false;
 		}
 
@@ -160,7 +163,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 				executorService.awaitTermination(5, TimeUnit.SECONDS);
 			}
 		} catch (InterruptedException e) {
-			System.err.println("Could not shutdown executor service, force it ...");
+			LOGGER.warning("Could not shutdown executor service, force it ...");
 			executorService.shutdownNow();
 		}
 

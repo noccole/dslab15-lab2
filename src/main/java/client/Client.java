@@ -408,7 +408,7 @@ public class Client implements IClientCli, Runnable {
 		HandlerManager.getInstance().stopAllHandlers();
 
 		try {
-			if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+			if (!executorService.awaitTermination(2, TimeUnit.SECONDS)) {
 				executorService.shutdownNow();
 				executorService.awaitTermination(5, TimeUnit.SECONDS);
 			}

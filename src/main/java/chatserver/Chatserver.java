@@ -9,10 +9,7 @@ import messages.UserPresenceChangedEvent;
 import repositories.ConfigUserRepository;
 import repositories.UserRepository;
 import service.UserService;
-import shared.EventDistributor;
-import shared.HandlerBase;
-import shared.HandlerFactory;
-import shared.SocketConnectionListener;
+import shared.*;
 import util.Config;
 
 import java.io.IOException;
@@ -36,7 +33,6 @@ public class Chatserver implements IChatserverCli, Runnable {
 	private final UserService userService;
 	private final EventDistributor eventDistributor;
 
-	private ListHandler listHandler;
 	private SocketConnectionListener socketListener;
 
 	/**
@@ -81,7 +77,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 			return false;
 		}
 
-		listHandler = new ListHandler(udpChannel, userService, executorService);
+		new ListHandler(udpChannel, userService, executorService);
 
 		return true;
 	}
@@ -143,15 +139,14 @@ public class Chatserver implements IChatserverCli, Runnable {
 		//eventDistributor.publish(new ExitEvent()); not needed in the assignment
 		//eventDistributor.waitForAllMessagesSend();
 
-		if (listHandler != null) {
-			listHandler.stop();
-		}
 		if (socketListener != null) {
 			socketListener.cancel(true);
 		}
 
+		HandlerManager.getInstance().stopAllHandlers();
+
 		try {
-			if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+			if (!executorService.awaitTermination(2, TimeUnit.SECONDS)) {
 				executorService.shutdownNow();
 				executorService.awaitTermination(5, TimeUnit.SECONDS);
 			}

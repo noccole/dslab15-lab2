@@ -35,7 +35,7 @@ class ClientHandler extends ClientHandlerBase {
         LOGGER.info("ClientHandler::syncRequest with parameters: " + request);
 
         final Future<ResponseType> future = asyncRequest(request, responseClass);
-        return future.get(5, TimeUnit.SECONDS);
+        return future.get(1, TimeUnit.SECONDS);
     }
 
     private class StateHandleEvents extends State {

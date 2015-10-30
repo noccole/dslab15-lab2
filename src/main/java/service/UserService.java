@@ -40,14 +40,12 @@ public class UserService {
      * @return True if the user was successfully logged in
      */
     public boolean login(final User user, String password) {
-        synchronized (user) {
-            if (user.getPresence() == User.Presence.Offline && user.getPassword().equals(password)) {
-                user.setPresence(User.Presence.Available);
-                emitUserPresenceChanged(user);
-                return true;
-            } else {
-                return false;
-            }
+        if (user.getPresence() == User.Presence.Offline && user.getPassword().equals(password)) {
+            user.setPresence(User.Presence.Available);
+            emitUserPresenceChanged(user);
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -59,12 +57,10 @@ public class UserService {
      * @param user
      */
     public void logout(final User user) {
-        synchronized (user) {
-            if (user.getPresence() != User.Presence.Offline) {
-                user.clearPrivateAddresses();
-                user.setPresence(User.Presence.Offline);
-                emitUserPresenceChanged(user);
-            }
+        if (user.getPresence() != User.Presence.Offline) {
+            user.clearPrivateAddresses();
+            user.setPresence(User.Presence.Offline);
+            emitUserPresenceChanged(user);
         }
     }
 

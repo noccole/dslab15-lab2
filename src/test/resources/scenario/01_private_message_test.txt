@@ -11,11 +11,11 @@ bill:   !login bill.de 23456
 alice:	!msg bill.de this is a private message which should not work
 >		verify(".*not reachable.*", T(test.util.Flag).REGEX)
 
-bill:   !register localhost:55555
+bill:   !register localhost:11712
 >		verify("success")
 
 alice:	!lookup bill.de
->		verify(".*localhost:55555*", T(test.util.Flag).REGEX)
+>		verify(".*localhost:11712*", T(test.util.Flag).REGEX)
 
 alice:	!msg bill.de this is a private message which should work.
 >		verify(".*bill.de replied with !ack.*", T(test.util.Flag).REGEX)
@@ -23,7 +23,7 @@ alice:	!msg bill.de this is a private message which should work.
 bill:   !lastMsg
 >		verify(".*this is a private message which should work.*.No message received.*", T(test.util.Flag).REGEX)
 
-alice:	!register localhost:55556
+alice:	!register localhost:11713
 >       verify("success")
 
 bill:   !msg alice.vienna.at Hello back.

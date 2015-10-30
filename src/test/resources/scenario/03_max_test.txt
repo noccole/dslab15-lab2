@@ -27,11 +27,11 @@ alice.vienna.at:    !send this is a public test message
 bill.de:            !lastMsg
 >                   verify("alice.vienna.at: this is a public test message")
 
-alice.vienna.at:    !register localhost:53000
+alice.vienna.at:    !register localhost:11712
 >                   verify("Successfully registered address for alice.vienna.at.")
 
 bill.de:            !lookup alice.vienna.at
->                   verify("localhost:53000")
+>                   verify("localhost:11712")
 
 bill.de:            !msg alice.vienna.at this is a private test message
 >                   verify("alice.vienna.at replied with !ack.")

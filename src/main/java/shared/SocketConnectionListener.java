@@ -5,8 +5,11 @@ import channels.*;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.logging.Logger;
 
 public class SocketConnectionListener extends RepeatingTask {
+    private static final Logger LOGGER = Logger.getAnonymousLogger();
+
     private final ServerSocket serverSocket;
     private final ChannelFactory channelFactory;
     private final HandlerFactory handlerFactory;
@@ -39,7 +42,7 @@ public class SocketConnectionListener extends RepeatingTask {
             try {
                 channel = channelFactory.createChannel(clientSocket);
             } catch (ChannelException e) {
-                System.err.println("could not create a new channel for user socket: " + e);
+                LOGGER.warning("could not create a new channel for user socket: " + e);
                 clientSocket.close();
                 return;
             }
@@ -47,7 +50,7 @@ public class SocketConnectionListener extends RepeatingTask {
             handlerFactory.createHandler(channel);
         } catch (IOException e) {
             if (!serverSocket.isClosed()) {
-                System.err.println("could not accept client connection: " + e);
+                LOGGER.warning("could not accept client connection: " + e);
             }
         }
     }
@@ -57,7 +60,7 @@ public class SocketConnectionListener extends RepeatingTask {
         try {
             serverSocket.close();
         } catch (IOException e) {
-            System.err.println("could not close server socket: " + e);
+            LOGGER.warning("could not close server socket: " + e);
         }
 
         super.onCancelled();

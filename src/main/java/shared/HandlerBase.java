@@ -8,8 +8,11 @@ import states.State;
 import states.StateMachine;
 
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Logger;
 
 public abstract class HandlerBase {
+    private static final Logger LOGGER = Logger.getAnonymousLogger();
+
     private Channel channel;
 
     private MessageListener listener;
@@ -77,7 +80,7 @@ public abstract class HandlerBase {
         try {
             channel.close();
         } catch (ChannelException e) {
-            System.err.println("could not close channel: " + e);
+            LOGGER.warning("could not close channel: " + e);
         }
     }
 }

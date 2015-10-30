@@ -51,7 +51,7 @@ public abstract class MessageListener extends RepeatingTask {
     /**
      * Waits until a message was received
      *
-     * @return Received message (null package will throw a InterruptedExceptoin)
+     * @return Received message (null package will throw a InterruptedException)
      */
     protected abstract Packet<Message> waitForMessage();
 }

@@ -9,6 +9,7 @@ import messages.Response;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Semaphore;
+import java.util.logging.Logger;
 
 /**
  * Performs an asynchronous request
@@ -17,6 +18,8 @@ import java.util.concurrent.Semaphore;
  * used to get the result of the asynchronous request.
  */
 public class AsyncRequest<RequestType extends Request, ResponseType extends Response> implements Callable<ResponseType> {
+    private static final Logger LOGGER = Logger.getAnonymousLogger();
+
     private final RequestType request;
     private final Class<ResponseType> responseClass;
     private final MessageListener listener;
@@ -83,7 +86,7 @@ public class AsyncRequest<RequestType extends Request, ResponseType extends Resp
             listener.addEventHandler(eventHandler);
             eventHandler.waitForResponse();
         } catch (InterruptedException e) {
-            System.err.println("timeout, event handler did not notify us so far ...");
+            LOGGER.warning("timeout, event handler did not notify us so far ...");
         } finally {
             listener.removeEventHandler(eventHandler);
         }

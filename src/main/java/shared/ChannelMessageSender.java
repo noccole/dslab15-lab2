@@ -32,7 +32,7 @@ public class ChannelMessageSender extends MessageSender {
         try {
             channel.send(message);
         } catch (ChannelException e) {
-            System.err.println("could not send message " + e);
+            LOGGER.warning("could not send message " + e);
         }
     }
 }

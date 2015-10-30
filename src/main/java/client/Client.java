@@ -23,8 +23,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 public class Client implements IClientCli, Runnable {
+	private static final Logger LOGGER = Logger.getAnonymousLogger();
+
 	private final ExecutorService executorService = Executors.newCachedThreadPool();
 
 	private final Shell shell;
@@ -62,7 +65,7 @@ public class Client implements IClientCli, Runnable {
 		try {
 			socket = new Socket(config.getString("chatserver.host"), config.getInt("chatserver.tcp.port"));
 		} catch (IOException e) {
-			System.err.println("could not open tcp socket");
+			LOGGER.warning("could not open tcp socket");
 			return false;
 		}
 
@@ -70,7 +73,7 @@ public class Client implements IClientCli, Runnable {
 		try {
 			channel = new MessageChannel(new Base64Channel(new TcpChannel(socket)));
 		} catch (ChannelException e) {
-			System.err.println("could not create tcp channel");
+			LOGGER.warning("could not create tcp channel");
 			return false;
 		}
 
@@ -83,7 +86,7 @@ public class Client implements IClientCli, Runnable {
 				try {
 					shell.writeLine(message);
 				} catch (IOException e) {
-					System.err.println("could not write message");
+					LOGGER.warning("could not write message");
 				}
 			}
 
@@ -92,7 +95,7 @@ public class Client implements IClientCli, Runnable {
 				try {
 					shell.writeLine(presenceMessage);
 				} catch (IOException e) {
-					System.err.println("could not write message");
+					LOGGER.warning("could not write message");
 				}
 			}
 
@@ -111,7 +114,7 @@ public class Client implements IClientCli, Runnable {
 			socket = new DatagramSocket();
 			socket.connect(InetAddress.getByName(config.getString("chatserver.host")), config.getInt("chatserver.udp.port"));
 		} catch (UnknownHostException | SocketException e) {
-			System.err.println("could not open udp socket");
+			LOGGER.warning("could not open udp socket");
 			return false;
 		}
 
@@ -119,7 +122,7 @@ public class Client implements IClientCli, Runnable {
 		try {
 			channel = new MessageChannel(new Base64Channel(new UdpChannel(socket)));
 		} catch (ChannelException e) {
-			System.err.println("could not create udp channel");
+			LOGGER.warning("could not create udp channel");
 			return false;
 		}
 
@@ -130,7 +133,7 @@ public class Client implements IClientCli, Runnable {
 				try {
 					shell.writeLine(message);
 				} catch (IOException e) {
-					System.err.println("could not write message");
+					LOGGER.warning("could not write message");
 				}
 			}
 
@@ -139,7 +142,7 @@ public class Client implements IClientCli, Runnable {
 				try {
 					shell.writeLine(presenceMessage);
 				} catch (IOException e) {
-					System.err.println("could not write message");
+					LOGGER.warning("could not write message");
 				}
 			}
 
@@ -268,7 +271,7 @@ public class Client implements IClientCli, Runnable {
 			try {
 				socket = new Socket(privateAddress.getHostname(), privateAddress.getPort());
 			} catch (IOException e) {
-				System.err.println("could not open private message socket: " + e);
+				LOGGER.warning("could not open private message socket: " + e);
 				continue; // try next address
 			}
 
@@ -276,11 +279,11 @@ public class Client implements IClientCli, Runnable {
 			try {
 				channel = new MessageChannel(new Base64Channel(new TcpChannel(socket)));
 			} catch (ChannelException e) {
-				System.err.println("could not create private message channel: " + e);
+				LOGGER.warning("could not create private message channel: " + e);
 				try {
 					socket.close();
 				} catch (IOException e1) {
-					System.err.println("could not close private message socket: " + e1);
+					LOGGER.warning("could not close private message socket: " + e1);
 				}
 				continue; // try next address
 			}
@@ -349,7 +352,7 @@ public class Client implements IClientCli, Runnable {
 			try {
 				serverSocket.close();
 			} catch (IOException e1) {
-				System.err.println("Could not close private message server socket");
+				LOGGER.warning("Could not close private message server socket");
 			}
 			return e.getMessage();
 		}
@@ -364,7 +367,7 @@ public class Client implements IClientCli, Runnable {
 						try {
 							shell.writeLine(message);
 						} catch (IOException e) {
-							System.err.println("could not write message");
+							LOGGER.warning("could not write message");
 						}
 					}
 
@@ -413,7 +416,7 @@ public class Client implements IClientCli, Runnable {
 				executorService.awaitTermination(5, TimeUnit.SECONDS);
 			}
 		} catch (InterruptedException e) {
-			System.err.println("Could not shutdown executor service, force it ...");
+			LOGGER.warning("Could not shutdown executor service, force it ...");
 			executorService.shutdownNow();
 		}
 

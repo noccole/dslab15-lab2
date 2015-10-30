@@ -42,6 +42,8 @@ public abstract class HandlerBase {
         executorService.submit(handler);
         executorService.submit(listener);
 
+        HandlerManager.getInstance().registerHandler(this);
+
         channel.addEventHandler(new Channel.EventHandler() {
             @Override
             public void onChannelClosed() {
@@ -63,6 +65,8 @@ public abstract class HandlerBase {
     }
 
     public void stop() {
+        HandlerManager.getInstance().unregisterHandler(this);
+
         listener.cancel(true);
         handler.cancel(true);
 

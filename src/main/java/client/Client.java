@@ -8,6 +8,7 @@ import entities.User;
 import messages.*;
 import shared.HandlerBase;
 import shared.HandlerFactory;
+import shared.HandlerManager;
 import shared.SocketConnectionListener;
 import util.Config;
 
@@ -400,16 +401,11 @@ public class Client implements IClientCli, Runnable {
 
 		executorService.shutdown();
 
-		if (tcpRequester != null) {
-			tcpRequester.stop();
-		}
-		if (udpRequester != null) {
-			udpRequester.stop();
-		}
-
 		for (SocketConnectionListener socketListener : socketListeners) {
 			socketListener.cancel(true);
 		}
+
+		HandlerManager.getInstance().stopAllHandlers();
 
 		try {
 			if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {

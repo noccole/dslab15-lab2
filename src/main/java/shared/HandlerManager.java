@@ -5,15 +5,6 @@ import java.util.Set;
 
 public class HandlerManager {
     private final Set<HandlerBase> handlers = new HashSet<>();
-    private static HandlerManager instance;
-
-    public static synchronized HandlerManager getInstance() {
-        if (instance == null) {
-            instance = new HandlerManager();
-        }
-
-        return instance;
-    }
 
     public void registerHandler(HandlerBase handler) {
         synchronized (handlers) {

@@ -3,6 +3,7 @@ package client;
 import channels.Channel;
 import messages.SendPrivateMessageRequest;
 import messages.SendPrivateMessageResponse;
+import shared.HandlerManager;
 import states.State;
 import states.StateException;
 import states.StateResult;
@@ -13,8 +14,8 @@ import java.util.logging.Logger;
 class PrivateMessageHandler extends ClientHandlerBase {
     private static final Logger LOGGER = Logger.getAnonymousLogger();
 
-    public PrivateMessageHandler(Channel channel, ExecutorService executorService) {
-        init(channel, executorService, new StateOfferService());
+    public PrivateMessageHandler(Channel channel, ExecutorService executorService, HandlerManager handlerManager) {
+        init(channel, executorService, handlerManager, new StateOfferService());
     }
 
     private class StateOfferService extends State {

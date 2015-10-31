@@ -14,13 +14,15 @@ public abstract class HandlerBase {
     private static final Logger LOGGER = Logger.getAnonymousLogger();
 
     private Channel channel;
+    private HandlerManager handlerManager;
 
     private MessageListener listener;
     private MessageHandler handler;
     private MessageSender sender;
 
-    protected void init(Channel channel, ExecutorService executorService, State initialState) {
+    protected void init(Channel channel, ExecutorService executorService, HandlerManager handlerManager, State initialState) {
         this.channel = channel;
+        this.handlerManager = handlerManager;
 
         listener = new ChannelMessageListener(channel);
         sender = new ChannelMessageSender(channel);
@@ -45,7 +47,7 @@ public abstract class HandlerBase {
         executorService.submit(handler);
         executorService.submit(listener);
 
-        HandlerManager.getInstance().registerHandler(this);
+        handlerManager.registerHandler(this);
 
         channel.addEventHandler(new Channel.EventHandler() {
             @Override
@@ -68,7 +70,7 @@ public abstract class HandlerBase {
     }
 
     public void stop() {
-        HandlerManager.getInstance().unregisterHandler(this);
+        handlerManager.unregisterHandler(this);
 
         listener.cancel(true);
         handler.cancel(true);

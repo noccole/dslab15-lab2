@@ -35,6 +35,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 
 	private final UserService userService;
 	private final EventDistributor eventDistributor;
+	private final HandlerManager handlerManager;
 
 	private SocketConnectionListener socketListener;
 
@@ -57,6 +58,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 		shell.register(this);
 
 		eventDistributor = new EventDistributor();
+		handlerManager = new HandlerManager();
 
 		Config userConfig = new Config("user");
 		UserRepository userRepository = new ConfigUserRepository(userConfig);
@@ -89,7 +91,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 			return false;
 		}
 
-		new ListHandler(udpChannel, userService, executorService);
+		new ListHandler(udpChannel, userService, executorService, handlerManager);
 
 		return true;
 	}
@@ -106,7 +108,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 		socketListener = new SocketConnectionListener(serverSocket, new HandlerFactory() {
 			@Override
 			public HandlerBase createHandler(Channel channel) {
-				return new ClientHandler(channel, userService, eventDistributor, executorService);
+				return new ClientHandler(channel, userService, eventDistributor, executorService, handlerManager);
 			}
 		});
 		executorService.submit(socketListener);
@@ -155,7 +157,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 			socketListener.cancel(true);
 		}
 
-		HandlerManager.getInstance().stopAllHandlers();
+		handlerManager.stopAllHandlers();
 
 		try {
 			if (!executorService.awaitTermination(2, TimeUnit.SECONDS)) {

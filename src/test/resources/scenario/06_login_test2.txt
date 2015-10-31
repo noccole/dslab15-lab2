@@ -1,0 +1,46 @@
+*	Chatserver	chatserver
+*	Client		alice
+*	Client		bill
+
+# register bill
+bill:	!login bill.de 23456
+>					verify("success")
+bill: !register localhost:55555
+>					verify("success")
+
+# test all commands if logged out (should all fail; except !list and !lastMsg)
+alice: !logout
+>					verify("not allowed")
+
+alice:               !send test message
+>					verify("not allowed")
+
+alice:              !register localhost:55556
+>					verify("not allowed")
+
+alice:              !lookup bill.de
+>					verify("not allowed")
+
+alice:              !msg bill.de test
+>					verify("not allowed")
+
+alice:              !lastMsg
+>                   verify("No message received")
+
+alice:	            !list
+>					verify(".*bill.*", T(test.util.Flag).REGEX)
+
+# check if client marks exited clients as logged out
+chatserver:			!users
+>					verify(".*alice.*offline.*bill.*online.*", T(test.util.Flag).REGEX)
+
+bill: !exit
+
+# check if client marks exited clients as logged out
+chatserver:			!users
+>					verify(".*alice.*offline.*bill.*offline.*", T(test.util.Flag).REGEX)
+
+alice: !exit
+chatserver: !exit
+
+

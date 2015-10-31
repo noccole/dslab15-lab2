@@ -1,0 +1,107 @@
+*	Chatserver	chatserver
+*   Client      john
+*	Client		alice
+*   Client      bill
+*   Client      bob
+
+# add these lines to user.properties
+# bob.us.password = 123
+# john.doe.password = 1234
+
+# login users alice and bill
+alice:	!login alice.vienna.at 12345
+>					verify("success")
+bill:	!login bill.de 23456
+>					verify("success")
+
+# invalid login of john and bob
+bob:	!login bob.us invalid
+>					verify("wrong")
+john:	!login john.doe invalid
+>					verify("wrong")
+
+# check alphabetical order of users and user status
+chatserver:			!users
+>					verify(".*alice.*online.*bill.*online.*bob.*offline.*john.*offline.*", T(test.util.Flag).REGEX)
+
+# send public message
+alice: !send this is a public message
+>                   verify("success")
+bill: !lastMsg
+>                   verify("alice.vienna.at: this is a public message")
+john: !lastMsg
+>                   verify("No message received")
+bob: !lastMsg
+>                   verify("No message received")
+
+#send public message -> failure: not logged in
+john: !send this message will not be sent
+>                   verify("request not allowed in current state")
+alice: !lastMsg
+>                   verify("No message received")
+bill: !lastMsg
+>                   verify("alice.vienna.at: this is a public message")
+bob: !lastMsg
+>                   verify("No message received")
+
+# valid login of john and bob
+bob:	!login bob.us 123
+>					verify("success")
+john:	!login john.doe 1234
+>					verify("success")
+
+# check alphabetical order of users and user status
+chatserver:			!users
+>					verify(".*alice.*online.*bill.*online.*bob.*online.*john.*online.*", T(test.util.Flag).REGEX)
+
+# lastMsg check
+john: !lastMsg
+>                   verify("No message received")
+bob: !lastMsg
+>                   verify("No message received")
+
+# send message
+john: !send test msg 2
+>                   verify("success")
+alice: !lastMsg
+>                   verify("john.doe: test msg 2")
+bill: !lastMsg
+>                   verify("john.doe: test msg 2")
+bob: !lastMsg
+>                   verify("john.doe: test msg 2")
+
+#logout check
+john: !logout
+>					verify("success")
+chatserver:			!users
+>					verify(".*alice.*online.*bill.*online.*bob.*online.*john.*offline.*", T(test.util.Flag).REGEX)
+john: !list
+>					verify(".*alice.*bill.*bob.*", T(test.util.Flag).REGEX)
+
+
+alice: !logout
+>					verify("success")
+chatserver:			!users
+>					verify(".*alice.*offline.*bill.*online.*bob.*online.*john.*offline.*", T(test.util.Flag).REGEX)
+alice: !list
+>					verify(".*bill.*bob.*", T(test.util.Flag).REGEX)
+
+bob: !logout
+>					verify("success")
+# check alphabetical order of users and user status
+chatserver:			!users
+>					verify(".*alice.*offline.*bill.*online.*bob.*offline.*john.*offline.*", T(test.util.Flag).REGEX)
+bob: !list
+>					verify(".*bill.*", T(test.util.Flag).REGEX)
+
+bill: !logout
+>					verify("success")
+# check alphabetical order of users and user status
+chatserver:			!users
+>					verify(".*alice.*offline.*bill.*offline.*bob.*offline.*john.*offline.*", T(test.util.Flag).REGEX)
+
+chatserver: !exit
+alice:	!exit
+bob:	!exit
+bill:	!exit
+john:	!exit

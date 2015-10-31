@@ -1,0 +1,101 @@
+*	Chatserver	chatserver
+*   Client      john
+*	Client		alice
+*   Client      bill
+*   Client      bob
+
+# add these lines to user.properties
+# bob.us.password = 123
+# john.doe.password = 1234
+
+# login users alice and bill
+alice:	!login alice.vienna.at 12345
+>					verify("success")
+bill:	!login bill.de 23456
+>					verify("success")
+
+# invalid login of john and bob
+bob:	!login bob.us invalid
+>					verify("wrong")
+john:	!login john.doe invalid
+>					verify("wrong")
+
+# check alphabetical order of users and user status
+chatserver:			!users
+>					verify(".*alice.*online.*bill.*online.*bob.*offline.*john.*offline.*", T(test.util.Flag).REGEX)
+
+# test register if logged out
+bob: !register localhost:55555
+>					verify("not allowed")
+
+# register if logged in
+alice: !register localhost:55555
+>					verify("success")
+
+# test !lookup if logged out
+bob: !lookup alice.vienna.at
+>					verify("not allowed")
+
+# test !msg if logged out
+bob: !msg alice.vienna.at this is a private msg
+>					verify("request not allowed")
+
+# valid login of john and bob
+bob:	!login bob.us 123
+>					verify("success")
+john:	!login john.doe 1234
+>					verify("success")
+
+# check alphabetical order of users and user status
+chatserver:			!users
+>					verify(".*alice.*online.*bill.*online.*bob.*online.*john.*online.*", T(test.util.Flag).REGEX)
+
+#test sending private msg
+john: !msg alice.vienna.at this is a private msg
+>					verify("!ack")
+
+#test sending private msg
+bill: !msg alice.vienna.at this is another private msg
+>					verify("!ack")
+
+#test sending private msg
+bob: !msg alice.vienna.at this is the third private msg
+>					verify("!ack")
+
+#test register another address
+alice: !register localhost:55556
+>					verify("success")
+
+#test sending private msg
+bob: !msg alice.vienna.at this is the fourth private msg
+>					verify("!ack")
+
+alice: !logout
+>					verify("success")
+
+#test sending private msg
+bob: !msg alice.vienna.at this message should not be received
+>					verify("not reachable")
+
+# login alice -> check if server removed private address on logout!
+alice:	!login alice.vienna.at 12345
+>					verify("success")
+
+#test sending private msg
+bob: !msg invalid.user this message should not be received
+>					verify("user 'invalid.user' not found")
+
+bob: !logout
+>					verify("success")
+
+bill: !logout
+>					verify("success")
+
+john: !logout
+>					verify("success")
+
+chatserver: !exit
+alice:	!exit
+bob:	!exit
+bill:	!exit
+john:	!exit

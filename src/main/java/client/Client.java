@@ -229,13 +229,13 @@ public class Client implements IClientCli, Runnable {
 		try {
 			final ListResponse response =  udpRequester.syncRequest(request, ListResponse.class);
 
-			String result = "Online users:";
+			String result = "Online users:\n";
 			for (Map.Entry<String, User.Presence> entry : response.getUserList().entrySet()) {
 				final String username = entry.getKey();
 				final User.Presence presence = entry.getValue();
 
 				if (presence == User.Presence.Available) {
-					result += "\n" + username;
+					result += "* " + username + "\n";
 				}
 			}
 
@@ -262,7 +262,7 @@ public class Client implements IClientCli, Runnable {
 				final LookupResponse response = tcpRequester.syncRequest(lookupRequest, LookupResponse.class);
 				privateAddresses = response.getPrivateAddresses();
 			} catch (Exception e) {
-				return "Wrong username or user not reachable.";
+				return e.getMessage();
 			}
 		}
 
@@ -317,7 +317,7 @@ public class Client implements IClientCli, Runnable {
 			}
 			return result;
 		} catch (Exception e) {
-			return "";
+			return e.getMessage();
 		}
 	}
 

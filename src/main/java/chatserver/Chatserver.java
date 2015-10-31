@@ -136,7 +136,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 			final String username = entry.getKey();
 			final User.Presence presence = entry.getValue();
 
-			result += username + (presence == User.Presence.Offline ? " offline" : " online") + "\n";
+			result += "* " + username + (presence == User.Presence.Offline ? " offline" : " online") + "\n";
 		}
 
 		return result;

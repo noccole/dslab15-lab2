@@ -22,7 +22,7 @@ class PrivateMessageHandler extends ClientHandlerBase {
         public StateResult handleSendPrivateMessageRequest(SendPrivateMessageRequest request) throws StateException {
             LOGGER.info("PrivateMessageHandler::StateOfferService::handleSendPrivateMessageRequest with parameters: " + request);
 
-            emitMessageReceived("[PRV] " + request.getSender() + ": " + request.getMessage());
+            emitMessageReceived(request.getSender() + ": " + request.getMessage());
 
             final SendPrivateMessageResponse response = new SendPrivateMessageResponse(request);
 

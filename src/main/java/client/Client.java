@@ -365,7 +365,7 @@ public class Client implements IClientCli, Runnable {
 					@Override
 					public void onMessageReceived(String message) {
 						try {
-							shell.writeLine(message);
+							shell.writeLine("[PRV] " + message);
 						} catch (IOException e) {
 							LOGGER.warning("could not write message");
 						}

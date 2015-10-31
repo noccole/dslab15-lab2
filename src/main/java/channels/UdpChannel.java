@@ -5,6 +5,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketAddress;
 import java.net.SocketException;
+import java.util.Arrays;
 
 /**
  * Udp Channel Implementation
@@ -59,7 +60,7 @@ public class UdpChannel extends ChannelBase<byte[]> {
         }
 
         Packet packet = new NetworkPacket();
-        packet.pack(data);
+        packet.pack(Arrays.copyOf(datagramPacket.getData(), datagramPacket.getLength()));
         packet.setRemoteAddress(datagramPacket.getSocketAddress());
         return packet;
     }

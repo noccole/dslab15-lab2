@@ -151,7 +151,6 @@ public class Chatserver implements IChatserverCli, Runnable {
 
 		// inform all clients
 		eventDistributor.publish(new ExitEvent());
-		eventDistributor.waitForAllMessagesSend();
 
 		if (socketListener != null) {
 			socketListener.cancel(true);

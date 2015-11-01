@@ -6,6 +6,7 @@ import messages.ListRequest;
 import messages.ListResponse;
 import service.UserService;
 import shared.HandlerBase;
+import shared.HandlerManager;
 import states.State;
 import states.StateException;
 import states.StateResult;
@@ -19,10 +20,10 @@ class ListHandler extends HandlerBase {
 
     private final UserService userService;
 
-    public ListHandler(Channel channel, UserService userService, ExecutorService executorService) {
+    public ListHandler(Channel channel, UserService userService, ExecutorService executorService, HandlerManager handlerManager) {
         this.userService = userService;
 
-        init(channel, executorService, new StateListUsersService());
+        init(channel, executorService, handlerManager, new StateListUsersService());
     }
 
     private class StateListUsersService extends State {

@@ -214,7 +214,10 @@ public class Shell implements Runnable, Closeable {
 	 */
 	@Override
 	public void close() {
-		thread.interrupt();
+		if (thread != null) {
+			thread.interrupt();
+		}
+
 		if (readMonitor != stdin) {
 			try {
 				readMonitor.close();

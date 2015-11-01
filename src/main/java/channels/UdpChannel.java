@@ -5,29 +5,25 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketAddress;
 import java.net.SocketException;
+import java.util.Arrays;
 
 /**
  * Udp Channel Implementation
  */
 public class UdpChannel extends ChannelBase<byte[]> {
+    private final static int MAX_DATA_LENGTH = 2048;
+
     private final DatagramSocket socket;
-    private final int receiveBufferSize;
 
     public UdpChannel(DatagramSocket socket) throws ChannelException {
         this.socket = socket;
-
-        try {
-            receiveBufferSize = socket.getReceiveBufferSize();
-        } catch (SocketException e) {
-            throw new ChannelException("could not read receive buffer size", e);
-        }
     }
 
     @Override
     public void send(Packet<byte[]> packet) throws ChannelException {
         final byte[] data = packet.unpack();
 
-        if (data.length > receiveBufferSize) {
+        if (data.length > MAX_DATA_LENGTH) {
             throw new ChannelException("too much data for a datagram packet");
         }
 
@@ -53,7 +49,7 @@ public class UdpChannel extends ChannelBase<byte[]> {
 
     @Override
     public Packet receive() throws ChannelException {
-        final byte[] data = new byte[receiveBufferSize];
+        final byte[] data = new byte[MAX_DATA_LENGTH];
         final DatagramPacket datagramPacket = new DatagramPacket(data, data.length);
 
         try {
@@ -64,7 +60,7 @@ public class UdpChannel extends ChannelBase<byte[]> {
         }
 
         Packet packet = new NetworkPacket();
-        packet.pack(data);
+        packet.pack(Arrays.copyOf(datagramPacket.getData(), datagramPacket.getLength()));
         packet.setRemoteAddress(datagramPacket.getSocketAddress());
         return packet;
     }

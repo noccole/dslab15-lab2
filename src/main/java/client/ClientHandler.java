@@ -4,6 +4,7 @@ import channels.Channel;
 import entities.User;
 import messages.*;
 import shared.AsyncRequest;
+import shared.HandlerManager;
 import states.State;
 import states.StateException;
 import states.StateResult;
@@ -18,10 +19,10 @@ class ClientHandler extends ClientHandlerBase {
 
     private final ExecutorService executorService;
 
-    public ClientHandler(Channel channel, ExecutorService executorService) {
+    public ClientHandler(Channel channel, ExecutorService executorService, HandlerManager handlerManager) {
         this.executorService = executorService;
 
-        init(channel, executorService, new StateHandleEvents());
+        init(channel, executorService, handlerManager, new StateHandleEvents());
     }
 
     public <RequestType extends Request, ResponseType extends Response> Future<ResponseType> asyncRequest(RequestType request, Class<ResponseType> responseClass) {
@@ -35,7 +36,7 @@ class ClientHandler extends ClientHandlerBase {
         LOGGER.info("ClientHandler::syncRequest with parameters: " + request);
 
         final Future<ResponseType> future = asyncRequest(request, responseClass);
-        return future.get(1, TimeUnit.SECONDS);
+        return future.get(3, TimeUnit.SECONDS);
     }
 
     private class StateHandleEvents extends State {

@@ -6,6 +6,7 @@ import messages.*;
 import service.UserService;
 import shared.EventDistributor;
 import shared.HandlerBase;
+import shared.HandlerManager;
 import shared.MessageSender;
 import states.State;
 import states.StateException;
@@ -22,13 +23,13 @@ class ClientHandler extends HandlerBase {
     private final UserService userService;
     private final EventDistributor eventDistributor;
 
-    public ClientHandler(Channel channel, UserService userService,
-                         EventDistributor eventDistributor, ExecutorService executorService) {
+    public ClientHandler(Channel channel, UserService userService, EventDistributor eventDistributor,
+                         ExecutorService executorService, HandlerManager handlerManager) {
         this.channel = channel;
         this.userService = userService;
         this.eventDistributor = eventDistributor;
 
-        init(channel, executorService, new StateOffline());
+        init(channel, executorService, handlerManager, new StateOffline());
     }
 
     private class StateOffline extends State {

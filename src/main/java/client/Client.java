@@ -39,6 +39,8 @@ public class Client implements IClientCli, Runnable {
 	private ClientHandler tcpRequester;
 	private ClientHandler udpRequester;
 
+	private final HandlerManager handlerManager;
+
 	private Collection<SocketConnectionListener> socketListeners = new LinkedList<>();
 
 	/**
@@ -55,6 +57,8 @@ public class Client implements IClientCli, Runnable {
 		this.config = config;
 
 		LogManager.getLogManager().reset(); // disable logging
+
+		handlerManager = new HandlerManager();
 
 		shell = new Shell(componentName, userRequestStream, userResponseStream);
 		shell.register(this);
@@ -77,7 +81,7 @@ public class Client implements IClientCli, Runnable {
 			return false;
 		}
 
-		tcpRequester = new ClientHandler(channel, executorService);
+		tcpRequester = new ClientHandler(channel, executorService, handlerManager);
 		tcpRequester.addEventHandler(new ClientHandlerBase.EventHandler() {
 			@Override
 			public void onMessageReceived(String message) {
@@ -126,7 +130,7 @@ public class Client implements IClientCli, Runnable {
 			return false;
 		}
 
-		udpRequester = new ClientHandler(channel, executorService);
+		udpRequester = new ClientHandler(channel, executorService, handlerManager);
 		udpRequester.addEventHandler(new ClientHandlerBase.EventHandler() {
 			@Override
 			public void onMessageReceived(String message) {
@@ -157,14 +161,14 @@ public class Client implements IClientCli, Runnable {
 
 	@Override
 	public void run() {
-		new Thread(shell).start();
-
 		if (!startUdpHandler()) {
 			exit();
 		}
 		if (!startTcpHandler()) {
 			exit();
 		}
+
+		new Thread(shell).start();
 	}
 
 	@Override
@@ -288,7 +292,7 @@ public class Client implements IClientCli, Runnable {
 				continue; // try next address
 			}
 
-			final ClientHandler requester = new ClientHandler(channel, executorService);
+			final ClientHandler requester = new ClientHandler(channel, executorService, handlerManager);
 			try {
 				final SendPrivateMessageResponse response = requester.syncRequest(request, SendPrivateMessageResponse.class);
 				requester.stop();
@@ -360,12 +364,12 @@ public class Client implements IClientCli, Runnable {
 		final SocketConnectionListener listener = new SocketConnectionListener(serverSocket, new HandlerFactory() {
 			@Override
 			public HandlerBase createHandler(Channel channel) {
-				final PrivateMessageHandler handler = new PrivateMessageHandler(channel, executorService);
+				final PrivateMessageHandler handler = new PrivateMessageHandler(channel, executorService, handlerManager);
 				handler.addEventHandler(new ClientHandlerBase.EventHandler() {
 					@Override
 					public void onMessageReceived(String message) {
 						try {
-							shell.writeLine(message);
+							shell.writeLine("[PRV] " + message);
 						} catch (IOException e) {
 							LOGGER.warning("could not write message");
 						}
@@ -408,7 +412,7 @@ public class Client implements IClientCli, Runnable {
 			socketListener.cancel(true);
 		}
 
-		HandlerManager.getInstance().stopAllHandlers();
+		handlerManager.stopAllHandlers();
 
 		try {
 			if (!executorService.awaitTermination(2, TimeUnit.SECONDS)) {

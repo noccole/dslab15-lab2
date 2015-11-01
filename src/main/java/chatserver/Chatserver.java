@@ -118,14 +118,14 @@ public class Chatserver implements IChatserverCli, Runnable {
 
 	@Override
 	public void run() {
-		new Thread(shell).start();
-
 		if (!startListHandler()) {
 			exit();
 		}
 		if (!startServerSocketListener()) {
 			exit();
 		}
+
+		new Thread(shell).start();
 	}
 
 	@Override

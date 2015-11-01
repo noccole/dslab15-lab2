@@ -161,14 +161,14 @@ public class Client implements IClientCli, Runnable {
 
 	@Override
 	public void run() {
-		new Thread(shell).start();
-
 		if (!startUdpHandler()) {
 			exit();
 		}
 		if (!startTcpHandler()) {
 			exit();
 		}
+
+		new Thread(shell).start();
 	}
 
 	@Override

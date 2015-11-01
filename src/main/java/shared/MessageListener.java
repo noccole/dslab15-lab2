@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public abstract class MessageListener extends RepeatingTask {
-    public interface EventHandler {
+    public interface EventHandler extends RepeatingTask.EventHandler {
         /**
          * Will be emitted whenever a message was received.
          *
@@ -40,12 +40,16 @@ public abstract class MessageListener extends RepeatingTask {
         synchronized (eventHandlers) {
             eventHandlers.add(eventHandler);
         }
+
+        super.addEventHandler(eventHandler);
     }
 
     public void removeEventHandler(EventHandler eventHandler) {
         synchronized (eventHandlers) {
             eventHandlers.remove(eventHandler);
         }
+
+        super.removeEventHandler(eventHandler);
     }
 
     /**

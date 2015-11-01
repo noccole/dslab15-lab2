@@ -10,7 +10,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public abstract class MessageHandler extends RepeatingTask {
-    public interface EventHandler {
+    public interface EventHandler extends RepeatingTask.EventHandler {
         /**
          * Will be emitted whenever a message has be handled and a result was produced.
          *
@@ -28,17 +28,17 @@ public abstract class MessageHandler extends RepeatingTask {
      *
      * @param message Message which should be handled
      */
-    public void handleMessage(Packet<Message> message) {
+    public void handleMessage(Packet<Message> message) throws TaskCancelledException {
+        if (isCancelled()) {
+            throw new TaskCancelledException("MessageHandler was cancelled");
+        }
+
         messages.add(message);
     }
 
     @Override
     protected void perform() throws InterruptedException {
         final Packet<Message> requestPacket = messages.take();
-        if (isCancelled()) {
-            // a fake message was added in onCancelled
-            throw new InterruptedException();
-        }
 
         final Message request = requestPacket.unpack();
         final Message response = consumeMessage(request);
@@ -49,6 +49,17 @@ public abstract class MessageHandler extends RepeatingTask {
             responsePacket.pack(response);
 
             emitMessageHandled(requestPacket, responsePacket);
+        }
+    }
+
+    @Override
+    protected void onExit() {
+        while (!messages.isEmpty()) {
+            try {
+                perform();
+            } catch (InterruptedException e) {
+                break;
+            }
         }
     }
 
@@ -64,19 +75,16 @@ public abstract class MessageHandler extends RepeatingTask {
         synchronized (eventHandlers) {
             eventHandlers.add(eventHandler);
         }
+
+        super.addEventHandler(eventHandler);
     }
 
     public void removeEventHandler(EventHandler eventHandler) {
         synchronized (eventHandlers) {
             eventHandlers.remove(eventHandler);
         }
-    }
 
-    @Override
-    protected void onCancelled() {
-        handleMessage(new NetworkPacket<Message>()); // fake a packet to unblock perform
-
-        super.onCancelled();
+        super.removeEventHandler(eventHandler);
     }
 
     /**

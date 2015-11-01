@@ -1,18 +1,12 @@
 package shared;
 
-import channels.NetworkPacket;
 import channels.Packet;
 import messages.Message;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public abstract class MessageSender extends RepeatingTask {
-    private final Lock messagesLock = new ReentrantLock();
-    private final Condition messageQueueIsEmpty = messagesLock.newCondition();
     private final BlockingQueue<Packet<Message>> messages = new LinkedBlockingQueue<>();
 
     /**
@@ -20,28 +14,28 @@ public abstract class MessageSender extends RepeatingTask {
      *
      * @param message Message which should be send
      */
-    public void sendMessage(Packet<Message> message) {
-        messagesLock.lock();
+    public void sendMessage(Packet<Message> message) throws TaskCancelledException {
+        if (isCancelled()) {
+            throw new TaskCancelledException("MessageSender was cancelled");
+        }
+
         messages.add(message);
-        messagesLock.unlock();
     }
 
     @Override
     protected void perform() throws InterruptedException {
-        final Packet<Message> message = messages.take();
-        if (isCancelled()) {
-            // a fake message was added in onCancelled
-            messageQueueIsEmpty.signalAll();
-            throw new InterruptedException();
-        }
+        consumeMessage(messages.take());
+    }
 
-        consumeMessage(message);
-
-        messagesLock.lock();
-        if (messages.isEmpty()) {
-            messageQueueIsEmpty.signalAll();
+    @Override
+    protected void onExit() {
+        while (!messages.isEmpty()) {
+            try {
+                perform();
+            } catch (InterruptedException e) {
+                break;
+            }
         }
-        messagesLock.unlock();
     }
 
     /**
@@ -50,22 +44,4 @@ public abstract class MessageSender extends RepeatingTask {
      * @param message
      */
     protected abstract void consumeMessage(Packet<Message> message);
-
-    /**
-     * Wait until all queued messages are send (blocks!)
-     */
-    public void waitForAllMessagesSend() {
-        messagesLock.lock();
-        if (!messages.isEmpty() && !isCancelled()) {
-            messageQueueIsEmpty.awaitUninterruptibly();
-        }
-        messagesLock.unlock();
-    }
-
-    @Override
-    protected void onCancelled() {
-        sendMessage(new NetworkPacket<Message>()); // fake a packet to unblock perform
-
-        super.onCancelled();
-    }
 }

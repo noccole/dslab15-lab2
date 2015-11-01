@@ -33,13 +33,31 @@ public abstract class HandlerBase {
         listener.addEventHandler(new MessageListener.EventHandler() {
             @Override
             public void onMessageReceived(Packet<Message> message) {
-                handler.handleMessage(message);
+                try {
+                    handler.handleMessage(message);
+                } catch (TaskCancelledException e) {
+                    LOGGER.warning("Handler '" + handler + "' was cancelled");
+                }
+            }
+
+            @Override
+            public void onCancelled() {
+
             }
         });
         handler.addEventHandler(new MessageHandler.EventHandler() {
             @Override
             public void onMessageHandled(Packet<Message> message, Packet<Message> result) {
-                sender.sendMessage(result);
+                try {
+                    sender.sendMessage(result);
+                } catch (TaskCancelledException e) {
+                    LOGGER.warning("Sender '" + sender + "' was cancelled");
+                }
+            }
+
+            @Override
+            public void onCancelled() {
+
             }
         });
 
@@ -74,9 +92,6 @@ public abstract class HandlerBase {
 
         listener.cancel(true);
         handler.cancel(true);
-
-        // wait until sender queue is empty
-        sender.waitForAllMessagesSend();
         sender.cancel(true);
 
         try {

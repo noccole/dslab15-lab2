@@ -8,8 +8,11 @@ import messages.Message;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Logger;
 
 public class EventDistributor {
+    private static final Logger LOGGER = Logger.getAnonymousLogger();
+
     private final Set<MessageSender> senders = new HashSet<>();
 
     /**
@@ -19,12 +22,16 @@ public class EventDistributor {
      * @param event Event which should be published
      */
     public void publish(Event event) {
-        Packet<Message> packet = new NetworkPacket<>();
+        final Packet<Message> packet = new NetworkPacket<>();
         packet.pack(event);
 
         synchronized (senders) {
             for (MessageSender sender : senders) {
-                sender.sendMessage(packet);
+                try {
+                    sender.sendMessage(packet);
+                } catch (TaskCancelledException e) {
+                    LOGGER.warning("Sender '" + sender + "' was cancelled");
+                }
             }
         }
     }
@@ -37,7 +44,7 @@ public class EventDistributor {
      * @param ignoredSenders Senders which should be ignored (= not receive this event)
      */
     public void publish(Event event, Set<MessageSender> ignoredSenders) {
-        Packet<Message> packet = new NetworkPacket<>();
+        final Packet<Message> packet = new NetworkPacket<>();
         packet.pack(event);
 
         synchronized (senders) {
@@ -46,7 +53,11 @@ public class EventDistributor {
                     continue;
                 }
 
-                sender.sendMessage(packet);
+                try {
+                    sender.sendMessage(packet);
+                } catch (TaskCancelledException e) {
+                    LOGGER.warning("Sender '" + sender + "' was cancelled");
+                }
             }
         }
     }
@@ -56,10 +67,17 @@ public class EventDistributor {
      *
      * @param sender Message sender which should receive published events
      */
-    public void subscribe(MessageSender sender) {
+    public void subscribe(final MessageSender sender) {
         synchronized (senders) {
             senders.add(sender);
         }
+
+        sender.addEventHandler(new RepeatingTask.EventHandler() {
+            @Override
+            public void onCancelled() {
+                unsubscribe(sender);
+            }
+        });
     }
 
     /**
@@ -70,17 +88,6 @@ public class EventDistributor {
     public void unsubscribe(MessageSender sender) {
         synchronized (senders) {
             senders.remove(sender);
-        }
-    }
-
-    /**
-     * Waits unit all published events are send (blocks!)
-     */
-    public void waitForAllMessagesSend() {
-        synchronized (senders) {
-            for (MessageSender sender : senders) {
-                sender.waitForAllMessagesSend();
-            }
         }
     }
 }

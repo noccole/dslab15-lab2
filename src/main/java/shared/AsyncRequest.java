@@ -42,11 +42,17 @@ public class AsyncRequest<RequestType extends Request, ResponseType extends Resp
 
         @Override
         public void onMessageReceived(Packet<Message> packet) {
-            Message message = packet.unpack();
+            final Message message = packet.unpack();
             if (message.getMessageId() == request.getMessageId()) {
                 response = message;
                 signal();
             }
+        }
+
+        @Override
+        public void onCancelled() {
+            response = null;
+            signal();
         }
 
         /**
@@ -68,7 +74,7 @@ public class AsyncRequest<RequestType extends Request, ResponseType extends Resp
          * Response which was received, the response is only valid if the blocked thread was unblocked by signal(), if
          * the thread woke up due an InterruptedException, the return value will be unspecified.
          *
-         * @return Received response
+         * @return Received response (null if no response received)
          */
         public Message getResponse() {
             return response;
@@ -77,30 +83,45 @@ public class AsyncRequest<RequestType extends Request, ResponseType extends Resp
 
     @Override
     public ResponseType call() throws Exception {
+        if (sender.isCancelled() || listener.isCancelled()) {
+            throw new Exception("Could not create a request, sender and listener must not be cancelled!");
+        }
+
         final EventHandler eventHandler = new EventHandler();
         listener.addEventHandler(eventHandler);
 
         // send request
         final Packet<Message> requestPacket = new NetworkPacket<>();
         requestPacket.pack(request);
-        sender.sendMessage(requestPacket);
+        try {
+            sender.sendMessage(requestPacket);
+        } catch (TaskCancelledException e) {
+            throw new Exception("Could not send request", e);
+        }
 
         // wait for response
         try {
             eventHandler.waitForResponse();
         } catch (InterruptedException e) {
             LOGGER.warning("timeout, event handler did not notify us so far ...");
+        } finally {
             listener.removeEventHandler(eventHandler);
-            throw e;
         }
 
-        listener.removeEventHandler(eventHandler);
-
         final Message response = eventHandler.getResponse();
+        if (response == null) {
+            throw new Exception("No response received");
+        }
+
         try {
             return responseClass.cast(response);
         } catch (ClassCastException e) {
-            final ErrorResponse errorResponse = ErrorResponse.class.cast(response); // potential ClassCastExceptions are ok here
+            final ErrorResponse errorResponse;
+            try {
+                errorResponse = ErrorResponse.class.cast(response);
+            } catch (ClassCastException e1) {
+                throw new Exception("Unknown response type!", e1);
+            }
             throw new Exception(errorResponse.getReason());
         }
     }

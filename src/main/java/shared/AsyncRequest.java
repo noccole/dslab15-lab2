@@ -96,6 +96,7 @@ public class AsyncRequest<RequestType extends Request, ResponseType extends Resp
         try {
             sender.sendMessage(requestPacket);
         } catch (TaskCancelledException e) {
+            listener.removeEventHandler(eventHandler);
             throw new Exception("Could not send request", e);
         }
 

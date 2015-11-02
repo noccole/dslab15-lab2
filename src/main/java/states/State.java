@@ -11,6 +11,13 @@ public abstract class State {
 
     }
 
+    public StateResult handleUnknownRequest(UnknownRequest request) throws StateException {
+        final ErrorResponse response = new ErrorResponse(request);
+        response.setReason("Unknown request: " + request.getReason());
+
+        return new StateResult(this, response);
+    }
+
     public StateResult handleLoginRequest(LoginRequest request) throws StateException {
         throw new StateException("request not allowed in current state");
     }

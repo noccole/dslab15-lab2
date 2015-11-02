@@ -1,6 +1,7 @@
 package channels;
 
 import messages.Message;
+import messages.UnknownRequest;
 
 import java.io.*;
 
@@ -37,13 +38,19 @@ public class MessageChannel implements Channel<Message> {
 
         Message message;
         try {
-            InputStream byteStream = new ByteArrayInputStream(bytePacket.unpack());
-            ObjectInputStream objectStream = new ObjectInputStream(byteStream);
-            message = (Message)objectStream.readObject();
+            final InputStream byteStream = new ByteArrayInputStream(bytePacket.unpack());
+            final ObjectInputStream objectStream = new ObjectInputStream(byteStream);
+            message = Message.class.cast(objectStream.readObject());
         } catch (IOException e) {
-            throw new ChannelException("could not deserialize message", e);
+            final UnknownRequest unknownRequest = new UnknownRequest();
+            unknownRequest.setRequestData(bytePacket.unpack());
+            unknownRequest.setReason("could not deserialize message");
+            message = unknownRequest;
         } catch (ClassNotFoundException e) {
-            throw new ChannelException("received object was not of type Message", e);
+            final UnknownRequest unknownRequest = new UnknownRequest();
+            unknownRequest.setRequestData(bytePacket.unpack());
+            unknownRequest.setReason("received object was not of type Message");
+            message = unknownRequest;
         }
 
         final Packet<Message> packet = new NetworkPacket();

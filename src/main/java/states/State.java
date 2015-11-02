@@ -19,31 +19,31 @@ public abstract class State {
     }
 
     public StateResult handleLoginRequest(LoginRequest request) throws StateException {
-        throw new StateException("request not allowed in current state");
+        throw new StateException("login is not allowed in current state");
     }
 
     public StateResult handleLogoutRequest(LogoutRequest request) throws StateException {
-        throw new StateException("request not allowed in current state");
+        throw new StateException("logout is not allowed in current state");
     }
 
     public StateResult handleSendMessageRequest(SendMessageRequest request) throws StateException {
-        throw new StateException("request not allowed in current state");
+        throw new StateException("send message is not allowed in current state");
     }
 
     public StateResult handleSendPrivateMessageRequest(SendPrivateMessageRequest request) throws StateException {
-        throw new StateException("request not allowed in current state");
+        throw new StateException("send private message is not allowed in current state");
     }
 
     public StateResult handleRegisterRequest(RegisterRequest request) throws StateException {
-        throw new StateException("request not allowed in current state");
+        throw new StateException("register is not allowed in current state");
     }
 
     public StateResult handleLookupRequest(LookupRequest request) throws StateException {
-        throw new StateException("request not allowed in current state");
+        throw new StateException("lookup is not allowed in current state");
     }
 
     public StateResult handleListRequest(ListRequest request) throws StateException {
-        throw new StateException("request not allowed in current state");
+        throw new StateException("list is not allowed in current state");
     }
 
     public StateResult handleMessageEvent(MessageEvent event) throws StateException {

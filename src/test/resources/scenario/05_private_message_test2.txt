@@ -38,7 +38,7 @@ bob: !lookup alice.vienna.at
 
 # test !msg if logged out
 bob: !msg alice.vienna.at this is a private msg
->					verify("request not allowed")
+>					verify("not allowed")
 
 # valid login of john and bob
 bob:	!login bob.us 123

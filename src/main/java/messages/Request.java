@@ -11,6 +11,10 @@ public abstract class Request implements Message {
         messageId = requestCounter.incrementAndGet();
     }
 
+    public Request(long messageId) {
+        this.messageId = messageId;
+    }
+
     @Override
     public long getMessageId() {
         return messageId;

@@ -4,9 +4,13 @@ import states.State;
 import states.StateException;
 import states.StateResult;
 
-public class UnknownRequest implements Message {
+public class UnknownRequest extends Request {
     private byte[] requestData;
     private String reason;
+
+    public UnknownRequest() {
+        super(-1);
+    }
 
     public byte[] getRequestData() {
         return requestData;
@@ -22,11 +26,6 @@ public class UnknownRequest implements Message {
 
     public void setReason(String reason) {
         this.reason = reason;
-    }
-
-    @Override
-    public long getMessageId() {
-        return -1;
     }
 
     @Override

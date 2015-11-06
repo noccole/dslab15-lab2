@@ -1,6 +1,7 @@
 package channels;
 
-import javax.xml.bind.DatatypeConverter;
+import org.bouncycastle.util.encoders.Base64;
+
 import java.util.logging.Logger;
 
 /**
@@ -17,14 +18,7 @@ public class Base64Channel extends ChannelDecorator<byte[]> {
 
         @Override
         public byte[] unpack() {
-            final String data = DatatypeConverter.printBase64Binary(super.unpack());
-
-            try {
-                return Encoder.decodeString(data);
-            } catch (ChannelException e) {
-                LOGGER.warning("could not encode package: " + e);
-                return super.unpack();
-            }
+            return Base64.encode(super.unpack());
         }
     }
 
@@ -35,13 +29,7 @@ public class Base64Channel extends ChannelDecorator<byte[]> {
 
         @Override
         public byte[] unpack() {
-            try {
-                final String data = Encoder.encodeByteArray(super.unpack());
-                return DatatypeConverter.parseBase64Binary(data);
-            } catch (ChannelException e) {
-                LOGGER.warning("could not decode package: " + e);
-                return super.unpack();
-            }
+            return Base64.decode(super.unpack());
         }
     }
 

@@ -32,7 +32,7 @@ public class ArrayUtils {
         final List<byte[]> byteArrays = new LinkedList<>();
 
         int offset = 0;
-        while (offset != bytes.length) {
+        while (offset < bytes.length) {
             int nextDelimiterIndex = indexOf(bytes, delimiter, offset);
             if (nextDelimiterIndex < 0) {
                 nextDelimiterIndex = bytes.length;
@@ -45,7 +45,7 @@ public class ArrayUtils {
             System.arraycopy(bytes, offset, byteArray, 0, length);
             byteArrays.add(byteArray);
 
-            offset = nextDelimiterIndex;
+            offset = nextDelimiterIndex + 1;
         }
 
         return byteArrays;

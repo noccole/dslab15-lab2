@@ -4,23 +4,15 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class ArrayUtils {
-    public static byte[] join(byte delimiter, byte[]... byteArrays) {
+    public static byte[] join(byte[]... byteArrays) {
         int totalLength = 0;
         for (byte[] byteArray : byteArrays) {
-            if (totalLength > 0) { // delimiter
-                ++totalLength;
-            }
             totalLength += byteArray.length;
         }
 
         int offset = 0;
         final byte[] outputArray = new byte[totalLength];
         for (byte[] inputArray : byteArrays) {
-            if (offset > 0) { // delimiter
-                outputArray[offset] = delimiter;
-                ++offset;
-            }
-
             System.arraycopy(inputArray, 0, outputArray, offset, inputArray.length);
             offset += inputArray.length;
         }

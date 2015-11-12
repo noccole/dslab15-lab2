@@ -40,12 +40,14 @@ public class UserService {
      * @return True if the user was successfully logged in
      */
     public boolean login(final User user, String password) {
-        if (user.getPresence() == User.Presence.Offline && user.getPassword().equals(password)) {
-            user.setPresence(User.Presence.Available);
-            emitUserPresenceChanged(user);
-            return true;
-        } else {
-            return false;
+        synchronized (usersCache) {
+            if (user.getPresence() == User.Presence.Offline && user.getPassword().equals(password)) {
+                user.setPresence(User.Presence.Available);
+                emitUserPresenceChanged(user);
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 
@@ -57,10 +59,12 @@ public class UserService {
      * @param user
      */
     public void logout(final User user) {
-        if (user.getPresence() != User.Presence.Offline) {
-            user.clearPrivateAddresses();
-            user.setPresence(User.Presence.Offline);
-            emitUserPresenceChanged(user);
+        synchronized (usersCache) {
+            if (user.getPresence() != User.Presence.Offline) {
+                user.clearPrivateAddresses();
+                user.setPresence(User.Presence.Offline);
+                emitUserPresenceChanged(user);
+            }
         }
     }
 
@@ -90,8 +94,10 @@ public class UserService {
         final List<User> users = new LinkedList(findAll());
 
         final Map<String, User.Presence> userStates = new TreeMap<>();
-        for (User user : users) {
-            userStates.put(user.getUsername(), user.getPresence());
+        synchronized (usersCache) {
+            for (User user : users) {
+                userStates.put(user.getUsername(), user.getPresence());
+            }
         }
 
         return userStates;

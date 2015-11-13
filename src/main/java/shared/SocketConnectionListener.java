@@ -31,7 +31,7 @@ public class SocketConnectionListener extends RepeatingTask {
     @Override
     protected void perform() {
         if (serverSocket.isClosed()) {
-            cancel(true);
+            cancel();
             return;
         }
 

@@ -90,9 +90,9 @@ public abstract class HandlerBase {
     public void stop() {
         handlerManager.unregisterHandler(this);
 
-        listener.cancel(true);
-        handler.cancel(true);
-        sender.cancel(true);
+        listener.cancel();
+        handler.cancel();
+        sender.cancel();
 
         try {
             channel.close();

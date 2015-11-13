@@ -4,8 +4,6 @@ import channels.*;
 import cli.Command;
 import cli.Shell;
 import entities.User;
-import messages.ExitEvent;
-import messages.UserPresenceChangedEvent;
 import repositories.ConfigUserRepository;
 import repositories.UserRepository;
 import service.UserService;
@@ -144,7 +142,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 		//eventDistributor.publish(new ExitEvent()); not needed in the assignment
 
 		if (socketListener != null) {
-			socketListener.cancel(true);
+			socketListener.cancel();
 		}
 
 		handlerManager.stopAllHandlers();

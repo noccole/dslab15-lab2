@@ -20,7 +20,7 @@ public class ChannelMessageListener extends MessageListener {
             @Override
             public void onChannelClosed() {
                 LOGGER.info("ChannelMessageListener -> Channel::onChannelClosed");
-                parent.cancel(true);
+                parent.cancel();
             }
         });
     }

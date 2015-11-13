@@ -409,7 +409,7 @@ public class Client implements IClientCli, Runnable {
 		executorService.shutdown();
 
 		for (SocketConnectionListener socketListener : socketListeners) {
-			socketListener.cancel(true);
+			socketListener.cancel();
 		}
 
 		handlerManager.stopAllHandlers();

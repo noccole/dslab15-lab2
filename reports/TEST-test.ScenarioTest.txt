@@ -1,0 +1,397 @@
+Testsuite: test.ScenarioTest
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 114,054 sec
+------------- Standard Output ---------------
+00_login_test.txt
+15:38:25.767		alice.vienna.at> !login alice.vienna.at 12345
+15:38:26.142		alice.vienna.at: Successfully logged in.
+15:38:26.393		alice.vienna.at> !list
+15:38:26.413		alice.vienna.at:
+15:38:26.413		Online users:
+15:38:26.413		* alice.vienna.at
+15:38:26.927		chatserver> !users
+15:38:26.928		chatserver:
+15:38:26.928		* alice.vienna.at online
+15:38:26.928		* bill.de offline
+15:38:26.928		* bob.us offline
+15:38:26.928		* emmanuel offline
+15:38:26.928		* john.doe offline
+15:38:27.430		alice.vienna.at> !logout
+15:38:27.440		alice.vienna.at: Successfully logged out.
+15:38:27.931		chatserver> !users
+15:38:27.933		chatserver:
+15:38:27.933		* alice.vienna.at offline
+15:38:27.933		* bill.de offline
+15:38:27.933		* bob.us offline
+15:38:27.933		* emmanuel offline
+15:38:27.933		* john.doe offline
+15:38:28.434		alice.vienna.at> !login alice.vienna.at 12345
+15:38:28.441		alice.vienna.at: Successfully logged in.
+15:38:28.938		alice.vienna.at> !list
+15:38:28.944		alice.vienna.at:
+15:38:28.944		Online users:
+15:38:28.944		* alice.vienna.at
+15:38:29.440		chatserver> !users
+15:38:29.442		chatserver:
+15:38:29.442		* alice.vienna.at online
+15:38:29.442		* bill.de offline
+15:38:29.442		* bob.us offline
+15:38:29.442		* emmanuel offline
+15:38:29.442		* john.doe offline
+15:38:29.942		chatserver> !exit
+15:38:29.949		chatserver: Shut down completed! Bye ..
+15:38:30.442		alice.vienna.at> !exit
+15:38:30.446		alice.vienna.at: Shut down completed! Bye ..
+################################################################################
+01_private_message_test.txt
+15:38:36.959		alice> !login alice.vienna.at 12345
+15:38:36.969		alice: Successfully logged in.
+15:38:37.461		bill> !login bill.de 23456
+15:38:37.469		bill: Successfully logged in.
+15:38:37.963		alice> !msg bill.de this is a private message which should not work
+15:38:37.977		alice: Wrong username or user not reachable.
+15:38:38.465		bill> !register localhost:11712
+15:38:38.485		bill: Successfully registered address for bill.de.
+15:38:38.966		alice> !lookup bill.de
+15:38:38.972		alice: localhost:11712
+15:38:39.468		alice> !msg bill.de this is a private message which should work.
+15:38:39.488		bill: [PRV] alice.vienna.at: this is a private message which should work.
+15:38:39.497		alice: bill.de replied with !ack.
+15:38:39.970		bill> !lastMsg
+15:38:39.971		bill: No message received !
+15:38:40.473		alice> !register localhost:11713
+15:38:40.478		alice: Successfully registered address for alice.vienna.at.
+15:38:40.976		bill> !msg alice.vienna.at Hello back.
+15:38:40.986		alice: [PRV] bill.de: Hello back.
+15:38:40.991		bill: alice.vienna.at replied with !ack.
+15:38:41.479		bill> !exit
+15:38:41.486		bill: Shut down completed! Bye ..
+15:38:41.979		alice> !exit
+15:38:41.986		alice: Shut down completed! Bye ..
+15:38:42.479		server> !exit
+15:38:42.483		server: Shut down completed! Bye ..
+################################################################################
+02_public_message_test.txt
+15:38:48.990		alice> !login alice.vienna.at 12345
+15:38:48.998		alice: Successfully logged in.
+15:38:49.492		bill> !login bill.de 23456
+15:38:49.499		bill: Successfully logged in.
+15:38:49.992		alice> !send this is a public message.
+15:38:50.004		alice: Successfully send message.
+15:38:50.006		bill: alice.vienna.at: this is a public message.
+15:38:50.493		alice> !lastMsg
+15:38:50.494		alice: No message received !
+15:38:50.995		bill> !lastMsg
+15:38:50.996		bill: alice.vienna.at: this is a public message.
+15:38:51.497		bill> !send Hello from bill!
+15:38:51.501		bill: Successfully send message.
+15:38:51.501		alice: bill.de: Hello from bill!
+15:38:51.998		bill> !lastMsg
+15:38:51.999		bill: alice.vienna.at: this is a public message.
+15:38:52.500		alice> !lastMsg
+15:38:52.501		alice: bill.de: Hello from bill!
+15:38:53.001		bill> !exit
+15:38:53.015		bill: Shut down completed! Bye ..
+15:38:53.501		alice> !exit
+15:38:53.507		alice: Shut down completed! Bye ..
+15:38:54.001		server> !exit
+15:38:54.005		server: Shut down completed! Bye ..
+################################################################################
+03_max_test.txt
+15:39:00.516		alice.vienna.at> !login alice.vienna.at 12345
+15:39:00.524		alice.vienna.at: Successfully logged in.
+15:39:01.017		alice.vienna.at> !list
+15:39:01.022		alice.vienna.at:
+15:39:01.022		Online users:
+15:39:01.022		* alice.vienna.at
+15:39:01.519		chatserver> !users
+15:39:01.520		chatserver:
+15:39:01.520		* alice.vienna.at online
+15:39:01.520		* bill.de offline
+15:39:01.520		* bob.us offline
+15:39:01.520		* emmanuel offline
+15:39:01.520		* john.doe offline
+15:39:02.022		bill.de> !login bill.de 23456
+15:39:02.028		bill.de: Successfully logged in.
+15:39:02.523		alice.vienna.at> !list
+15:39:02.525		alice.vienna.at:
+15:39:02.525		Online users:
+15:39:02.525		* alice.vienna.at
+15:39:02.525		* bill.de
+15:39:03.025		chatserver> !users
+15:39:03.026		chatserver:
+15:39:03.026		* alice.vienna.at online
+15:39:03.026		* bill.de online
+15:39:03.026		* bob.us offline
+15:39:03.026		* emmanuel offline
+15:39:03.026		* john.doe offline
+15:39:03.527		alice.vienna.at> !send this is a public test message
+15:39:03.532		alice.vienna.at: Successfully send message.
+15:39:03.533		bill.de: alice.vienna.at: this is a public test message
+15:39:04.027		bill.de> !lastMsg
+15:39:04.028		bill.de: alice.vienna.at: this is a public test message
+15:39:04.528		alice.vienna.at> !register localhost:11712
+15:39:04.535		alice.vienna.at: Successfully registered address for alice.vienna.at.
+15:39:05.029		bill.de> !lookup alice.vienna.at
+15:39:05.034		bill.de: localhost:11712
+15:39:05.530		bill.de> !msg alice.vienna.at this is a private test message
+15:39:05.542		alice.vienna.at: [PRV] bill.de: this is a private test message
+15:39:05.548		bill.de: alice.vienna.at replied with !ack.
+15:39:06.031		alice.vienna.at> !lastMsg
+15:39:06.032		alice.vienna.at: No message received !
+15:39:06.532		bill.de> !logout
+15:39:06.536		bill.de: Successfully logged out.
+15:39:07.033		alice.vienna.at> !logout
+15:39:07.037		alice.vienna.at: Successfully logged out.
+15:39:07.534		chatserver> !exit
+15:39:07.540		chatserver: Shut down completed! Bye ..
+15:39:08.034		alice.vienna.at> !exit
+15:39:08.038		alice.vienna.at: Shut down completed! Bye ..
+15:39:08.534		bill.de> !exit
+15:39:08.538		bill.de: Shut down completed! Bye ..
+################################################################################
+04_public_message_test2.txt
+15:39:19.055		alice> !login alice.vienna.at 12345
+15:39:19.063		alice: Successfully logged in.
+15:39:19.557		bill> !login bill.de 23456
+15:39:19.563		bill: Successfully logged in.
+15:39:20.058		bob> !login bob.us invalid
+15:39:20.063		bob: Wrong username or password.
+15:39:20.559		john> !login john.doe invalid
+15:39:20.571		john: Wrong username or password.
+15:39:21.060		chatserver> !users
+15:39:21.061		chatserver:
+15:39:21.061		* alice.vienna.at online
+15:39:21.061		* bill.de online
+15:39:21.061		* bob.us offline
+15:39:21.061		* emmanuel offline
+15:39:21.061		* john.doe offline
+15:39:21.562		alice> !send this is a public message
+15:39:21.566		bill: alice.vienna.at: this is a public message
+15:39:21.567		alice: Successfully send message.
+15:39:22.063		bill> !lastMsg
+15:39:22.064		bill: alice.vienna.at: this is a public message
+15:39:22.564		john> !lastMsg
+15:39:22.565		john: No message received !
+15:39:23.065		bob> !lastMsg
+15:39:23.066		bob: No message received !
+15:39:23.566		john> !send this message will not be sent
+15:39:23.576		john: java.lang.Exception: send message is not allowed in current state
+15:39:24.067		alice> !lastMsg
+15:39:24.068		alice: No message received !
+15:39:24.568		bill> !lastMsg
+15:39:24.569		bill: alice.vienna.at: this is a public message
+15:39:25.069		bob> !lastMsg
+15:39:25.070		bob: No message received !
+15:39:25.570		bob> !login bob.us 123
+15:39:25.575		bob: Successfully logged in.
+15:39:26.072		john> !login john.doe 1234
+15:39:26.076		john: Successfully logged in.
+15:39:26.573		chatserver> !users
+15:39:26.574		chatserver:
+15:39:26.574		* alice.vienna.at online
+15:39:26.574		* bill.de online
+15:39:26.574		* bob.us online
+15:39:26.574		* emmanuel offline
+15:39:26.574		* john.doe online
+15:39:27.075		john> !lastMsg
+15:39:27.076		john: No message received !
+15:39:27.576		bob> !lastMsg
+15:39:27.577		bob: No message received !
+15:39:28.077		john> !send test msg 2
+15:39:28.082		bob: john.doe: test msg 2
+15:39:28.082		bill: john.doe: test msg 2
+15:39:28.082		alice: john.doe: test msg 2
+15:39:28.082		john: Successfully send message.
+15:39:28.578		alice> !lastMsg
+15:39:28.579		alice: john.doe: test msg 2
+15:39:29.080		bill> !lastMsg
+15:39:29.081		bill: john.doe: test msg 2
+15:39:29.581		bob> !lastMsg
+15:39:29.582		bob: john.doe: test msg 2
+15:39:30.082		john> !logout
+15:39:30.085		john: Successfully logged out.
+15:39:30.583		chatserver> !users
+15:39:30.584		chatserver:
+15:39:30.584		* alice.vienna.at online
+15:39:30.584		* bill.de online
+15:39:30.584		* bob.us online
+15:39:30.584		* emmanuel offline
+15:39:30.584		* john.doe offline
+15:39:31.085		john> !list
+15:39:31.089		john:
+15:39:31.089		Online users:
+15:39:31.089		* alice.vienna.at
+15:39:31.089		* bill.de
+15:39:31.089		* bob.us
+15:39:31.587		alice> !logout
+15:39:31.590		alice: Successfully logged out.
+15:39:32.088		chatserver> !users
+15:39:32.089		chatserver:
+15:39:32.089		* alice.vienna.at offline
+15:39:32.089		* bill.de online
+15:39:32.089		* bob.us online
+15:39:32.089		* emmanuel offline
+15:39:32.089		* john.doe offline
+15:39:32.590		alice> !list
+15:39:32.594		alice:
+15:39:32.594		Online users:
+15:39:32.594		* bill.de
+15:39:32.594		* bob.us
+15:39:33.092		bob> !logout
+15:39:33.095		bob: Successfully logged out.
+15:39:33.594		chatserver> !users
+15:39:33.595		chatserver:
+15:39:33.595		* alice.vienna.at offline
+15:39:33.595		* bill.de online
+15:39:33.595		* bob.us offline
+15:39:33.595		* emmanuel offline
+15:39:33.595		* john.doe offline
+15:39:34.098		bob> !list
+15:39:34.103		bob:
+15:39:34.103		Online users:
+15:39:34.103		* bill.de
+15:39:34.599		bill> !logout
+15:39:34.603		bill: Successfully logged out.
+15:39:35.101		chatserver> !users
+15:39:35.102		chatserver:
+15:39:35.102		* alice.vienna.at offline
+15:39:35.102		* bill.de offline
+15:39:35.102		* bob.us offline
+15:39:35.102		* emmanuel offline
+15:39:35.102		* john.doe offline
+15:39:35.603		chatserver> !exit
+15:39:35.608		chatserver: Shut down completed! Bye ..
+15:39:36.102		alice> !exit
+15:39:36.104		alice: Shut down completed! Bye ..
+15:39:36.602		bob> !exit
+15:39:36.604		bob: Shut down completed! Bye ..
+15:39:37.102		bill> !exit
+15:39:37.104		bill: Shut down completed! Bye ..
+15:39:37.602		john> !exit
+15:39:37.604		john: Shut down completed! Bye ..
+################################################################################
+05_private_message_test2.txt
+15:39:48.121		alice> !login alice.vienna.at 12345
+15:39:48.126		alice: Successfully logged in.
+15:39:48.623		bill> !login bill.de 23456
+15:39:48.628		bill: Successfully logged in.
+15:39:49.123		bob> !login bob.us invalid
+15:39:49.129		bob: Wrong username or password.
+15:39:49.624		john> !login john.doe invalid
+15:39:49.630		john: Wrong username or password.
+15:39:50.125		chatserver> !users
+15:39:50.127		chatserver:
+15:39:50.127		* alice.vienna.at online
+15:39:50.127		* bill.de online
+15:39:50.127		* bob.us offline
+15:39:50.127		* emmanuel offline
+15:39:50.127		* john.doe offline
+15:39:50.628		bob> !register localhost:55555
+15:39:50.633		bob: java.lang.Exception: register is not allowed in current state
+15:39:51.129		alice> !register localhost:55555
+15:39:51.133		alice: Successfully registered address for alice.vienna.at.
+15:39:51.630		bob> !lookup alice.vienna.at
+15:39:51.634		bob: java.lang.Exception: lookup is not allowed in current state
+15:39:52.131		bob> !msg alice.vienna.at this is a private msg
+15:39:52.134		bob: java.lang.Exception: lookup is not allowed in current state
+15:39:52.632		bob> !login bob.us 123
+15:39:52.635		bob: Successfully logged in.
+15:39:53.133		john> !login john.doe 1234
+15:39:53.136		john: Successfully logged in.
+15:39:53.634		chatserver> !users
+15:39:53.635		chatserver:
+15:39:53.635		* alice.vienna.at online
+15:39:53.635		* bill.de online
+15:39:53.635		* bob.us online
+15:39:53.635		* emmanuel offline
+15:39:53.635		* john.doe online
+15:39:54.135		john> !msg alice.vienna.at this is a private msg
+15:39:54.145		alice: [PRV] john.doe: this is a private msg
+15:39:54.148		john: alice.vienna.at replied with !ack.
+15:39:54.636		bill> !msg alice.vienna.at this is another private msg
+15:39:54.645		alice: [PRV] bill.de: this is another private msg
+15:39:54.647		bill: alice.vienna.at replied with !ack.
+15:39:55.137		bob> !msg alice.vienna.at this is the third private msg
+15:39:55.145		alice: [PRV] bob.us: this is the third private msg
+15:39:55.147		bob: alice.vienna.at replied with !ack.
+15:39:55.638		alice> !register localhost:55556
+15:39:55.642		alice: Successfully registered address for alice.vienna.at.
+15:39:56.139		bob> !msg alice.vienna.at this is the fourth private msg
+15:39:56.147		alice: [PRV] bob.us: this is the fourth private msg
+15:39:56.149		bob: alice.vienna.at replied with !ack.
+15:39:56.641		alice> !logout
+15:39:56.644		alice: Successfully logged out.
+15:39:57.142		bob> !msg alice.vienna.at this message should not be received
+15:39:57.146		bob: Wrong username or user not reachable.
+15:39:57.643		alice> !login alice.vienna.at 12345
+15:39:57.646		alice: Successfully logged in.
+15:39:58.144		bob> !msg invalid.user this message should not be received
+15:39:58.147		bob: java.lang.Exception: user 'invalid.user' not found
+15:39:58.645		bob> !logout
+15:39:58.648		bob: Successfully logged out.
+15:39:59.146		bill> !logout
+15:39:59.149		bill: Successfully logged out.
+15:39:59.647		john> !logout
+15:39:59.650		john: Successfully logged out.
+15:40:00.148		chatserver> !exit
+15:40:00.154		chatserver: Shut down completed! Bye ..
+15:40:00.648		alice> !exit
+15:40:00.651		alice: Shut down completed! Bye ..
+15:40:01.148		bob> !exit
+15:40:01.151		bob: Shut down completed! Bye ..
+15:40:01.648		bill> !exit
+15:40:01.651		bill: Shut down completed! Bye ..
+15:40:02.148		john> !exit
+15:40:02.151		john: Shut down completed! Bye ..
+################################################################################
+06_login_test2.txt
+15:40:08.659		bill> !login bill.de 23456
+15:40:08.664		bill: Successfully logged in.
+15:40:09.160		bill> !register localhost:55555
+15:40:09.164		bill: Successfully registered address for bill.de.
+15:40:09.661		alice> !logout
+15:40:09.666		alice: java.lang.Exception: logout is not allowed in current state
+15:40:10.162		alice> !send test message
+15:40:10.168		alice: java.lang.Exception: send message is not allowed in current state
+15:40:10.663		alice> !register localhost:55556
+15:40:10.667		alice: java.lang.Exception: register is not allowed in current state
+15:40:11.164		alice> !lookup bill.de
+15:40:11.167		alice: java.lang.Exception: lookup is not allowed in current state
+15:40:11.665		alice> !msg bill.de test
+15:40:11.668		alice: java.lang.Exception: lookup is not allowed in current state
+15:40:12.166		alice> !lastMsg
+15:40:12.167		alice: No message received !
+15:40:12.667		alice> !list
+15:40:12.671		alice:
+15:40:12.671		Online users:
+15:40:12.671		* bill.de
+15:40:13.169		chatserver> !users
+15:40:13.170		chatserver:
+15:40:13.170		* alice.vienna.at offline
+15:40:13.170		* bill.de online
+15:40:13.170		* bob.us offline
+15:40:13.170		* emmanuel offline
+15:40:13.170		* john.doe offline
+15:40:13.671		bill> !exit
+15:40:13.678		bill: Shut down completed! Bye ..
+15:40:14.171		chatserver> !users
+15:40:14.173		chatserver:
+15:40:14.173		* alice.vienna.at offline
+15:40:14.173		* bill.de offline
+15:40:14.173		* bob.us offline
+15:40:14.173		* emmanuel offline
+15:40:14.173		* john.doe offline
+15:40:14.672		alice> !exit
+15:40:14.677		alice: Shut down completed! Bye ..
+15:40:15.172		chatserver> !exit
+15:40:15.174		chatserver: Shut down completed! Bye ..
+################################################################################
+------------- ---------------- ---------------
+
+Testcase: 00_login_test took 9,292 sec
+Testcase: 01_private_message_test took 12,034 sec
+Testcase: 02_public_message_test took 11,522 sec
+Testcase: 03_max_test took 14,533 sec
+Testcase: 04_public_message_test2 took 29,067 sec
+Testcase: 05_private_message_test2 took 24,546 sec
+Testcase: 06_login_test2 took 13,024 sec

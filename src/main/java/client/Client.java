@@ -445,7 +445,9 @@ public class Client implements IClientCli, Runnable {
 
 	@Override
 	public String authenticate(String username) throws IOException {
-		// TODO Auto-generated method stub
+		final AuthenticateRequest request = new AuthenticateRequest();
+		request.setUsername(username);
+		
 		return null;
 	}
 }

@@ -1,9 +1,6 @@
 package channels;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 
 /**
@@ -27,7 +24,11 @@ public class TcpChannel extends ChannelBase<byte[]> {
 
     @Override
     public void send(Packet<byte[]> packet) throws ChannelException {
-        out.println(Encoder.encodeByteArray(packet.unpack()));
+        try {
+            out.println(Encoder.encodeByteArray(packet.unpack()));
+        } catch (UnsupportedEncodingException e) {
+            throw new ChannelException("Could not send packet", e);
+        }
     }
 
     @Override
@@ -46,8 +47,13 @@ public class TcpChannel extends ChannelBase<byte[]> {
         }
 
         Packet packet = new NetworkPacket();
-        packet.pack(Encoder.decodeString(data));
         packet.setRemoteAddress(socket.getRemoteSocketAddress());
+        try {
+            packet.pack(Encoder.decodeString(data));
+        } catch (UnsupportedEncodingException e) {
+            throw new ChannelException("Could not decode received data", e);
+        }
+
         return packet;
     }
 

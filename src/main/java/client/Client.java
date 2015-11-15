@@ -99,6 +99,15 @@ public class Client implements IClientCli, Runnable {
 			}
 
 			@Override
+			public void onTamperedMessageReceived(String message) {
+				try {
+					shell.writeLine("[TAMPERED-MSG] " + message);
+				} catch (IOException e) {
+					LOGGER.warning("could not write message");
+				}
+			}
+
+			@Override
 			public void onPresenceChanged(String presenceMessage) {
 				try {
 					shell.writeLine(presenceMessage);
@@ -140,6 +149,15 @@ public class Client implements IClientCli, Runnable {
 			public void onMessageReceived(String message) {
 				try {
 					shell.writeLine(message);
+				} catch (IOException e) {
+					LOGGER.warning("could not write message");
+				}
+			}
+
+			@Override
+			public void onTamperedMessageReceived(String message) {
+				try {
+					shell.writeLine("[TAMPERED-MSG] " + message);
 				} catch (IOException e) {
 					LOGGER.warning("could not write message");
 				}
@@ -374,6 +392,15 @@ public class Client implements IClientCli, Runnable {
 					public void onMessageReceived(String message) {
 						try {
 							shell.writeLine("[PRV] " + message);
+						} catch (IOException e) {
+							LOGGER.warning("could not write message");
+						}
+					}
+
+					@Override
+					public void onTamperedMessageReceived(String message) {
+						try {
+							shell.writeLine("[TAMPERED-PRV-MSG] " + message);
 						} catch (IOException e) {
 							LOGGER.warning("could not write message");
 						}

@@ -40,6 +40,7 @@ public class Client implements IClientCli, Runnable {
 	private ClientHandler udpRequester;
 
 	private final HandlerManager handlerManager;
+	private final PrivateMessageChannelFactory privateMessageChannelFactory;
 
 	private Collection<SocketConnectionListener> socketListeners = new LinkedList<>();
 
@@ -59,6 +60,9 @@ public class Client implements IClientCli, Runnable {
 		LogManager.getLogManager().reset(); // disable logging
 
 		handlerManager = new HandlerManager();
+
+		final MacFactory macFactory = new MacFactory(config.getString("hmac.key"));
+		privateMessageChannelFactory = new PrivateMessageChannelFactory(macFactory);
 
 		shell = new Shell(componentName, userRequestStream, userResponseStream);
 		shell.register(this);
@@ -281,7 +285,7 @@ public class Client implements IClientCli, Runnable {
 
 			final Channel channel;
 			try {
-				channel = new MessageChannel(new Base64Channel(new TcpChannel(socket)));
+				channel = privateMessageChannelFactory.createChannel(socket);
 			} catch (ChannelException e) {
 				LOGGER.warning("could not create private message channel: " + e);
 				try {
@@ -388,7 +392,7 @@ public class Client implements IClientCli, Runnable {
 
 				return handler;
 			}
-		});
+		}, privateMessageChannelFactory);
 		socketListeners.add(listener);
 		executorService.submit(listener);
 

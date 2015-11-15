@@ -22,6 +22,6 @@ class PrivateMessageChannelFactory implements ChannelFactory {
             throw new ChannelException("Could not create mac for integrity channel", e);
         }
 
-        return new MessageChannel(new Base64Channel(new IntegrityChannel(hashMac, new TcpChannel(clientSocket))));
+        return new MessageChannel(new IntegrityChannel(hashMac, new Base64Channel(new TcpChannel(clientSocket))));
     }
 }

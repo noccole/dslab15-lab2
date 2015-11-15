@@ -18,7 +18,7 @@ alice:	!lookup bill.de
 >		verify(".*localhost:11712*", T(test.util.Flag).REGEX)
 
 alice:	!msg bill.de this is a private message which should work.
->		verify(".*bill.de replied with !tampered this is a private message which should work.*", T(test.util.Flag).REGEX)
+>		verify(".*!tampered this is a private message which should work.*", T(test.util.Flag).REGEX)
 
 bill:   !lastMsg
 >		verify(".*\[TAMPERED-PRV-MSG\] this is a private message which should work.*.No message received.*", T(test.util.Flag).REGEX)
@@ -27,7 +27,7 @@ alice:	!register localhost:11713
 >       verify("success")
 
 bill:   !msg alice.vienna.at Hello back.
->		verify(".*alice.vienna.at replied with !tampered Hello back.*", T(test.util.Flag).REGEX)
+>		verify(".*!tampered Hello back.*", T(test.util.Flag).REGEX)
 
 alice:   !lastMsg
 >		verify(".*\[TAMPERED-PRV-MSG\] Hello back.*.No message received.*", T(test.util.Flag).REGEX)

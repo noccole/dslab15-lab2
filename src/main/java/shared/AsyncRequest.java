@@ -2,10 +2,7 @@ package shared;
 
 import channels.NetworkPacket;
 import channels.Packet;
-import messages.ErrorResponse;
-import messages.Message;
-import messages.Request;
-import messages.Response;
+import messages.*;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Semaphore;
@@ -109,7 +106,7 @@ public class AsyncRequest<RequestType extends Request, ResponseType extends Resp
             listener.removeEventHandler(eventHandler);
         }
 
-        final Message response = eventHandler.getResponse();
+        Message response = eventHandler.getResponse();
         if (response == null) {
             throw new Exception("No response received");
         }
@@ -117,13 +114,26 @@ public class AsyncRequest<RequestType extends Request, ResponseType extends Resp
         try {
             return responseClass.cast(response);
         } catch (ClassCastException e) {
-            final ErrorResponse errorResponse;
             try {
-                errorResponse = ErrorResponse.class.cast(response);
+                // the response can also be tampered in case of wrong secret keys, use the inner response to get
+                // the right error responses from the server if that's the case
+                final TamperedRequest tamperedRequest = TamperedRequest.class.cast(response);
+                response = tamperedRequest.getRequest();
             } catch (ClassCastException e1) {
-                throw new Exception("Unknown response type!", e1);
+                // ok the response is not tampered :)
             }
-            throw new Exception(errorResponse.getReason());
+
+            try {
+                final TamperedResponse tamperedResponse = TamperedResponse.class.cast(response);
+                throw new Exception("!tampered " + tamperedResponse.getReason());
+            } catch (ClassCastException e1) {
+                try {
+                    final ErrorResponse errorResponse = ErrorResponse.class.cast(response);
+                    throw new Exception(errorResponse.getReason());
+                } catch (ClassCastException e2) {
+                    throw new Exception("Unknown response type!", e2);
+                }
+            }
         }
     }
 }

@@ -14,6 +14,7 @@ import test.scenario.ScenarioUtils;
 import test.scenario.Step;
 import test.util.Flag;
 import test.util.PatternMatcher;
+import util.Config;
 import util.TestInputStream;
 import util.TestOutputStream;
 
@@ -79,18 +80,32 @@ public class ScenarioTest {
 			 * Component
 			 */
 			else if (line.startsWith("*")) {
-				String[] parts = line.split(":?\\s+", 3);
+				String[] parts = line.split(":?\\s+", 4);
 				String instruction = "create" + parts[1];
 				String componentName = parts[2];
 
-				Method method = factory.getClass().getMethod(instruction, String.class, TestInputStream.class, TestOutputStream.class);
-				if (method == null) {
-					throw new IllegalArgumentException(String.format("Method '%s' not found.", instruction));
-				}
-
 				TestInputStream in = new TestInputStream();
 				TestOutputStream out = new TestOutputStream(System.out);
-				Object component = method.invoke(factory, componentName, in, out);
+				Object component;
+
+				if (parts.length == 4) {
+					String config = parts[3];
+
+					Method method = factory.getClass().getMethod(instruction, String.class, Config.class, TestInputStream.class, TestOutputStream.class);
+					if (method == null) {
+						throw new IllegalArgumentException(String.format("Method '%s' not found.", instruction));
+					}
+
+					component = method.invoke(factory, componentName, new Config(config), in, out);
+				} else {
+					Method method = factory.getClass().getMethod(instruction, String.class, TestInputStream.class, TestOutputStream.class);
+					if (method == null) {
+						throw new IllegalArgumentException(String.format("Method '%s' not found.", instruction));
+					}
+
+					component = method.invoke(factory, componentName, in, out);
+				}
+
 				CliComponent cliComponent = new CliComponent(component, in, out);
 				componentMap.put(componentName, cliComponent);
 				if (component instanceof Runnable) {

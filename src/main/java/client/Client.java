@@ -321,7 +321,7 @@ public class Client implements IClientCli, Runnable {
 				return username + " replied with !ack."; // success
 			} catch (Exception e) {
 				requester.stop();
-				continue; // try next address
+				return e.getMessage(); // error, abort
 			}
 		}
 

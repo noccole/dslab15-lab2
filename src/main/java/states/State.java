@@ -1,7 +1,6 @@
 package states;
 
 import messages.*;
-import shared.TamperedResponseBuilder;
 
 public abstract class State {
     public void onEntered() throws StateException {
@@ -20,9 +19,7 @@ public abstract class State {
     }
 
     public StateResult handleTamperedRequest(TamperedRequest request) throws StateException {
-        final TamperedResponse response = TamperedResponseBuilder.getResponseFor(request);
-
-        return new StateResult(this, response);
+        return new StateResult(this);
     }
 
     public StateResult handleLoginRequest(LoginRequest request) throws StateException {

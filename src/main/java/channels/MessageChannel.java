@@ -1,6 +1,7 @@
 package channels;
 
 import messages.Message;
+import messages.TamperedRequest;
 import messages.UnknownRequest;
 
 import java.io.*;
@@ -34,24 +35,18 @@ public class MessageChannel implements Channel<Message> {
 
     @Override
     public Packet<Message> receive() throws ChannelException {
-        final Packet<byte[]> bytePacket = channel.receive();
-
-        Message message;
+        final Packet<byte[]> bytePacket;
         try {
-            final InputStream byteStream = new ByteArrayInputStream(bytePacket.unpack());
-            final ObjectInputStream objectStream = new ObjectInputStream(byteStream);
-            message = Message.class.cast(objectStream.readObject());
-        } catch (IOException e) {
-            final UnknownRequest unknownRequest = new UnknownRequest();
-            unknownRequest.setRequestData(bytePacket.unpack());
-            unknownRequest.setReason("could not deserialize message");
-            message = unknownRequest;
-        } catch (ClassNotFoundException e) {
-            final UnknownRequest unknownRequest = new UnknownRequest();
-            unknownRequest.setRequestData(bytePacket.unpack());
-            unknownRequest.setReason("received object was not of type Message");
-            message = unknownRequest;
+            bytePacket = channel.receive();
+        } catch (ChannelIntegrityException e) {
+            final Message message = toMessage(e.getBytes());
+
+            final Packet<Message> packet = new NetworkPacket();
+            packet.pack(new TamperedRequest(message));
+            return packet;
         }
+
+        final Message message = toMessage(bytePacket.unpack());
 
         final Packet<Message> packet = new NetworkPacket();
         packet.setRemoteAddress(bytePacket.getRemoteAddress());
@@ -72,5 +67,23 @@ public class MessageChannel implements Channel<Message> {
     @Override
     public void removeEventHandler(EventHandler eventHandler) {
         channel.removeEventHandler(eventHandler);
+    }
+
+    private Message toMessage(byte[] data) {
+        try {
+            final InputStream byteStream = new ByteArrayInputStream(data);
+            final ObjectInputStream objectStream = new ObjectInputStream(byteStream);
+            return Message.class.cast(objectStream.readObject());
+        } catch (IOException e) {
+            final UnknownRequest unknownRequest = new UnknownRequest();
+            unknownRequest.setRequestData(data);
+            unknownRequest.setReason("could not deserialize message");
+            return unknownRequest;
+        } catch (ClassNotFoundException e) {
+            final UnknownRequest unknownRequest = new UnknownRequest();
+            unknownRequest.setRequestData(data);
+            unknownRequest.setReason("received object was not of type Message");
+            return unknownRequest;
+        }
     }
 }

@@ -1,5 +1,7 @@
 package channels;
 
+import util.Utf8;
+
 import java.io.*;
 import java.net.Socket;
 
@@ -25,7 +27,7 @@ public class TcpChannel extends ChannelBase<byte[]> {
     @Override
     public void send(Packet<byte[]> packet) throws ChannelException {
         try {
-            out.println(Encoder.encodeByteArray(packet.unpack()));
+            out.println(Utf8.encodeByteArray(packet.unpack()));
         } catch (UnsupportedEncodingException e) {
             throw new ChannelException("Could not send packet", e);
         }
@@ -49,7 +51,7 @@ public class TcpChannel extends ChannelBase<byte[]> {
         Packet packet = new NetworkPacket();
         packet.setRemoteAddress(socket.getRemoteSocketAddress());
         try {
-            packet.pack(Encoder.decodeString(data));
+            packet.pack(Utf8.decodeString(data));
         } catch (UnsupportedEncodingException e) {
             throw new ChannelException("Could not decode received data", e);
         }

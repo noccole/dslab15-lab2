@@ -26,12 +26,11 @@ public class ComponentFactory {
 	 */
 	public IClientCli createClient(String componentName, TestInputStream in,
 			TestOutputStream out) throws Exception {
-		/*
-		 * TODO: Here you can do anything in order to construct a client
-		 * instance. Depending on your code you might want to modify the
-		 * following lines but you do not have to.
-		 */
 		Config config = new Config("client");
+		return new Client(componentName, config, in, out);
+	}
+	public IClientCli createClient(String componentName, Config config, TestInputStream in,
+								   TestOutputStream out) throws Exception {
 		return new Client(componentName, config, in, out);
 	}
 
@@ -47,12 +46,11 @@ public class ComponentFactory {
 	 */
 	public IChatserverCli createChatserver(String componentName,
 			TestInputStream in, TestOutputStream out) throws Exception {
-		/*
-		 * TODO: Here you can do anything in order to construct a chatserver
-		 * instance. Depending on your code you might want to modify the
-		 * following lines but you do not have to.
-		 */
 		Config config = new Config("chatserver");
+		return new Chatserver(componentName, config, in, out);
+	}
+	public IChatserverCli createChatserver(String componentName, Config config,
+										   TestInputStream in, TestOutputStream out) throws Exception {
 		return new Chatserver(componentName, config, in, out);
 	}
 

@@ -18,6 +18,10 @@ public abstract class State {
         return new StateResult(this, response);
     }
 
+    public StateResult handleTamperedRequest(TamperedRequest request) throws StateException {
+        return new StateResult(this);
+    }
+
     public StateResult handleLoginRequest(LoginRequest request) throws StateException {
         throw new StateException("login is not allowed in current state");
     }

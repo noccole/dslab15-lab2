@@ -1,6 +1,7 @@
 package chatserver;
 
 import channels.Channel;
+import channels.MessageChannel;
 import entities.User;
 import messages.*;
 import service.UserService;
@@ -11,10 +12,23 @@ import shared.MessageSender;
 import states.State;
 import states.StateException;
 import states.StateResult;
+import util.Config;
+import util.Keys;
 
+import java.io.File;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.util.HashSet;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
+
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+
+import org.bouncycastle.util.encoders.Base64;
 
 class ClientHandler extends HandlerBase {
     private static final Logger LOGGER = Logger.getAnonymousLogger();
@@ -22,46 +36,78 @@ class ClientHandler extends HandlerBase {
     private final Channel channel;
     private final UserService userService;
     private final EventDistributor eventDistributor;
+    
+    private Config config;
 
     public ClientHandler(Channel channel, UserService userService, EventDistributor eventDistributor,
-                         ExecutorService executorService, HandlerManager handlerManager) {
+                         ExecutorService executorService, HandlerManager handlerManager, Config config) {
         this.channel = channel;
         this.userService = userService;
         this.eventDistributor = eventDistributor;
+        this.config = config;
 
         init(channel, executorService, handlerManager, new StateOffline());
     }
 
     private class StateOffline extends State {
         @Override
-        public StateResult handleLoginRequest(LoginRequest request) throws StateException {
-            LOGGER.info("ClientHandler::StateOffline::handleLoginRequest with parameters: " + request);
+        public StateResult handleAuthenticateRequest(AuthenticateRequest request) throws StateException {
+            LOGGER.info("ClientHandler::StateOffline::handleAuthenticateRequest with parameters: " + request);
 
-            LoginResponse.ResponseCode responseCode;
+            final AuthenticateResponse response = new AuthenticateResponse(request);
+            State nextState = this;
 
             final User user = userService.find(request.getUsername());
             if (user != null) {
                 if (user.getPresence() == User.Presence.Offline) {
-                    if (userService.login(user, request.getPassword())) {
-                        responseCode = LoginResponse.ResponseCode.Success;
-                    } else {
-                        responseCode = LoginResponse.ResponseCode.WrongPassword;
-                    }
+                	// Get clients public key
+            		try {
+            			PublicKey publicKey = Keys.readPublicPEM(new File(config.getString("keys.dir") + "/" + user.getUsername() + ".pub.pem"));
+            			((MessageChannel)channel).setPublicKey(publicKey);
+            		} catch(IOException e) {
+            			System.err.println("Public key of user" + user.getUsername() + " not found! " + e.getMessage());
+            		}
+            		
+					response.setClientChallenge(request.getClientChallenge());
+					
+					// generates a 32 byte secure random number
+					SecureRandom secureRandom = new SecureRandom();
+					final byte[] number = new byte[32];
+					secureRandom.nextBytes(number);
+					// encode number into Base64 format
+					byte[] serverChallenge = Base64.encode(number);
+					response.setServerChallenge(serverChallenge);
+					
+					KeyGenerator generator = null;
+					try {
+						generator = KeyGenerator.getInstance("AES");
+					} catch (NoSuchAlgorithmException e) {
+						e.printStackTrace();
+					}
+					// KEYSIZE is in bits
+					generator.init(256);
+					SecretKey key = generator.generateKey(); 
+					// encode key into Base64 format
+					byte[] keyBase64 = Base64.encode(key.getEncoded());
+					response.setKey(keyBase64);
+					
+					// generates a 16 byte secure random number
+					final byte[] iv = new byte[16];
+					secureRandom.nextBytes(iv);
+					// encode number into Base64 format
+					byte[] ivBase64 = Base64.encode(iv);
+					response.setIV(ivBase64);
+
+					//response.setResponse(AuthenticateResponse.ResponseCode.OkSent);
+					response.setResponseCode("OkSent");
+					nextState = new StateWaitForOkResponse(user);
                 } else {
-                    responseCode = LoginResponse.ResponseCode.UserAlreadyLoggedIn;
+                	//response.setResponse(AuthenticateResponse.ResponseCode.UserAlreadyAuthenticated);
+                	response.setResponseCode("UserAlreadyAuthenticated");
                 }
             } else {
-                responseCode = LoginResponse.ResponseCode.UnknownUser;
-            }
-
-            final LoginResponse response = new LoginResponse(request);
-            response.setResponse(responseCode);
-
-            final State nextState;
-            if (responseCode == LoginResponse.ResponseCode.Success) {
-                nextState = new StateOnline(user);
-            } else {
-                nextState = this;
+            	//response.setResponse(AuthenticateResponse.ResponseCode.UnknownUser);
+            	response.setResponseCode("UnknownUser");
             }
 
             return new StateResult(nextState, response);
@@ -72,6 +118,14 @@ class ClientHandler extends HandlerBase {
             LOGGER.info("ClientHandler::StateOffline::handleExitEvent with parameters: " + event);
 
             return new StateResult(new StateExit());
+        }
+    }
+    
+    private class StateWaitForOkResponse extends State {
+    	private final User user;
+    	
+    	public StateWaitForOkResponse(User user) {
+            this.user = user;
         }
     }
 
@@ -156,6 +210,23 @@ class ClientHandler extends HandlerBase {
                 final LookupResponse response = new LookupResponse(request);
                 response.setPrivateAddresses(requestedUser.getPrivateAddresses());
 
+                return new StateResult(this, response);
+            } else {
+                final ErrorResponse response = new ErrorResponse(request);
+                response.setReason("user '" + request.getUsername() + "' not found");
+                return new StateResult(this, response);
+            }
+        }
+        
+        @Override
+        public StateResult handleAuthenticateRequest(AuthenticateRequest request) throws StateException {
+            LOGGER.info("ClientHandler::StateOnline::handleAuthenticateRequest with parameters: " + request);
+
+            final User requestedUser = userService.find(request.getUsername());
+
+            if (requestedUser != null) {
+                final AuthenticateResponse response = new AuthenticateResponse(request);
+                response.setClientChallenge(request.getClientChallenge());
                 return new StateResult(this, response);
             } else {
                 final ErrorResponse response = new ErrorResponse(request);

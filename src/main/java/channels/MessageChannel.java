@@ -4,6 +4,8 @@ import messages.Message;
 import messages.UnknownRequest;
 
 import java.io.*;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 
 /**
  * Sends/receives Messages via/from a byte[] channel
@@ -72,5 +74,21 @@ public class MessageChannel implements Channel<Message> {
     @Override
     public void removeEventHandler(EventHandler eventHandler) {
         channel.removeEventHandler(eventHandler);
+    }
+    
+    public void setPrivateKey(PrivateKey privateKey) {
+    	((RSAChannel)channel).setPrivateKey(privateKey);
+    }
+    
+    public void setPublicKey(PublicKey publicKey) {
+    	((RSAChannel)channel).setPublicKey(publicKey);
+    }
+    
+    public void setAlgorithm(String algorithm) {
+    	((RSAChannel)channel).setAlgorithm(algorithm);
+    }
+    
+    public void setIV(byte[] iv) {
+    	((RSAChannel)channel).setIV(iv);
     }
 }

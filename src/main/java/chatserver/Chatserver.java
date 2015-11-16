@@ -9,13 +9,17 @@ import repositories.UserRepository;
 import service.UserService;
 import shared.*;
 import util.Config;
+import util.Keys;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.DatagramSocket;
 import java.net.ServerSocket;
 import java.net.SocketException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -97,7 +101,17 @@ public class Chatserver implements IChatserverCli, Runnable {
 		socketListener = new SocketConnectionListener(serverSocket, new HandlerFactory() {
 			@Override
 			public HandlerBase createHandler(Channel channel) {
-				return new ClientHandler(channel, userService, eventDistributor, executorService, handlerManager);
+				((MessageChannel)channel).setAlgorithm("RSA/NONE/OAEPWithSHA256AndMGF1Padding");
+				
+				// Get chatserver's private key
+				try {
+					PrivateKey privateKey = Keys.readPrivatePEM(new File(config.getString("key")));
+					((MessageChannel)channel).setPrivateKey(privateKey);
+				} catch(IOException e) {
+					System.err.println("Private key of chatserver not found! " + e.getMessage());
+				}
+				
+				return new ClientHandler(channel, userService, eventDistributor, executorService, handlerManager, config);
 			}
 		});
 		executorService.submit(socketListener);

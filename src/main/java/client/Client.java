@@ -11,11 +11,19 @@ import shared.HandlerFactory;
 import shared.HandlerManager;
 import shared.SocketConnectionListener;
 import util.Config;
+import util.Keys;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.*;
+import java.security.Key;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SecureRandom;
+import java.security.Security;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Map;
@@ -24,6 +32,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
+
+import javax.crypto.spec.SecretKeySpec;
+
+import org.bouncycastle.util.encoders.Base64;
 
 public class Client implements IClientCli, Runnable {
 	private static final Logger LOGGER = Logger.getAnonymousLogger();
@@ -38,6 +50,8 @@ public class Client implements IClientCli, Runnable {
 
 	private ClientHandler tcpRequester;
 	private ClientHandler udpRequester;
+	
+	private Channel channel;
 
 	private final HandlerManager handlerManager;
 
@@ -60,6 +74,7 @@ public class Client implements IClientCli, Runnable {
 
 		handlerManager = new HandlerManager();
 
+		
 		shell = new Shell(componentName, userRequestStream, userResponseStream);
 		shell.register(this);
 	}
@@ -73,9 +88,8 @@ public class Client implements IClientCli, Runnable {
 			return false;
 		}
 
-		final Channel channel;
 		try {
-			channel = new MessageChannel(new Base64Channel(new TcpChannel(socket)));
+			channel = new MessageChannel(new RSAChannel(new Base64Channel(new TcpChannel(socket))));
 		} catch (ChannelException e) {
 			LOGGER.warning("could not create tcp channel");
 			return false;
@@ -444,9 +458,55 @@ public class Client implements IClientCli, Runnable {
 	// implement them for the first submission. ---
 
 	@Override
+	@Command
 	public String authenticate(String username) throws IOException {
 		final AuthenticateRequest request = new AuthenticateRequest();
 		request.setUsername(username);
+		
+		// generates a 32 byte secure random number
+		SecureRandom secureRandom = new SecureRandom();
+		final byte[] number = new byte[32];
+		secureRandom.nextBytes(number);
+		// encode number into Base64 format
+		byte[] clientChallenge = Base64.encode(number);
+		request.setClientChallenge(clientChallenge);
+		
+		((MessageChannel)channel).setAlgorithm("RSA/NONE/OAEPWithSHA256AndMGF1Padding");
+		
+		// Get client's private key
+		try {
+			PrivateKey privateKey = Keys.readPrivatePEM(new File(config.getString("keys.dir") + "/" + username + ".pem"));
+			((MessageChannel)channel).setPrivateKey(privateKey);
+		} catch(IOException e) {
+			System.err.println("Private key of user " + username + " not found! " + e.getMessage());
+		}
+		
+		// Get server's public key
+		try {
+			PublicKey publicKey = Keys.readPublicPEM(new File(config.getString("chatserver.key")));
+			((MessageChannel)channel).setPublicKey(publicKey);
+		} catch(IOException e) {
+			System.err.println("Public key of chatserver not found! " + e.getMessage());
+		}
+		
+		try {
+			final AuthenticateResponse response = tcpRequester.syncRequest(request, AuthenticateResponse.class);
+			
+			byte[] clientChallengeResponse = Base64.decode(response.getClientChallenge());
+			byte[] serverChallenge = Base64.decode(response.getServerChallenge());
+			byte[] key = Base64.decode(response.getKey());
+			byte[] iv = Base64.decode(response.getIV());
+			
+			if(Arrays.equals(clientChallengeResponse, number)) {
+				Key aesKey = new SecretKeySpec(key, "AES");
+				System.out.println("pass");
+			} else {
+				// Print error and stop handshake
+				System.err.println("Wrong challenge received!");
+			}
+		} catch (Exception e) {
+			return e.getMessage();
+		}
 		
 		return null;
 	}

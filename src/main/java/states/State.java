@@ -19,7 +19,7 @@ public abstract class State {
     }
     
     public StateResult handleAuthenticateRequest(AuthenticateRequest request) throws StateException {
-        throw new StateException("login is not allowed in current state");
+        throw new StateException("authenticate is not allowed in current state");
     }
 
     public StateResult handleLoginRequest(LoginRequest request) throws StateException {

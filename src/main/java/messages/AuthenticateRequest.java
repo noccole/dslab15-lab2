@@ -6,13 +6,22 @@ import states.StateResult;
 
 public class AuthenticateRequest extends Request {
     private String username;
+    private byte[] clientChallenge;
 
     public String getUsername() {
         return username;
     }
+    
+    public byte[] getClientChallenge() {
+    	return clientChallenge;
+    }
 
     public void setUsername(String username) {
         this.username = username;
+    }
+    
+    public void setClientChallenge(byte[] clientChallenge) {
+    	this.clientChallenge = clientChallenge;
     }
 
     @Override

@@ -6,10 +6,7 @@ import cli.Shell;
 import entities.PrivateAddress;
 import entities.User;
 import messages.*;
-import shared.HandlerBase;
-import shared.HandlerFactory;
-import shared.HandlerManager;
-import shared.SocketConnectionListener;
+import shared.*;
 import util.Config;
 
 import java.io.IOException;
@@ -79,7 +76,7 @@ public class Client implements IClientCli, Runnable {
 
 		final Channel channel;
 		try {
-			channel = new MessageChannel(new Base64Channel(new TcpChannel(socket)));
+			channel = MessageChannelFactory.create(new Base64Channel(new TcpChannel(socket)));
 		} catch (ChannelException e) {
 			LOGGER.warning("could not create tcp channel");
 			return false;
@@ -137,7 +134,7 @@ public class Client implements IClientCli, Runnable {
 
 		final Channel channel;
 		try {
-			channel = new MessageChannel(new Base64Channel(new UdpChannel(socket)));
+			channel = MessageChannelFactory.create(new Base64Channel(new UdpChannel(socket)));
 		} catch (ChannelException e) {
 			LOGGER.warning("could not create udp channel");
 			return false;

@@ -17,7 +17,7 @@ public class SocketConnectionListener extends RepeatingTask {
     public SocketConnectionListener(ServerSocket serverSocket, HandlerFactory handlerFactory) {
         this(serverSocket, handlerFactory, new ChannelFactory() {
             public MessageChannel createChannel(Socket clientSocket) throws ChannelException {
-                return new MessageChannel(new Base64Channel(new TcpChannel(clientSocket)));
+                return MessageChannelFactory.create(new Base64Channel(new TcpChannel(clientSocket)));
             }
         });
     }

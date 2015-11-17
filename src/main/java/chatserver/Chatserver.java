@@ -1,6 +1,9 @@
 package chatserver;
 
-import channels.*;
+import channels.Base64Channel;
+import channels.Channel;
+import channels.ChannelException;
+import channels.UdpChannel;
 import cli.Command;
 import cli.Shell;
 import entities.User;
@@ -74,7 +77,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 
 		final Channel udpChannel;
 		try {
-			udpChannel = new MessageChannel(new Base64Channel(new UdpChannel(serverUdpSocket)));
+			udpChannel = MessageChannelFactory.create(new Base64Channel(new UdpChannel(serverUdpSocket)));
 		} catch (ChannelException e) {
 			LOGGER.warning("could not create a udp channel");
 			return false;

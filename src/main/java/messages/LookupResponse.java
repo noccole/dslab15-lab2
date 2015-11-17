@@ -1,6 +1,8 @@
 package messages;
 
 import entities.PrivateAddress;
+import marshalling.MarshallingException;
+import marshalling.MessageMarshaller;
 
 import java.util.Collection;
 
@@ -17,6 +19,11 @@ public class LookupResponse extends Response {
 
     public void setPrivateAddresses(Collection<PrivateAddress> privateAddresses) {
         this.privateAddresses = privateAddresses;
+    }
+
+    @Override
+    public byte[] marshall(MessageMarshaller marshaller) throws MarshallingException {
+        return marshaller.marshallLookupResponse(this);
     }
 
     @Override

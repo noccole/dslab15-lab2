@@ -1,5 +1,7 @@
 package messages;
 
+import marshalling.MarshallingException;
+import marshalling.MessageMarshaller;
 import states.State;
 import states.StateException;
 import states.StateResult;
@@ -31,6 +33,11 @@ public class UnknownRequest extends Request {
     @Override
     public StateResult applyTo(State state) throws StateException {
         return state.handleUnknownRequest(this);
+    }
+
+    @Override
+    public byte[] marshall(MessageMarshaller marshaller) throws MarshallingException {
+        return new byte[0];
     }
 
     @Override

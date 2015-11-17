@@ -1,5 +1,8 @@
 package messages;
 
+import marshalling.MarshallingException;
+import marshalling.MessageMarshaller;
+
 public class LoginResponse extends Response {
     public enum ResponseCode {
         Success,
@@ -20,6 +23,11 @@ public class LoginResponse extends Response {
 
     public void setResponse(ResponseCode response) {
         this.response = response;
+    }
+
+    @Override
+    public byte[] marshall(MessageMarshaller marshaller) throws MarshallingException {
+        return marshaller.marshallLoginResponse(this);
     }
 
     @Override

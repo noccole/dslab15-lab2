@@ -1,5 +1,7 @@
 package messages;
 
+import marshalling.MarshallingException;
+import marshalling.MessageMarshaller;
 import states.State;
 import states.StateException;
 import states.StateResult;
@@ -20,4 +22,6 @@ public interface Message extends Serializable {
      * @throws StateException
      */
     StateResult applyTo(State state) throws StateException;
+
+    byte[] marshall(MessageMarshaller marshaller) throws MarshallingException;
 }

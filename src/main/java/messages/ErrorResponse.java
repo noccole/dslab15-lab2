@@ -1,5 +1,8 @@
 package messages;
 
+import marshalling.MarshallingException;
+import marshalling.MessageMarshaller;
+
 public class ErrorResponse extends Response {
     private String reason;
 
@@ -13,5 +16,10 @@ public class ErrorResponse extends Response {
 
     public void setReason(String reason) {
         this.reason = reason;
+    }
+
+    @Override
+    public byte[] marshall(MessageMarshaller marshaller) throws MarshallingException {
+        return marshaller.marshallErrorResponse(this);
     }
 }

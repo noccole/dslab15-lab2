@@ -4,6 +4,7 @@ import messages.Message;
 import messages.UnknownRequest;
 
 import java.io.*;
+import java.security.Key;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
@@ -76,19 +77,31 @@ public class MessageChannel implements Channel<Message> {
         channel.removeEventHandler(eventHandler);
     }
     
-    public void setPrivateKey(PrivateKey privateKey) {
+    public void setPrivateKey(Key privateKey) {
     	((RSAChannel)channel).setPrivateKey(privateKey);
     }
     
-    public void setPublicKey(PublicKey publicKey) {
+    public void setPublicKey(Key publicKey) {
     	((RSAChannel)channel).setPublicKey(publicKey);
     }
     
-    public void setAlgorithm(String algorithm) {
-    	((RSAChannel)channel).setAlgorithm(algorithm);
+    public void setReceiveAlgorithm(String receivelgorithm) {
+    	((RSAChannel)channel).setReceiveAlgorithm(receivelgorithm);
+    }
+    
+    public void setSendAlgorithm(String sendAlgorithm) {
+    	((RSAChannel)channel).setSendAlgorithm(sendAlgorithm);
     }
     
     public void setIV(byte[] iv) {
     	((RSAChannel)channel).setIV(iv);
+    }
+    
+    public void setReceiveAES(boolean receiveAES) {
+    	((RSAChannel)channel).setReceiveAES(receiveAES);
+    }
+    
+    public void setSendAES(boolean sendAES) {
+    	((RSAChannel)channel).setSendAES(sendAES);
     }
 }

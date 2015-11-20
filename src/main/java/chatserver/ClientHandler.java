@@ -17,9 +17,12 @@ import util.Keys;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
@@ -38,6 +41,9 @@ class ClientHandler extends HandlerBase {
     private final EventDistributor eventDistributor;
     
     private Config config;
+    
+    private HashMap<User, byte[]> serverChallenges;
+    private HashMap<User, Key> keys;
 
     public ClientHandler(Channel channel, UserService userService, EventDistributor eventDistributor,
                          ExecutorService executorService, HandlerManager handlerManager, Config config) {
@@ -45,6 +51,11 @@ class ClientHandler extends HandlerBase {
         this.userService = userService;
         this.eventDistributor = eventDistributor;
         this.config = config;
+        
+        serverChallenges = new HashMap<User, byte[]>();
+        keys = new HashMap<User, Key>();
+        ((MessageChannel)this.channel).setReceiveAES(false);
+		((MessageChannel)this.channel).setSendAES(false);
 
         init(channel, executorService, handlerManager, new StateOffline());
     }
@@ -77,6 +88,7 @@ class ClientHandler extends HandlerBase {
 					// encode number into Base64 format
 					byte[] serverChallenge = Base64.encode(number);
 					response.setServerChallenge(serverChallenge);
+					serverChallenges.put(user, number);
 					
 					KeyGenerator generator = null;
 					try {
@@ -86,10 +98,11 @@ class ClientHandler extends HandlerBase {
 					}
 					// KEYSIZE is in bits
 					generator.init(256);
-					SecretKey key = generator.generateKey(); 
+					Key key = generator.generateKey(); 
 					// encode key into Base64 format
 					byte[] keyBase64 = Base64.encode(key.getEncoded());
 					response.setKey(keyBase64);
+					keys.put(user, key);
 					
 					// generates a 16 byte secure random number
 					final byte[] iv = new byte[16];
@@ -97,6 +110,11 @@ class ClientHandler extends HandlerBase {
 					// encode number into Base64 format
 					byte[] ivBase64 = Base64.encode(iv);
 					response.setIV(ivBase64);
+					
+					((MessageChannel)channel).setReceiveAES(true);
+					((MessageChannel)channel).setReceiveAlgorithm("AES/CTR/NoPadding");
+					((MessageChannel)channel).setPrivateKey(key);
+					((MessageChannel)channel).setIV(iv);
 
 					//response.setResponse(AuthenticateResponse.ResponseCode.OkSent);
 					response.setResponseCode("OkSent");
@@ -126,6 +144,40 @@ class ClientHandler extends HandlerBase {
     	
     	public StateWaitForOkResponse(User user) {
             this.user = user;
+        }
+    	
+    	@Override
+        public StateResult handleAuthConfirmationRequest(AuthConfirmationRequest request) throws StateException {
+            LOGGER.info("ClientHandler::StateOffline::handleAuthenticateRequest with parameters: " + request);
+            
+            State nextState = new StateOffline();
+            final AuthConfirmationResponse response = new AuthConfirmationResponse(request);
+            
+            final User user = userService.find(request.getUsername());
+            if (user != null) {
+                if (user.getPresence() == User.Presence.Offline) {
+            		byte[] serverChallenge = Base64.decode(request.getServerChallenge());
+
+            		if(Arrays.equals(serverChallenges.get(user), serverChallenge)) {
+            			nextState = new StateOnline(user);
+            			((MessageChannel)channel).setSendAES(true);
+            			((MessageChannel)channel).setSendAlgorithm("AES/CTR/NoPadding");
+            			((MessageChannel)channel).setPublicKey(keys.get(user));
+            			System.out.println("pass");
+            		} else {
+            			System.err.println("Wrong challenge received!");
+            		}
+                }
+            }
+            
+            return new StateResult(nextState, response);
+    	}
+
+    	@Override
+        public StateResult handleExitEvent(ExitEvent event) throws StateException {
+            LOGGER.info("ClientHandler::StateOffline::handleExitEvent with parameters: " + event);
+
+            return new StateResult(new StateExit());
         }
     }
 

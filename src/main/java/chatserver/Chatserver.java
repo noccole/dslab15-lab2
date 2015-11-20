@@ -101,7 +101,10 @@ public class Chatserver implements IChatserverCli, Runnable {
 		socketListener = new SocketConnectionListener(serverSocket, new HandlerFactory() {
 			@Override
 			public HandlerBase createHandler(Channel channel) {
-				((MessageChannel)channel).setAlgorithm("RSA/NONE/OAEPWithSHA256AndMGF1Padding");
+				((MessageChannel)channel).setReceiveAlgorithm("RSA/NONE/OAEPWithSHA256AndMGF1Padding");
+				((MessageChannel)channel).setSendAlgorithm("RSA/NONE/OAEPWithSHA256AndMGF1Padding");
+				((MessageChannel)channel).setReceiveAES(false);
+				((MessageChannel)channel).setSendAES(false);
 				
 				// Get chatserver's private key
 				try {

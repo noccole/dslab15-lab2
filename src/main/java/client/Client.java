@@ -471,7 +471,10 @@ public class Client implements IClientCli, Runnable {
 		byte[] clientChallenge = Base64.encode(number);
 		request.setClientChallenge(clientChallenge);
 		
-		((MessageChannel)channel).setAlgorithm("RSA/NONE/OAEPWithSHA256AndMGF1Padding");
+		((MessageChannel)channel).setReceiveAlgorithm("RSA/NONE/OAEPWithSHA256AndMGF1Padding");
+		((MessageChannel)channel).setSendAlgorithm("RSA/NONE/OAEPWithSHA256AndMGF1Padding");
+		((MessageChannel)channel).setReceiveAES(false);
+		((MessageChannel)channel).setSendAES(false);
 		
 		// Get client's private key
 		try {
@@ -499,6 +502,20 @@ public class Client implements IClientCli, Runnable {
 			
 			if(Arrays.equals(clientChallengeResponse, number)) {
 				Key aesKey = new SecretKeySpec(key, "AES");
+				
+				((MessageChannel)channel).setReceiveAES(true);
+				((MessageChannel)channel).setSendAES(true);
+				((MessageChannel)channel).setIV(iv);
+				((MessageChannel)channel).setPrivateKey(aesKey);
+				((MessageChannel)channel).setPublicKey(aesKey);
+				((MessageChannel)channel).setReceiveAlgorithm("AES/CTR/NoPadding");
+				((MessageChannel)channel).setSendAlgorithm("AES/CTR/NoPadding");
+				
+				final AuthConfirmationRequest confReq = new AuthConfirmationRequest();
+				confReq.setUsername(username);
+				confReq.setServerChallenge(Base64.encode(serverChallenge));
+				tcpRequester.syncRequest(confReq, AuthConfirmationResponse.class);
+				
 				System.out.println("pass");
 			} else {
 				// Print error and stop handshake

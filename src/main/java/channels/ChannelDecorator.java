@@ -31,4 +31,9 @@ public class ChannelDecorator<T> implements Channel {
     public void removeEventHandler(EventHandler eventHandler) {
         channel.removeEventHandler(eventHandler);
     }
+    
+    @Override
+    public Channel getChannel() {
+    	return channel;
+    }
 }

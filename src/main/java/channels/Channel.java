@@ -63,4 +63,6 @@ public interface Channel<T> {
             }
         }
     }
+    
+    Channel getChannel();
 }

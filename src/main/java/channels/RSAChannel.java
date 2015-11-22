@@ -28,9 +28,9 @@ public class RSAChannel extends ChannelDecorator<byte[]> {
     private boolean sendAES = false;
     private byte[] iv;
     
-    private Channel<byte[]> channel;
+    private Channel channel;
 
-    public RSAChannel(Channel<byte[]> channel) {
+    public RSAChannel(Channel channel) {
     	super(channel);
     	this.channel = channel;
     }
@@ -111,5 +111,9 @@ public class RSAChannel extends ChannelDecorator<byte[]> {
 		}
     	
         return resPacket;
+    }
+    
+    public Channel getChannel() {
+    	return channel.getChannel();
     }
 }

@@ -46,4 +46,9 @@ public class Base64Channel extends ChannelDecorator<byte[]> {
     public Packet receive() throws ChannelException {
         return new Base64DecodedPacket(super.receive());
     }
+    
+    @Override
+    public Channel getChannel() {
+    	return this;
+    }
 }

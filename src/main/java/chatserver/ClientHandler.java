@@ -2,6 +2,7 @@ package chatserver;
 
 import channels.Channel;
 import channels.MessageChannel;
+import channels.RSAChannel;
 import entities.User;
 import messages.*;
 import service.UserService;
@@ -19,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.util.Arrays;
@@ -36,7 +38,8 @@ import org.bouncycastle.util.encoders.Base64;
 class ClientHandler extends HandlerBase {
     private static final Logger LOGGER = Logger.getAnonymousLogger();
 
-    private final Channel channel;
+    private Channel channel;
+    private RSAChannel rsaChannel;
     private final UserService userService;
     private final EventDistributor eventDistributor;
     
@@ -47,17 +50,29 @@ class ClientHandler extends HandlerBase {
 
     public ClientHandler(Channel channel, UserService userService, EventDistributor eventDistributor,
                          ExecutorService executorService, HandlerManager handlerManager, Config config) {
-        this.channel = channel;
+        this.rsaChannel = new RSAChannel(channel.getChannel());
+        this.channel = new MessageChannel(this.rsaChannel);
         this.userService = userService;
         this.eventDistributor = eventDistributor;
         this.config = config;
         
+        rsaChannel.setReceiveAlgorithm("RSA/NONE/OAEPWithSHA256AndMGF1Padding");
+        rsaChannel.setSendAlgorithm("RSA/NONE/OAEPWithSHA256AndMGF1Padding");
+        rsaChannel.setReceiveAES(false);
+        rsaChannel.setSendAES(false);
+		
+		// Get chatserver's private key
+		try {
+			PrivateKey privateKey = Keys.readPrivatePEM(new File(config.getString("key")));
+			rsaChannel.setPrivateKey(privateKey);
+		} catch(IOException e) {
+			System.err.println("Private key of chatserver not found! " + e.getMessage());
+		}
+        
         serverChallenges = new HashMap<User, byte[]>();
         keys = new HashMap<User, Key>();
-        ((MessageChannel)this.channel).setReceiveAES(false);
-		((MessageChannel)this.channel).setSendAES(false);
 
-        init(channel, executorService, handlerManager, new StateOffline());
+        init(this.channel, executorService, handlerManager, new StateOffline());
     }
 
     private class StateOffline extends State {
@@ -74,7 +89,7 @@ class ClientHandler extends HandlerBase {
                 	// Get clients public key
             		try {
             			PublicKey publicKey = Keys.readPublicPEM(new File(config.getString("keys.dir") + "/" + user.getUsername() + ".pub.pem"));
-            			((MessageChannel)channel).setPublicKey(publicKey);
+            			rsaChannel.setPublicKey(publicKey);
             		} catch(IOException e) {
             			System.err.println("Public key of user" + user.getUsername() + " not found! " + e.getMessage());
             		}
@@ -111,10 +126,10 @@ class ClientHandler extends HandlerBase {
 					byte[] ivBase64 = Base64.encode(iv);
 					response.setIV(ivBase64);
 					
-					((MessageChannel)channel).setReceiveAES(true);
-					((MessageChannel)channel).setReceiveAlgorithm("AES/CTR/NoPadding");
-					((MessageChannel)channel).setPrivateKey(key);
-					((MessageChannel)channel).setIV(iv);
+					rsaChannel.setReceiveAES(true);
+					rsaChannel.setReceiveAlgorithm("AES/CTR/NoPadding");
+					rsaChannel.setPrivateKey(key);
+					rsaChannel.setIV(iv);
 
 					//response.setResponse(AuthenticateResponse.ResponseCode.OkSent);
 					response.setResponseCode("OkSent");
@@ -160,9 +175,9 @@ class ClientHandler extends HandlerBase {
 
             		if(Arrays.equals(serverChallenges.get(user), serverChallenge)) {
             			nextState = new StateOnline(user);
-            			((MessageChannel)channel).setSendAES(true);
-            			((MessageChannel)channel).setSendAlgorithm("AES/CTR/NoPadding");
-            			((MessageChannel)channel).setPublicKey(keys.get(user));
+            			rsaChannel.setSendAES(true);
+            			rsaChannel.setSendAlgorithm("AES/CTR/NoPadding");
+            			rsaChannel.setPublicKey(keys.get(user));
             			System.out.println("pass");
             		} else {
             			System.err.println("Wrong challenge received!");

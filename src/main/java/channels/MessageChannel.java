@@ -77,31 +77,7 @@ public class MessageChannel implements Channel<Message> {
         channel.removeEventHandler(eventHandler);
     }
     
-    public void setPrivateKey(Key privateKey) {
-    	((RSAChannel)channel).setPrivateKey(privateKey);
-    }
-    
-    public void setPublicKey(Key publicKey) {
-    	((RSAChannel)channel).setPublicKey(publicKey);
-    }
-    
-    public void setReceiveAlgorithm(String receivelgorithm) {
-    	((RSAChannel)channel).setReceiveAlgorithm(receivelgorithm);
-    }
-    
-    public void setSendAlgorithm(String sendAlgorithm) {
-    	((RSAChannel)channel).setSendAlgorithm(sendAlgorithm);
-    }
-    
-    public void setIV(byte[] iv) {
-    	((RSAChannel)channel).setIV(iv);
-    }
-    
-    public void setReceiveAES(boolean receiveAES) {
-    	((RSAChannel)channel).setReceiveAES(receiveAES);
-    }
-    
-    public void setSendAES(boolean sendAES) {
-    	((RSAChannel)channel).setSendAES(sendAES);
+    public Channel getChannel() {
+    	return channel.getChannel();
     }
 }

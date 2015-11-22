@@ -62,4 +62,9 @@ public class TcpChannel extends ChannelBase<byte[]> {
             }
         }
     }
+    
+    @Override
+    public Channel getChannel() {
+    	return this;
+    }
 }

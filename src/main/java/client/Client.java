@@ -51,6 +51,7 @@ public class Client implements IClientCli, Runnable {
 	private ClientHandler tcpRequester;
 	private ClientHandler udpRequester;
 	
+	private RSAChannel rsaChannel;
 	private Channel channel;
 
 	private final HandlerManager handlerManager;
@@ -89,7 +90,8 @@ public class Client implements IClientCli, Runnable {
 		}
 
 		try {
-			channel = new MessageChannel(new RSAChannel(new Base64Channel(new TcpChannel(socket))));
+			rsaChannel = new RSAChannel(new Base64Channel(new TcpChannel(socket)));
+			channel = new MessageChannel(rsaChannel);
 		} catch (ChannelException e) {
 			LOGGER.warning("could not create tcp channel");
 			return false;
@@ -471,15 +473,15 @@ public class Client implements IClientCli, Runnable {
 		byte[] clientChallenge = Base64.encode(number);
 		request.setClientChallenge(clientChallenge);
 		
-		((MessageChannel)channel).setReceiveAlgorithm("RSA/NONE/OAEPWithSHA256AndMGF1Padding");
-		((MessageChannel)channel).setSendAlgorithm("RSA/NONE/OAEPWithSHA256AndMGF1Padding");
-		((MessageChannel)channel).setReceiveAES(false);
-		((MessageChannel)channel).setSendAES(false);
+		rsaChannel.setReceiveAlgorithm("RSA/NONE/OAEPWithSHA256AndMGF1Padding");
+		rsaChannel.setSendAlgorithm("RSA/NONE/OAEPWithSHA256AndMGF1Padding");
+		rsaChannel.setReceiveAES(false);
+		rsaChannel.setSendAES(false);
 		
 		// Get client's private key
 		try {
 			PrivateKey privateKey = Keys.readPrivatePEM(new File(config.getString("keys.dir") + "/" + username + ".pem"));
-			((MessageChannel)channel).setPrivateKey(privateKey);
+			rsaChannel.setPrivateKey(privateKey);
 		} catch(IOException e) {
 			System.err.println("Private key of user " + username + " not found! " + e.getMessage());
 		}
@@ -487,7 +489,7 @@ public class Client implements IClientCli, Runnable {
 		// Get server's public key
 		try {
 			PublicKey publicKey = Keys.readPublicPEM(new File(config.getString("chatserver.key")));
-			((MessageChannel)channel).setPublicKey(publicKey);
+			rsaChannel.setPublicKey(publicKey);
 		} catch(IOException e) {
 			System.err.println("Public key of chatserver not found! " + e.getMessage());
 		}
@@ -503,13 +505,13 @@ public class Client implements IClientCli, Runnable {
 			if(Arrays.equals(clientChallengeResponse, number)) {
 				Key aesKey = new SecretKeySpec(key, "AES");
 				
-				((MessageChannel)channel).setReceiveAES(true);
-				((MessageChannel)channel).setSendAES(true);
-				((MessageChannel)channel).setIV(iv);
-				((MessageChannel)channel).setPrivateKey(aesKey);
-				((MessageChannel)channel).setPublicKey(aesKey);
-				((MessageChannel)channel).setReceiveAlgorithm("AES/CTR/NoPadding");
-				((MessageChannel)channel).setSendAlgorithm("AES/CTR/NoPadding");
+				rsaChannel.setReceiveAES(true);
+				rsaChannel.setSendAES(true);
+				rsaChannel.setIV(iv);
+				rsaChannel.setPrivateKey(aesKey);
+				rsaChannel.setPublicKey(aesKey);
+				rsaChannel.setReceiveAlgorithm("AES/CTR/NoPadding");
+				rsaChannel.setSendAlgorithm("AES/CTR/NoPadding");
 				
 				final AuthConfirmationRequest confReq = new AuthConfirmationRequest();
 				confReq.setUsername(username);

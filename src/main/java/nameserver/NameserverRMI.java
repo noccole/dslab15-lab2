@@ -59,7 +59,7 @@ public class NameserverRMI implements INameserver {
 
     @Override
     public INameserverForChatserver getNameserver(String zone) throws RemoteException {
-        return null;
+        return nameserverRepository.getNameserverForChatserver(zone);
     }
 
     @Override

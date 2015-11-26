@@ -13,6 +13,17 @@ import java.rmi.RemoteException;
  */
 public interface INameserver extends INameserverForChatserver, Remote {
 
+	/**
+	 * registers a new nameserver with the specified domain recursively.
+	 * all servers between the root server and the server to add have to exist.
+	 *
+	 * @param domain
+	 * @param nameserver
+	 * @param nameserverForChatserver
+	 * @throws RemoteException
+	 * @throws AlreadyRegisteredException
+	 * @throws InvalidDomainException
+     */
 	void registerNameserver(String domain, INameserver nameserver,
 							INameserverForChatserver nameserverForChatserver)
 			throws RemoteException, AlreadyRegisteredException,

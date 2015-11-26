@@ -1,10 +1,15 @@
 package nameserver;
 
+import cli.Command;
+import cli.Shell;
 import util.Config;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 
 /**
  * Please note that this class is not needed for Lab 1, but will later be used
@@ -16,6 +21,7 @@ public class Nameserver implements INameserverCli, Runnable {
 	private Config config;
 	private InputStream userRequestStream;
 	private PrintStream userResponseStream;
+	private Shell shell;
 
 	/**
 	 * @param componentName
@@ -34,7 +40,8 @@ public class Nameserver implements INameserverCli, Runnable {
 		this.userRequestStream = userRequestStream;
 		this.userResponseStream = userResponseStream;
 
-		// TODO
+		shell = new Shell(componentName, userRequestStream, userResponseStream);
+		shell.register(this);
 	}
 
 	@Override
@@ -42,18 +49,21 @@ public class Nameserver implements INameserverCli, Runnable {
 		// TODO
 	}
 
+	@Command
 	@Override
 	public String nameservers() throws IOException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+	@Command
 	@Override
 	public String addresses() throws IOException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+	@Command
 	@Override
 	public String exit() throws IOException {
 		// TODO Auto-generated method stub
@@ -68,7 +78,7 @@ public class Nameserver implements INameserverCli, Runnable {
 	public static void main(String[] args) {
 		Nameserver nameserver = new Nameserver(args[0], new Config(args[0]),
 				System.in, System.out);
-		// TODO: start the nameserver
+		nameserver.run();
 	}
 
 }

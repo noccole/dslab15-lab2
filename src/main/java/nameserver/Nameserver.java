@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 /**
@@ -60,6 +61,8 @@ public class Nameserver implements INameserverCli, Runnable {
 		this.config = config;
 		this.userRequestStream = userRequestStream;
 		this.userResponseStream = userResponseStream;
+
+		LogManager.getLogManager().reset(); // disable logging
 
 		shell = new Shell(componentName, userRequestStream, userResponseStream);
 		shell.register(this);

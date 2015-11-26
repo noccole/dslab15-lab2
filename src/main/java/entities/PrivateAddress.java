@@ -13,7 +13,7 @@ public class PrivateAddress implements Serializable {
 
     public PrivateAddress(String address) {
         hostname = address.substring(0, address.indexOf(":"));
-        hostname = address.substring(address.indexOf(":") + 1);
+        port = Integer.valueOf(address.substring(address.indexOf(":") + 1));
     }
 
     public PrivateAddress(String hostname, Integer port) {

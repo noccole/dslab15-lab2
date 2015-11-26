@@ -45,7 +45,6 @@ public class Chatserver implements IChatserverCli, Runnable {
 	private SocketConnectionListener socketListener;
 
 	private INameserver nameserver;
-
 	/**
 	 * @param componentName
 	 *            the name of the component - represented in the prompt
@@ -70,7 +69,6 @@ public class Chatserver implements IChatserverCli, Runnable {
 		Config userConfig = new Config("user");
 		UserRepository userRepository = new ConfigUserRepository(userConfig);
 		userService = new UserService(userRepository);
-
 	}
 
 	private boolean startListHandler() {

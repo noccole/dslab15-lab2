@@ -29,7 +29,6 @@ public class UserService {
     private INameserver nameserver;
 
     public UserService(UserRepository userRepository) {
-
         try {
             final Collection<User> users = userRepository.findAll();
             for (User user : users) {

@@ -88,7 +88,7 @@ alice:	!login alice.vienna.at 12345
 >					verify("success")
 
 #test sending private msg
-bob: !msg invalid.deer this message should not be received
+bob: !msg invalid.user this message should not be received
 >					verify("user 'invalid.deer' not found")
 
 bob: !logout

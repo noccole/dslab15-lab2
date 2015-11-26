@@ -4,12 +4,13 @@ import nameserver.exceptions.AlreadyRegisteredException;
 import nameserver.exceptions.InvalidDomainException;
 import repositories.UserRepository;
 
+import java.io.Serializable;
 import java.rmi.RemoteException;
 
 /**
  * Encapsulates the nameserver's remotely executable methods
  */
-public class NameserverRMI implements INameserver {
+public class NameserverRMI implements INameserver, Serializable {
     private UserRepository userRepository;
 
     NameserverRMI(UserRepository userRepository) {

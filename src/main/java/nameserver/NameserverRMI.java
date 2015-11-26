@@ -4,12 +4,9 @@ import entities.Domain;
 import entities.PrivateAddress;
 import nameserver.exceptions.AlreadyRegisteredException;
 import nameserver.exceptions.InvalidDomainException;
-import repositories.UserRepository;
+import repositories.INameserverRepository;
 
-import java.io.Serializable;
 import java.rmi.RemoteException;
-import java.rmi.server.UnicastRemoteObject;
-import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 

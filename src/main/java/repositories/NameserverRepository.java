@@ -1,4 +1,7 @@
-package nameserver;
+package repositories;
+
+import nameserver.INameserver;
+import nameserver.INameserverForChatserver;
 
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;

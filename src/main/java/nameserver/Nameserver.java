@@ -2,10 +2,13 @@ package nameserver;
 
 import cli.Command;
 import cli.Shell;
+import entities.PrivateAddress;
 import nameserver.exceptions.AlreadyRegisteredException;
 import nameserver.exceptions.InvalidDomainException;
 import repositories.INameserverRepository;
+import repositories.IPrivateAddressRepository;
 import repositories.NameserverRepository;
+import repositories.PrivateAddressRepository;
 import util.Config;
 
 import java.io.InputStream;
@@ -18,6 +21,8 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -35,6 +40,7 @@ public class Nameserver implements INameserverCli, Runnable {
 	private Shell shell;
 	private NameserverRMI nameserverRMI;
 	private INameserverRepository nameserverRepository = new NameserverRepository();
+	private IPrivateAddressRepository privateAddressRepository = new PrivateAddressRepository();
 
 
 	/**
@@ -57,7 +63,7 @@ public class Nameserver implements INameserverCli, Runnable {
 		shell = new Shell(componentName, userRequestStream, userResponseStream);
 		shell.register(this);
 
-		nameserverRMI = new NameserverRMI(nameserverRepository);
+		nameserverRMI = new NameserverRMI(nameserverRepository, privateAddressRepository);
 	}
 
 	private boolean registerAsRoot() {
@@ -117,8 +123,15 @@ public class Nameserver implements INameserverCli, Runnable {
 	@Command
 	@Override
 	public String addresses() {
-		// TODO Auto-generated method stub
-		return null;
+		HashMap<String, PrivateAddress> privateAddresses = privateAddressRepository.getAll();
+		List<String> users = new ArrayList<>(privateAddresses.keySet());
+		Collections.sort(users);
+
+		String result = "";
+		for (String user : users) {
+			result += "* " + user + privateAddresses.get(user) + "\n";
+		}
+		return result;
 	}
 
 	@Command

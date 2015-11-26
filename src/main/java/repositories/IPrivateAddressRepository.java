@@ -2,6 +2,9 @@ package repositories;
 
 import entities.PrivateAddress;
 
+import java.util.Collection;
+import java.util.HashMap;
+
 /**
  * repository for the private address of users
  */
@@ -25,4 +28,9 @@ public interface IPrivateAddressRepository {
      * @return returns the private address of the specified user or null if no address found
      */
     PrivateAddress getPrivateAddress(String user);
+
+    /**
+     * @return returns all stored addresses
+     */
+    HashMap<String, PrivateAddress> getAll();
 }

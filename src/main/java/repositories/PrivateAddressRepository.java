@@ -2,6 +2,7 @@ package repositories;
 
 import entities.PrivateAddress;
 
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -23,5 +24,10 @@ public class PrivateAddressRepository implements IPrivateAddressRepository {
     @Override
     public PrivateAddress getPrivateAddress(String user) {
         return privateAddresses.get(user);
+    }
+
+    @Override
+    public HashMap<String, PrivateAddress> getAll() {
+        return new HashMap<>(privateAddresses);
     }
 }

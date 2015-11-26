@@ -19,8 +19,9 @@ public class NameserverRMI implements INameserver {
     private IPrivateAddressRepository privateAddressRepository;
     private INameserverRepository nameserverRepository;
 
-    public NameserverRMI(INameserverRepository nameserverRepository) {
+    public NameserverRMI(INameserverRepository nameserverRepository, IPrivateAddressRepository privateAddressRepository) {
         this.nameserverRepository = nameserverRepository;
+        this.privateAddressRepository = privateAddressRepository;
     }
 
     @Override
@@ -73,6 +74,4 @@ public class NameserverRMI implements INameserver {
     public String lookup(String username) throws RemoteException {
         return privateAddressRepository.getPrivateAddress(username).toString();
     }
-
-
 }

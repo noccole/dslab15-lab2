@@ -6,6 +6,11 @@ public class PrivateAddress implements Serializable {
     private String hostname;
     private Integer port;
 
+    public PrivateAddress() {
+        this.hostname = "";
+        this.port = 0;
+    }
+
     public PrivateAddress(String address) {
         hostname = address.substring(0, address.indexOf(":"));
         hostname = address.substring(address.indexOf(":") + 1);

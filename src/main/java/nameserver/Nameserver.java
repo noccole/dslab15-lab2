@@ -14,6 +14,7 @@ import util.Config;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.rmi.AlreadyBoundException;
+import java.rmi.NoSuchObjectException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -137,8 +138,20 @@ public class Nameserver implements INameserverCli, Runnable {
 	@Command
 	@Override
 	public String exit() {
-		// TODO Auto-generated method stub
-		return null;
+		shell.close();
+
+		try {
+			if (!UnicastRemoteObject.unexportObject(nameserverRMI, false)) {
+				// force unexport
+				if (!UnicastRemoteObject.unexportObject(nameserverRMI, true)) {
+					LOGGER.info("unexporting remote object failed");
+				}
+            }
+		} catch (NoSuchObjectException e) {
+			LOGGER.log(Level.WARNING, "unexoporting remote object failed", e);
+		}
+
+		return "Shut down completed! Bye ..";
 	}
 
 	/**

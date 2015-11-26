@@ -1,7 +1,7 @@
 package entities;
 
 /**
- * Created by phili on 11/26/15.
+ * encapsulates operations on the domain string
  */
 public class Domain {
     private String domain;

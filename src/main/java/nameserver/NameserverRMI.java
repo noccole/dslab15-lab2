@@ -5,6 +5,7 @@ import entities.PrivateAddress;
 import nameserver.exceptions.AlreadyRegisteredException;
 import nameserver.exceptions.InvalidDomainException;
 import repositories.INameserverRepository;
+import repositories.IPrivateAddressRepository;
 
 import java.rmi.RemoteException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,7 +16,7 @@ import java.util.logging.Logger;
  */
 public class NameserverRMI implements INameserver {
     private static final Logger LOGGER = Logger.getAnonymousLogger();
-    private ConcurrentHashMap<String, PrivateAddress> privateAddresses = new ConcurrentHashMap<>();
+    private IPrivateAddressRepository privateAddressRepository;
     private INameserverRepository nameserverRepository;
 
     public NameserverRMI(INameserverRepository nameserverRepository) {
@@ -51,7 +52,16 @@ public class NameserverRMI implements INameserver {
 
     @Override
     public void registerUser(String username, String address) throws RemoteException, AlreadyRegisteredException, InvalidDomainException {
-
+        Domain domain = new Domain(username);
+        if (domain.hasSubdomain()) {
+            if (nameserverRepository.contains(domain.root())) {
+                nameserverRepository.getNameserverForChatserver(domain.root()).registerUser(domain.subdomain().toString(), address);
+            } else {
+                throw new InvalidDomainException("nameserver for zone '" + domain.root() + "' not found");
+            }
+        } else {
+            privateAddressRepository.add(username, new PrivateAddress(address));
+        }
     }
 
     @Override
@@ -61,7 +71,7 @@ public class NameserverRMI implements INameserver {
 
     @Override
     public String lookup(String username) throws RemoteException {
-        return null;
+        return privateAddressRepository.getPrivateAddress(username).toString();
     }
 
 

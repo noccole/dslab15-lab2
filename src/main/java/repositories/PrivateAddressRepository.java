@@ -17,6 +17,11 @@ public class PrivateAddressRepository implements IPrivateAddressRepository {
     }
 
     @Override
+    public void remove(String user) {
+        privateAddresses.remove(user);
+    }
+
+    @Override
     public boolean contains(String user) {
         return privateAddresses.containsKey(user);
     }

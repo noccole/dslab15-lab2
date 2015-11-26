@@ -53,6 +53,7 @@ public class NameserverRMI implements INameserver {
 
     @Override
     public void registerUser(String username, String address) throws RemoteException, AlreadyRegisteredException, InvalidDomainException {
+        LOGGER.info("register private address of user '" + username + "'");
         Domain domain = new Domain(username);
         if (domain.hasSubdomain()) {
             if (nameserverRepository.contains(domain.root())) {
@@ -61,17 +62,41 @@ public class NameserverRMI implements INameserver {
                 throw new InvalidDomainException("nameserver for zone '" + domain.root() + "' not found");
             }
         } else {
-            privateAddressRepository.add(username, new PrivateAddress(address));
+            PrivateAddress privateAddress = new PrivateAddress(address);
+            if (privateAddressRepository.contains(username) && privateAddressRepository.getPrivateAddress(username).equals(privateAddress)) {
+                throw new AlreadyRegisteredException("private address '" + address + "' for user '" + username + "' already registered");
+            }
+            privateAddressRepository.add(username, privateAddress);
+        }
+    }
+
+    @Override
+    public void deregisterUser(String username) throws RemoteException, InvalidDomainException {
+        LOGGER.info("deregister private address of user '" + username + "'");
+        Domain domain = new Domain(username);
+        if (domain.hasSubdomain()) {
+            if (nameserverRepository.contains(domain.root())) {
+                nameserverRepository.getNameserverForChatserver(domain.root()).deregisterUser(domain.subdomain().toString());
+            } else {
+                throw new InvalidDomainException("nameserver for zone '" + domain.root() + "' not found");
+            }
+        } else {
+            privateAddressRepository.remove(username);
         }
     }
 
     @Override
     public INameserverForChatserver getNameserver(String zone) throws RemoteException {
+        LOGGER.info("return nameserver for zone '" + zone + "'");
         return nameserverRepository.getNameserverForChatserver(zone);
     }
 
     @Override
     public String lookup(String username) throws RemoteException {
+        LOGGER.info("return private address for user '" + username + "'");
+        if (!privateAddressRepository.contains(username)) {
+            return null;
+        }
         return privateAddressRepository.getPrivateAddress(username).toString();
     }
 }

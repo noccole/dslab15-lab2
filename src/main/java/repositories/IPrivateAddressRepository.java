@@ -18,6 +18,12 @@ public interface IPrivateAddressRepository {
     void add(String user, PrivateAddress privateAddress);
 
     /**
+     * removes the registered private address of the specified user
+     * @param user user
+     */
+    void remove(String user);
+
+    /**
      * @param user user
      * @return true if an private address for the specified user exists
      */

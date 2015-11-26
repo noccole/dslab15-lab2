@@ -17,13 +17,21 @@ public interface INameserverForChatserver extends Remote {
 	 * registers a private address for the specified user in an recursive manner
 	 * @param username username of the user
 	 * @param address the private address
-	 * @throws RemoteException
-	 * @throws AlreadyRegisteredException
-	 * @throws InvalidDomainException
+	 * @throws RemoteException if an error while accessing the remote object occurred
+	 * @throws AlreadyRegisteredException if the same address was already registered for this user
+	 * @throws InvalidDomainException if a nameserver could not be found
      */
 	void registerUser(String username, String address)
 			throws RemoteException, AlreadyRegisteredException,
 			InvalidDomainException;
+
+	/**
+	 * removes the registered privateaddress
+	 * @param username username of the user
+	 * @throws RemoteException if an error while accessing the remote object occurred
+	 * @throws InvalidDomainException if a nameserver could not be found
+	 */
+	void deregisterUser(String username) throws RemoteException, InvalidDomainException;
 
 	/**
 	 * @param zone zone

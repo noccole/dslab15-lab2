@@ -25,61 +25,50 @@ public class NameserverRMI implements INameserver {
     }
 
     @Override
-    public void registerNameserver(String domain_string, INameserver nameserver, INameserverForChatserver nameserverForChatserver) throws RemoteException, AlreadyRegisteredException, InvalidDomainException {
-        Domain domain = new Domain(domain_string);
+    public void registerNameserver(String domainString, INameserver nameserver, INameserverForChatserver nameserverForChatserver) throws RemoteException, AlreadyRegisteredException, InvalidDomainException {
+        LOGGER.info("register nameserver for domain '" + domainString + "'");
+
+        Domain domain = new Domain(domainString);
         if (!domain.isValid()) {
             throw new InvalidDomainException("domain '" + domain + "' not valid");
         }
 
         if (domain.hasSubdomain()) {
-            if (nameserverRepository.contains(domain.root())) {
-                // send register request to child server
-                nameserverRepository.getNameserver(domain.root()).registerNameserver(domain.subdomain().toString(), nameserver, nameserverForChatserver);
-            } else {
-                // no suitable child server registered -> abort
-                throw new InvalidDomainException("no nameserver for zone '" + domain.root() + "' registered ");
-            }
+            // get responsible nameserver
+            getNameserverFromRepository(domain.root()).registerNameserver(domain.subdomain().toString(), nameserver, nameserverForChatserver);
+        } else if (nameserverRepository.contains(domain.toString())) {
+            // name server already registered
+            throw new AlreadyRegisteredException("domain '" + domain + "' already registered");
         } else {
-            if (nameserverRepository.contains(domain.toString())) {
-                // name server already registered
-                throw new AlreadyRegisteredException("domain '" + domain + "' already registered");
-            }
-
             // register name server as child of this server
             nameserverRepository.add(domain.toString(), nameserver, nameserverForChatserver);
-            LOGGER.info("registered domain '" + domain.toString() + "'");
         }
     }
 
     @Override
     public void registerUser(String username, String address) throws RemoteException, AlreadyRegisteredException, InvalidDomainException {
         LOGGER.info("register private address of user '" + username + "'");
+
         Domain domain = new Domain(username);
         if (domain.hasSubdomain()) {
-            if (nameserverRepository.contains(domain.root())) {
-                nameserverRepository.getNameserverForChatserver(domain.root()).registerUser(domain.subdomain().toString(), address);
-            } else {
-                throw new InvalidDomainException("nameserver for zone '" + domain.root() + "' not found");
-            }
+            // get responsible nameserver
+            getNameserverFromRepository(domain.root()).registerUser(domain.subdomain().toString(), address);
+        } else if (privateAddressRepository.contains(username)) {
+            // user has already registered a private address
+            throw new AlreadyRegisteredException("private address '" + address + "' for user '" + username + "' already registered");
         } else {
-            PrivateAddress privateAddress = new PrivateAddress(address);
-            if (privateAddressRepository.contains(username) && privateAddressRepository.getPrivateAddress(username).equals(privateAddress)) {
-                throw new AlreadyRegisteredException("private address '" + address + "' for user '" + username + "' already registered");
-            }
-            privateAddressRepository.add(username, privateAddress);
+            // register private address
+            privateAddressRepository.add(username, new PrivateAddress(address));
         }
     }
 
     @Override
     public void deregisterUser(String username) throws RemoteException, InvalidDomainException {
         LOGGER.info("deregister private address of user '" + username + "'");
+
         Domain domain = new Domain(username);
         if (domain.hasSubdomain()) {
-            if (nameserverRepository.contains(domain.root())) {
-                nameserverRepository.getNameserverForChatserver(domain.root()).deregisterUser(domain.subdomain().toString());
-            } else {
-                throw new InvalidDomainException("nameserver for zone '" + domain.root() + "' not found");
-            }
+            getNameserverFromRepository(domain.root()).deregisterUser(domain.subdomain().toString());
         } else {
             privateAddressRepository.remove(username);
         }
@@ -88,15 +77,31 @@ public class NameserverRMI implements INameserver {
     @Override
     public INameserverForChatserver getNameserver(String zone) throws RemoteException {
         LOGGER.info("return nameserver for zone '" + zone + "'");
+
+        // return nameserver if zone is managed by this nameserver, otherwise return null
         return nameserverRepository.getNameserverForChatserver(zone);
     }
 
     @Override
     public String lookup(String username) throws RemoteException {
         LOGGER.info("return private address for user '" + username + "'");
+
         if (!privateAddressRepository.contains(username)) {
             return null;
         }
         return privateAddressRepository.getPrivateAddress(username).toString();
+    }
+
+    /**
+     * @param zone zone
+     * @return returns the nameserver for the specified zone from the repository
+     * @throws InvalidDomainException if the repository contains no nameserver for the specified zone
+     */
+    private INameserver getNameserverFromRepository(String zone) throws InvalidDomainException {
+        if (nameserverRepository.contains(zone)) {
+            return nameserverRepository.getNameserver(zone);
+        } else {
+            throw new InvalidDomainException("nameserver for zone '" + zone + "' not found");
+        }
     }
 }

@@ -332,10 +332,7 @@ public class Client implements IClientCli, Runnable {
 
 		try {
 			final LookupResponse response = tcpRequester.syncRequest(request, LookupResponse.class);
-
-			String result = "";
-			result += String.valueOf(response.getPrivateAddress()) + "\n";
-			return result;
+			return String.valueOf(response.getPrivateAddress()) + "\n";
 		} catch (Exception e) {
 			return e.getMessage();
 		}

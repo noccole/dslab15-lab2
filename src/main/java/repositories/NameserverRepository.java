@@ -10,58 +10,36 @@ import java.util.concurrent.ConcurrentHashMap;
  * repository for the nameservers
  */
 public class NameserverRepository implements INameserverRepository {
-    private ConcurrentHashMap<String, NameserverRMIInterfaces> servers = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, INameserver> nameservers = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, INameserverForChatserver> nameserversForChatserver = new ConcurrentHashMap<>();
 
     @Override
-    public boolean add(String zone, INameserver nameserver, INameserverForChatserver nameserverForChatserver) {
-        if (contains(zone)) {
+    public synchronized boolean add(String zone, INameserver nameserver, INameserverForChatserver nameserverForChatserver) {
+        if (nameservers.containsKey(zone)) {
             return false;
         }
-        servers.put(zone, new NameserverRMIInterfaces(nameserver, nameserverForChatserver));
+        nameservers.put(zone, nameserver);
+        nameserversForChatserver.put(zone, nameserverForChatserver);
         return true;
     }
 
     @Override
     public boolean contains(String zone) {
-        return servers.containsKey(zone);
+        return nameservers.containsKey(zone);
     }
 
     @Override
     public INameserver getNameserver(String zone) {
-        if (!contains(zone)) {
-            return null;
-        }
-        return servers.get(zone).getNameserver();
+        return nameservers.get(zone);
     }
 
     @Override
     public INameserverForChatserver getNameserverForChatserver(String zone) {
-        if (!contains(zone)) {
-            return null;
-        }
-        return servers.get(zone).getNameserverForChatserver();
+        return nameserversForChatserver.get(zone);
     }
 
     @Override
     public Collection<String> registeredZones() {
-        return servers.keySet();
-    }
-
-    public class NameserverRMIInterfaces {
-        private INameserver nameserver;
-        private INameserverForChatserver nameserverForChatserver;
-
-        public NameserverRMIInterfaces(INameserver nameserver, INameserverForChatserver nameserverForChatserver) {
-            this.nameserver = nameserver;
-            this.nameserverForChatserver = nameserverForChatserver;
-        }
-
-        public INameserver getNameserver() {
-            return nameserver;
-        }
-
-        public INameserverForChatserver getNameserverForChatserver() {
-            return nameserverForChatserver;
-        }
+        return nameservers.keySet();
     }
 }

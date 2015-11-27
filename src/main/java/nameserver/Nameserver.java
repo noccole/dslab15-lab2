@@ -93,9 +93,9 @@ public class Nameserver implements INameserverCli, Runnable {
 			Registry registry = LocateRegistry.getRegistry(config.getString("registry.host"), config.getInt("registry.port"));
 			INameserver root = (INameserver) registry.lookup(config.getString("root_id"));
 			INameserver nameserverRMIExported = (INameserver) UnicastRemoteObject.exportObject(nameserverRMI, 0);
-			root.registerNameserver(config.getString("domain"),nameserverRMIExported, nameserverRMIExported);
+			root.registerNameserver(config.getString("domain"), nameserverRMIExported, nameserverRMIExported);
 		} catch (RemoteException | NotBoundException | InvalidDomainException | AlreadyRegisteredException e) {
-			LOGGER.log(Level.WARNING, "register as non-root nameserver failed", e);
+			LOGGER.log(Level.WARNING, "register as non-root nameserver for domain '" + config.getString("domain") + "'failed", e);
 			return false;
 		}
 
@@ -151,7 +151,7 @@ public class Nameserver implements INameserverCli, Runnable {
 				}
             }
 		} catch (NoSuchObjectException e) {
-			LOGGER.log(Level.WARNING, "unexoporting remote object failed", e);
+			LOGGER.log(Level.WARNING, "unexporting remote object failed", e);
 		}
 
 		return "Shut down completed! Bye ..";

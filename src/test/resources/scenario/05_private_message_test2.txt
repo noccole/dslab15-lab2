@@ -70,7 +70,7 @@ bob: !msg alice.vienna.at this is the third private msg
 
 #test register another address
 alice: !register localhost:55556
->					verify("success")
+>					verify("already registered")
 
 #test sending private msg
 bob: !msg alice.vienna.at this is the fourth private msg
@@ -89,7 +89,7 @@ alice:	!login alice.vienna.at 12345
 
 #test sending private msg
 bob: !msg invalid.user this message should not be received
->					verify("user 'invalid.deer' not found")
+>					verify("user 'invalid.user' not found")
 
 bob: !logout
 >					verify("success")

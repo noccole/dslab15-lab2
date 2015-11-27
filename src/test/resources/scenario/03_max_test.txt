@@ -1,8 +1,13 @@
 # Test written by Max Landauer - thanks for sharing!
 
+*   Nameserver  ns-root
+*   Nameserver  ns-at
+*   Nameserver  ns-de
+*   Nameserver  ns-vienna-at
 *    Chatserver    chatserver
 *    Client        alice.vienna.at
 *    Client        bill.de
+
 
 alice.vienna.at:    !login alice.vienna.at 12345
 >                   verify("success")

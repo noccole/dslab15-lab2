@@ -1,9 +1,16 @@
 package service;
 
+import entities.Domain;
+import entities.PrivateAddress;
 import entities.User;
+import nameserver.INameserver;
+import nameserver.INameserverForChatserver;
+import nameserver.exceptions.AlreadyRegisteredException;
+import nameserver.exceptions.InvalidDomainException;
 import repositories.RepositoryException;
 import repositories.UserRepository;
 
+import java.rmi.RemoteException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
@@ -19,6 +26,8 @@ public class UserService {
 
     private final ConcurrentHashMap<String, User> usersCache = new ConcurrentHashMap<>();
 
+    private INameserver nameserver;
+
     public UserService(UserRepository userRepository) {
         try {
             final Collection<User> users = userRepository.findAll();
@@ -30,13 +39,17 @@ public class UserService {
         }
     }
 
+    public void setRootNameserver(INameserver nameserver) {
+        this.nameserver = nameserver;
+    }
+
     /**
      * Login the User \a user if the password matches and the user is offline atm.
      *
      * User presence will be changed to Presence.Available
      *
-     * @param user
-     * @param password
+     * @param user user
+     * @param password password
      * @return True if the user was successfully logged in
      */
     public boolean login(final User user, String password) {
@@ -56,13 +69,19 @@ public class UserService {
      *
      * User presence will be changed to Presence.Offline and all registered private addresses will be removed.
      *
-     * @param user
+     * @param user user
      */
     public void logout(final User user) {
         synchronized (usersCache) {
             if (user.getPresence() != User.Presence.Offline) {
-                user.clearPrivateAddresses();
                 user.setPresence(User.Presence.Offline);
+                try {
+                    if (nameserver != null) {
+                        nameserver.deregisterUser(user.getUsername());
+                    }
+                } catch (RemoteException | InvalidDomainException e) {
+                    LOGGER.warning("deregister private address of user '" + user + "' failed");
+                }
                 emitUserPresenceChanged(user);
             }
         }
@@ -80,11 +99,68 @@ public class UserService {
     /**
      * Find the user with the given username
      *
-     * @param username
+     * @param username username
      * @return User instance if found, null if not found.
      */
     public User find(String username) {
         return usersCache.get(username);
+    }
+
+    /**
+     * registers the private address of the specified user;
+     * overrides previously registered addresses
+     * @param user user
+     * @param privateAddress private address to register
+     * @throws ServiceException if the new address was already registered for this user
+     *                          if an connection error to the name server occurred
+     *                          if the username is invalid
+     */
+    public void registerPrivateAddress(User user, PrivateAddress privateAddress) throws ServiceException {
+        LOGGER.info("register private address of user '" + user.getUsername() + "'");
+        if (nameserver == null) {
+            throw new ServiceException("root nameserver not set");
+        }
+
+        try {
+            nameserver.registerUser(user.getUsername(), privateAddress.toString());
+        } catch (RemoteException e) {
+            throw new ServiceException("error connecting to name server", e);
+        } catch (AlreadyRegisteredException | InvalidDomainException e) {
+            throw new ServiceException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * @param user user
+     * @return returns the previously registered private address for the specified user
+     * @throws ServiceException if an connection error to the name server occurred
+     */
+    public PrivateAddress lookupPrivateAddress(User user) throws ServiceException {
+        LOGGER.info("lookup private address of user '" + user.getUsername() + "'");
+        if (nameserver == null) {
+            throw new ServiceException("root nameserver not set");
+        }
+
+        Domain domain = new Domain(user.getUsername());
+        INameserverForChatserver currentServer = nameserver;
+        try {
+            while(currentServer != null && domain.hasSubdomain()) {
+                currentServer = currentServer.getNameserver(domain.root());
+                domain = domain.subdomain();
+            }
+            // name server not reachable
+            if (currentServer == null) {
+                throw new ServiceException("nameserver not reachable");
+            }
+            final String privateAddress = currentServer.lookup(domain.toString());
+            // private address not registered
+            if (privateAddress == null) {
+                throw new ServiceException("user '" + user.getUsername() + "' not reachable");
+            }
+            return new PrivateAddress(privateAddress);
+        } catch (RemoteException e) {
+            throw new ServiceException("error connecting to name server", e);
+        }
     }
 
     /**

@@ -12,7 +12,6 @@ public class User {
     private final String username;
     private String password;
     private Presence presence;
-    private Collection<PrivateAddress> privateAddresses = new ArrayList<>();
 
     public User(String username) {
         this.username = username;
@@ -37,17 +36,5 @@ public class User {
 
     public void setPresence(Presence presence) {
         this.presence = presence;
-    }
-
-    public Collection<PrivateAddress> getPrivateAddresses() {
-        return privateAddresses;
-    }
-
-    public void addPrivateAddress(PrivateAddress address) {
-        privateAddresses.add(address);
-    }
-
-    public void clearPrivateAddresses() {
-        privateAddresses.clear();
     }
 }

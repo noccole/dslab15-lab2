@@ -279,53 +279,49 @@ public class Client implements IClientCli, Runnable {
 		request.setMessage(message);
 
 		// lookup user address
-		final Collection<PrivateAddress> privateAddresses;
+		final PrivateAddress privateAddress;
 		{
 			final LookupRequest lookupRequest = new LookupRequest();
 			lookupRequest.setUsername(username);
 
 			try {
 				final LookupResponse response = tcpRequester.syncRequest(lookupRequest, LookupResponse.class);
-				privateAddresses = response.getPrivateAddresses();
+				privateAddress = response.getPrivateAddress();
 			} catch (Exception e) {
 				return e.getMessage();
 			}
 		}
 
-		for (PrivateAddress privateAddress : privateAddresses) {
-			final Socket socket;
-			try {
-				socket = new Socket(privateAddress.getHostname(), privateAddress.getPort());
-			} catch (IOException e) {
-				LOGGER.warning("could not open private message socket: " + e);
-				continue; // try next address
-			}
-
-			final Channel channel;
-			try {
-				channel = privateMessageChannelFactory.createChannel(socket);
-			} catch (ChannelException e) {
-				LOGGER.warning("could not create private message channel: " + e);
-				try {
-					socket.close();
-				} catch (IOException e1) {
-					LOGGER.warning("could not close private message socket: " + e1);
-				}
-				continue; // try next address
-			}
-
-			final ClientHandler requester = new ClientHandler(channel, executorService, handlerManager);
-			try {
-				final SendPrivateMessageResponse response = requester.syncRequest(request, SendPrivateMessageResponse.class);
-				requester.stop();
-				return username + " replied with !ack."; // success
-			} catch (Exception e) {
-				requester.stop();
-				return e.getMessage(); // error, abort
-			}
+		final Socket socket;
+		try {
+			socket = new Socket(privateAddress.getHostname(), privateAddress.getPort());
+		} catch (IOException e) {
+			LOGGER.warning("could not open private message socket: " + e);
+			return "Wrong username or user not reachable.";
 		}
 
-		return "Wrong username or user not reachable.";
+		final Channel channel;
+		try {
+			channel = privateMessageChannelFactory.createChannel(socket);
+		} catch (ChannelException e) {
+			LOGGER.warning("could not create private message channel: " + e);
+			try {
+				socket.close();
+			} catch (IOException e1) {
+				LOGGER.warning("could not close private message socket: " + e1);
+			}
+			return "Wrong username or user not reachable.";
+		}
+
+		final ClientHandler requester = new ClientHandler(channel, executorService, handlerManager);
+		try {
+			final SendPrivateMessageResponse response = requester.syncRequest(request, SendPrivateMessageResponse.class);
+			requester.stop();
+			return username + " replied with !ack."; // success
+		} catch (Exception e) {
+			requester.stop();
+			return e.getMessage(); // error, abort
+		}
 	}
 
 	@Override
@@ -336,12 +332,7 @@ public class Client implements IClientCli, Runnable {
 
 		try {
 			final LookupResponse response = tcpRequester.syncRequest(request, LookupResponse.class);
-
-			String result = "";
-			for (PrivateAddress privateAddress : response.getPrivateAddresses()) {
-				result += String.valueOf(privateAddress) + "\n";
-			}
-			return result;
+			return String.valueOf(response.getPrivateAddress()) + "\n";
 		} catch (Exception e) {
 			return e.getMessage();
 		}

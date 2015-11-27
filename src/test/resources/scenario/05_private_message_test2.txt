@@ -1,12 +1,18 @@
+*   Nameserver  ns-root
+*   Nameserver  ns-at
+*   Nameserver  ns-de
+*   Nameserver  ns-vienna-at
 *	Chatserver	chatserver
 *   Client      john
 *	Client		alice
 *   Client      bill
 *   Client      bob
 
+
+
 # add these lines to user.properties
-# bob.us.password = 123
-# john.doe.password = 1234
+# bob.de.password = 123
+# john.at.password = 1234
 
 # login users alice and bill
 alice:	!login alice.vienna.at 12345
@@ -15,9 +21,9 @@ bill:	!login bill.de 23456
 >					verify("success")
 
 # invalid login of john and bob
-bob:	!login bob.us invalid
+bob:	!login bob.de invalid
 >					verify("wrong")
-john:	!login john.doe invalid
+john:	!login john.at invalid
 >					verify("wrong")
 
 # check alphabetical order of users and user status
@@ -41,9 +47,9 @@ bob: !msg alice.vienna.at this is a private msg
 >					verify("not allowed")
 
 # valid login of john and bob
-bob:	!login bob.us 123
+bob:	!login bob.de 123
 >					verify("success")
-john:	!login john.doe 1234
+john:	!login john.at 1234
 >					verify("success")
 
 # check alphabetical order of users and user status
@@ -64,7 +70,7 @@ bob: !msg alice.vienna.at this is the third private msg
 
 #test register another address
 alice: !register localhost:55556
->					verify("success")
+>					verify("already registered")
 
 #test sending private msg
 bob: !msg alice.vienna.at this is the fourth private msg

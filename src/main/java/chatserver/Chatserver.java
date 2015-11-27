@@ -7,6 +7,8 @@ import channels.UdpChannel;
 import cli.Command;
 import cli.Shell;
 import entities.User;
+import nameserver.INameserver;
+import nameserver.NameserverRMI;
 import repositories.ConfigUserRepository;
 import repositories.UserRepository;
 import service.UserService;
@@ -19,10 +21,15 @@ import java.io.PrintStream;
 import java.net.DatagramSocket;
 import java.net.ServerSocket;
 import java.net.SocketException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
@@ -40,6 +47,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 
 	private SocketConnectionListener socketListener;
 
+	private INameserver nameserver;
 	/**
 	 * @param componentName
 	 *            the name of the component - represented in the prompt
@@ -108,12 +116,26 @@ public class Chatserver implements IChatserverCli, Runnable {
 		return true;
 	}
 
+	private boolean connectToRootNameserver() {
+		try {
+			Registry registry = LocateRegistry.getRegistry(config.getString("registry.host"), config.getInt("registry.port"));
+			nameserver = (INameserver) registry.lookup(config.getString("root_id"));
+			userService.setRootNameserver(nameserver);
+		} catch (RemoteException | NotBoundException e) {
+			LOGGER.log(Level.WARNING, "connecting to root nameserver failed", e);
+		}
+		return true;
+	}
+
 	@Override
 	public void run() {
 		if (!startListHandler()) {
 			exit();
 		}
 		if (!startServerSocketListener()) {
+			exit();
+		}
+		if (!connectToRootNameserver()) {
 			exit();
 		}
 

@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * repository for the private address of users
  */
 public class PrivateAddressRepository implements IPrivateAddressRepository {
-    private ConcurrentHashMap<String, PrivateAddress> privateAddresses = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, PrivateAddress> privateAddresses = new ConcurrentHashMap<>();
 
     @Override
     public void add(String user, PrivateAddress privateAddress) {

@@ -7,7 +7,7 @@ package entities;
  * e.g.: berlin.de
  */
 public class Domain {
-    private String domain;
+    private final String domain;
 
     /**
      * creates a new domain object on the specified domain

@@ -159,7 +159,7 @@ class ClientHandler extends HandlerBase {
             final User requestedUser = userService.find(request.getUsername());
 
             if (requestedUser != null) {
-                PrivateAddress privateAddress;
+                final PrivateAddress privateAddress;
                 try {
                     privateAddress = userService.lookupPrivateAddress(requestedUser);
                 } catch (ServiceException e) {

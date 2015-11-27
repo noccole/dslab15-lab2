@@ -16,8 +16,8 @@ import java.util.logging.Logger;
  */
 public class NameserverRMI implements INameserver {
     private static final Logger LOGGER = Logger.getAnonymousLogger();
-    private IPrivateAddressRepository privateAddressRepository;
-    private INameserverRepository nameserverRepository;
+    private final IPrivateAddressRepository privateAddressRepository;
+    private final INameserverRepository nameserverRepository;
 
     public NameserverRMI(INameserverRepository nameserverRepository, IPrivateAddressRepository privateAddressRepository) {
         this.nameserverRepository = nameserverRepository;
@@ -28,7 +28,7 @@ public class NameserverRMI implements INameserver {
     public void registerNameserver(String domainString, INameserver nameserver, INameserverForChatserver nameserverForChatserver) throws RemoteException, AlreadyRegisteredException, InvalidDomainException {
         LOGGER.info("register nameserver for domain '" + domainString + "'");
 
-        Domain domain = new Domain(domainString);
+        final Domain domain = new Domain(domainString);
         if (!domain.isValid()) {
             throw new InvalidDomainException("domain '" + domain + "' not valid");
         }
@@ -49,7 +49,7 @@ public class NameserverRMI implements INameserver {
     public void registerUser(String username, String address) throws RemoteException, AlreadyRegisteredException, InvalidDomainException {
         LOGGER.info("register private address of user '" + username + "'");
 
-        Domain domain = new Domain(username);
+        final Domain domain = new Domain(username);
         if (domain.hasSubdomain()) {
             // get responsible nameserver
             getNameserverFromRepository(domain.root()).registerUser(domain.subdomain().toString(), address);
@@ -66,7 +66,7 @@ public class NameserverRMI implements INameserver {
     public void deregisterUser(String username) throws RemoteException, InvalidDomainException {
         LOGGER.info("deregister private address of user '" + username + "'");
 
-        Domain domain = new Domain(username);
+        final Domain domain = new Domain(username);
         if (domain.hasSubdomain()) {
             getNameserverFromRepository(domain.root()).deregisterUser(domain.subdomain().toString());
         } else {

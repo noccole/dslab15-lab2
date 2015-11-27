@@ -35,14 +35,11 @@ import java.util.logging.Logger;
 public class Nameserver implements INameserverCli, Runnable {
 	private static final Logger LOGGER = Logger.getAnonymousLogger();
 
-	private String componentName;
-	private Config config;
-	private InputStream userRequestStream;
-	private PrintStream userResponseStream;
-	private Shell shell;
-	private NameserverRMI nameserverRMI;
-	private INameserverRepository nameserverRepository = new NameserverRepository();
-	private IPrivateAddressRepository privateAddressRepository = new PrivateAddressRepository();
+	private final Config config;
+	private final Shell shell;
+	private final NameserverRMI nameserverRMI;
+	private final INameserverRepository nameserverRepository = new NameserverRepository();
+	private final IPrivateAddressRepository privateAddressRepository = new PrivateAddressRepository();
 
 
 	/**
@@ -57,10 +54,7 @@ public class Nameserver implements INameserverCli, Runnable {
 	 */
 	public Nameserver(String componentName, Config config,
 			InputStream userRequestStream, PrintStream userResponseStream) {
-		this.componentName = componentName;
 		this.config = config;
-		this.userRequestStream = userRequestStream;
-		this.userResponseStream = userResponseStream;
 
 		LogManager.getLogManager().reset(); // disable logging
 
@@ -72,8 +66,8 @@ public class Nameserver implements INameserverCli, Runnable {
 
 	private boolean registerAsRoot() {
 		try {
-			Registry registry = LocateRegistry.createRegistry(config.getInt("registry.port"));
-			INameserver nameserverRMIExported = (INameserver) UnicastRemoteObject.exportObject(nameserverRMI, 0);
+			final Registry registry = LocateRegistry.createRegistry(config.getInt("registry.port"));
+			final INameserver nameserverRMIExported = (INameserver) UnicastRemoteObject.exportObject(nameserverRMI, 0);
 			registry.bind(config.getString("root_id"), nameserverRMIExported);
 		} catch (RemoteException | AlreadyBoundException e) {
 			LOGGER.log(Level.WARNING, "register as root nameserver failed", e);
@@ -90,9 +84,9 @@ public class Nameserver implements INameserverCli, Runnable {
 
 		// register as non-root nameserver
 		try {
-			Registry registry = LocateRegistry.getRegistry(config.getString("registry.host"), config.getInt("registry.port"));
-			INameserver root = (INameserver) registry.lookup(config.getString("root_id"));
-			INameserver nameserverRMIExported = (INameserver) UnicastRemoteObject.exportObject(nameserverRMI, 0);
+			final Registry registry = LocateRegistry.getRegistry(config.getString("registry.host"), config.getInt("registry.port"));
+			final INameserver root = (INameserver) registry.lookup(config.getString("root_id"));
+			final INameserver nameserverRMIExported = (INameserver) UnicastRemoteObject.exportObject(nameserverRMI, 0);
 			root.registerNameserver(config.getString("domain"), nameserverRMIExported, nameserverRMIExported);
 		} catch (RemoteException | NotBoundException | InvalidDomainException | AlreadyRegisteredException e) {
 			LOGGER.log(Level.WARNING, "register as non-root nameserver for domain '" + config.getString("domain") + "'failed", e);
@@ -114,7 +108,7 @@ public class Nameserver implements INameserverCli, Runnable {
 	@Command
 	@Override
 	public String nameservers() {
-		ArrayList<String> zones = new ArrayList<>(nameserverRepository.registeredZones());
+		final ArrayList<String> zones = new ArrayList<>(nameserverRepository.registeredZones());
 		Collections.sort(zones);
 
 		String result = "";
@@ -127,8 +121,8 @@ public class Nameserver implements INameserverCli, Runnable {
 	@Command
 	@Override
 	public String addresses() {
-		HashMap<String, PrivateAddress> privateAddresses = privateAddressRepository.getAll();
-		List<String> users = new ArrayList<>(privateAddresses.keySet());
+		final HashMap<String, PrivateAddress> privateAddresses = privateAddressRepository.getAll();
+		final List<String> users = new ArrayList<>(privateAddresses.keySet());
 		Collections.sort(users);
 
 		String result = "";

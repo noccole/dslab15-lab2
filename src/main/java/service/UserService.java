@@ -48,8 +48,8 @@ public class UserService {
      *
      * User presence will be changed to Presence.Available
      *
-     * @param user
-     * @param password
+     * @param user user
+     * @param password password
      * @return True if the user was successfully logged in
      */
     public boolean login(final User user, String password) {
@@ -69,14 +69,16 @@ public class UserService {
      *
      * User presence will be changed to Presence.Offline and all registered private addresses will be removed.
      *
-     * @param user
+     * @param user user
      */
     public void logout(final User user) {
         synchronized (usersCache) {
             if (user.getPresence() != User.Presence.Offline) {
                 user.setPresence(User.Presence.Offline);
                 try {
-                    nameserver.deregisterUser(user.getUsername());
+                    if (nameserver != null) {
+                        nameserver.deregisterUser(user.getUsername());
+                    }
                 } catch (RemoteException | InvalidDomainException e) {
                     LOGGER.warning("deregister private address of user '" + user + "' failed");
                 }
@@ -97,7 +99,7 @@ public class UserService {
     /**
      * Find the user with the given username
      *
-     * @param username
+     * @param username username
      * @return User instance if found, null if not found.
      */
     public User find(String username) {
@@ -115,6 +117,10 @@ public class UserService {
      */
     public void registerPrivateAddress(User user, PrivateAddress privateAddress) throws ServiceException {
         LOGGER.info("register private address of user '" + user.getUsername() + "'");
+        if (nameserver == null) {
+            throw new ServiceException("root nameserver not set");
+        }
+
         try {
             nameserver.registerUser(user.getUsername(), privateAddress.toString());
         } catch (RemoteException e) {
@@ -131,9 +137,12 @@ public class UserService {
      */
     public PrivateAddress lookupPrivateAddress(User user) throws ServiceException {
         LOGGER.info("lookup private address of user '" + user.getUsername() + "'");
+        if (nameserver == null) {
+            throw new ServiceException("root nameserver not set");
+        }
+
         Domain domain = new Domain(user.getUsername());
         INameserverForChatserver currentServer = nameserver;
-
         try {
             while(currentServer != null && domain.hasSubdomain()) {
                 currentServer = currentServer.getNameserver(domain.root());
@@ -143,7 +152,7 @@ public class UserService {
             if (currentServer == null) {
                 throw new ServiceException("nameserver not reachable");
             }
-            String privateAddress = currentServer.lookup(domain.toString());
+            final String privateAddress = currentServer.lookup(domain.toString());
             // private address not registered
             if (privateAddress == null) {
                 throw new ServiceException("user '" + user.getUsername() + "' not reachable");

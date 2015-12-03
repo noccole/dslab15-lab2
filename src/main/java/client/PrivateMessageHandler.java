@@ -3,7 +3,10 @@ package client;
 import channels.Channel;
 import messages.SendPrivateMessageRequest;
 import messages.SendPrivateMessageResponse;
+import messages.TamperedRequest;
+import messages.TamperedResponse;
 import shared.HandlerManager;
+import shared.TamperedResponseBuilder;
 import states.State;
 import states.StateException;
 import states.StateResult;
@@ -26,6 +29,14 @@ class PrivateMessageHandler extends ClientHandlerBase {
             emitMessageReceived(request.getSender() + ": " + request.getMessage());
 
             final SendPrivateMessageResponse response = new SendPrivateMessageResponse(request);
+
+            return new StateResult(this, response);
+        }
+
+        @Override
+        public StateResult handleTamperedRequest(TamperedRequest request) throws StateException {
+            final TamperedResponse response = TamperedResponseBuilder.getResponseFor(request);
+            emitTamperedMessageReceived(response.getReason());
 
             return new StateResult(this, response);
         }

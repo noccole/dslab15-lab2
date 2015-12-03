@@ -8,6 +8,7 @@ import java.util.Set;
 abstract class ClientHandlerBase extends HandlerBase {
     public interface EventHandler {
         void onMessageReceived(String message);
+        void onTamperedMessageReceived(String message);
         void onPresenceChanged(String presenceMessage);
         void onExit();
     }
@@ -30,6 +31,14 @@ abstract class ClientHandlerBase extends HandlerBase {
         synchronized (eventHandlers) {
             for (EventHandler eventHandler : eventHandlers) {
                 eventHandler.onMessageReceived(message);
+            }
+        }
+    }
+
+    protected void emitTamperedMessageReceived(String message) {
+        synchronized (eventHandlers) {
+            for (EventHandler eventHandler : eventHandlers) {
+                eventHandler.onTamperedMessageReceived(message);
             }
         }
     }

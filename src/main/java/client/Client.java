@@ -55,6 +55,7 @@ public class Client implements IClientCli, Runnable {
 	private Channel channel;
 
 	private final HandlerManager handlerManager;
+	private final PrivateMessageChannelFactory privateMessageChannelFactory;
 
 	private Collection<SocketConnectionListener> socketListeners = new LinkedList<>();
 
@@ -75,7 +76,9 @@ public class Client implements IClientCli, Runnable {
 
 		handlerManager = new HandlerManager();
 
-		
+		final MacFactory macFactory = new MacFactory(config.getString("hmac.key"));
+		privateMessageChannelFactory = new PrivateMessageChannelFactory(macFactory);
+
 		shell = new Shell(componentName, userRequestStream, userResponseStream);
 		shell.register(this);
 	}
@@ -105,6 +108,15 @@ public class Client implements IClientCli, Runnable {
 
 				try {
 					shell.writeLine(message);
+				} catch (IOException e) {
+					LOGGER.warning("could not write message");
+				}
+			}
+
+			@Override
+			public void onTamperedMessageReceived(String message) {
+				try {
+					shell.writeLine("[TAMPERED-MSG] " + message);
 				} catch (IOException e) {
 					LOGGER.warning("could not write message");
 				}
@@ -152,6 +164,15 @@ public class Client implements IClientCli, Runnable {
 			public void onMessageReceived(String message) {
 				try {
 					shell.writeLine(message);
+				} catch (IOException e) {
+					LOGGER.warning("could not write message");
+				}
+			}
+
+			@Override
+			public void onTamperedMessageReceived(String message) {
+				try {
+					shell.writeLine("[TAMPERED-MSG] " + message);
 				} catch (IOException e) {
 					LOGGER.warning("could not write message");
 				}
@@ -297,7 +318,7 @@ public class Client implements IClientCli, Runnable {
 
 			final Channel channel;
 			try {
-				channel = new MessageChannel(new Base64Channel(new TcpChannel(socket)));
+				channel = privateMessageChannelFactory.createChannel(socket);
 			} catch (ChannelException e) {
 				LOGGER.warning("could not create private message channel: " + e);
 				try {
@@ -315,7 +336,7 @@ public class Client implements IClientCli, Runnable {
 				return username + " replied with !ack."; // success
 			} catch (Exception e) {
 				requester.stop();
-				continue; // try next address
+				return e.getMessage(); // error, abort
 			}
 		}
 
@@ -392,6 +413,15 @@ public class Client implements IClientCli, Runnable {
 					}
 
 					@Override
+					public void onTamperedMessageReceived(String message) {
+						try {
+							shell.writeLine("[TAMPERED-PRV-MSG] " + message);
+						} catch (IOException e) {
+							LOGGER.warning("could not write message");
+						}
+					}
+
+					@Override
 					public void onPresenceChanged(String presenceMessage) {
 
 					}
@@ -404,7 +434,7 @@ public class Client implements IClientCli, Runnable {
 
 				return handler;
 			}
-		});
+		}, privateMessageChannelFactory);
 		socketListeners.add(listener);
 		executorService.submit(listener);
 

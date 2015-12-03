@@ -26,6 +26,10 @@ public abstract class State {
         throw new StateException("authconfirmation is not allowed in current state");
     }
 
+    public StateResult handleTamperedRequest(TamperedRequest request) throws StateException {
+        return new StateResult(this);
+    }
+
     public StateResult handleLoginRequest(LoginRequest request) throws StateException {
         throw new StateException("login is not allowed in current state");
     }

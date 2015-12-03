@@ -20,11 +20,13 @@ public class ArrayUtils {
         return outputArray;
     }
 
-    public static List<byte[]> split(byte[] bytes, byte delimiter) {
+    public static List<byte[]> split(byte[] bytes, byte delimiter, int maxParts) {
+        assert maxParts >= 1;
+
         final List<byte[]> byteArrays = new LinkedList<>();
 
         int offset = 0;
-        while (offset < bytes.length) {
+        for (int parts = 1; offset < bytes.length && parts < maxParts; parts++) {
             int nextDelimiterIndex = indexOf(bytes, delimiter, offset);
             if (nextDelimiterIndex < 0) {
                 nextDelimiterIndex = bytes.length;
@@ -38,6 +40,16 @@ public class ArrayUtils {
             byteArrays.add(byteArray);
 
             offset = nextDelimiterIndex + 1;
+        }
+
+        if (bytes.length > 0 && offset < bytes.length) {
+            // maxParts reached, copy rest
+            final int length = bytes.length - offset;
+            assert length >= 0;
+
+            final byte[] byteArray = new byte[length];
+            System.arraycopy(bytes, offset, byteArray, 0, length);
+            byteArrays.add(byteArray);
         }
 
         return byteArrays;

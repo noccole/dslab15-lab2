@@ -17,6 +17,10 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
     private static final byte DELIMITER = (byte)32; // space
 
     private enum MessageType {
+    	AUTHENTICATE_REQUEST("!authenticate"),
+    	AUTHENTICATE_RESPONSE("!ok"),
+    	AUTHCONFIRMATION_REQUEST(""),
+    	AUTHCONFIRMATION_RESPONSE(""),
         ERROR_RESPONSE("!error"),
         EXIT_EVENT("!exit_event"),
         MESSAGE_EVENT("!msg_event"),
@@ -54,6 +58,10 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 
     public Lab2ProtocolMarshaller() {
         try {
+        	dispatcher.put(MessageType.AUTHENTICATE_RESPONSE, getClass().getMethod("unmarshallAuthenticateResponse"));
+        	dispatcher.put(MessageType.AUTHENTICATE_REQUEST, getClass().getMethod("unmarshallAuthenticateRequest"));
+        	dispatcher.put(MessageType.AUTHCONFIRMATION_RESPONSE, getClass().getMethod("unmarshallAuthConfirmationResponse"));
+        	dispatcher.put(MessageType.AUTHCONFIRMATION_REQUEST, getClass().getMethod("unmarshallAuthConfirmationRequest"));
             dispatcher.put(MessageType.ERROR_RESPONSE, getClass().getMethod("unmarshallErrorResponse"));
             dispatcher.put(MessageType.EXIT_EVENT, getClass().getMethod("unmarshallExitEvent"));
             dispatcher.put(MessageType.MESSAGE_EVENT, getClass().getMethod("unmarshallMessageEvent"));
@@ -503,56 +511,161 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 	@Override
 	public byte[] marshallAuthConfirmationResponse(
 			AuthConfirmationResponse response) throws MarshallingException {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+            return Utf8.decodeString(String.format("%s %d",
+                    MessageType.AUTHCONFIRMATION_RESPONSE,
+                    response.getMessageId()
+            ));
+        } catch (UnsupportedEncodingException e) {
+            throw new MarshallingException("Unsupported encoding", e);
+        }
 	}
 
 	@Override
 	public AuthConfirmationResponse unmarshallAuthConfirmationResponse(
 			byte[] data) throws MarshallingException {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+            final Scanner scanner = new Scanner(Utf8.encodeByteArray(data));
+            scanner.findInLine("^(\\s+)\\w(\\d+)$");
+            final MatchResult result = scanner.match();
+
+            assert result.group(1).equals(MessageType.AUTHCONFIRMATION_RESPONSE);
+            final long messageId = Long.parseLong(result.group(2));
+
+            AuthConfirmationResponse response =  new AuthConfirmationResponse(messageId);
+            
+            return response;
+        } catch (UnsupportedEncodingException e) {
+            throw new MarshallingException("Unsupported encoding", e);
+        } catch (IllegalStateException e) {
+            throw new MarshallingException("Could not deserialize message", e);
+        }
 	}
 
 	@Override
 	public byte[] marshallAuthConfirmationRequest(
 			AuthConfirmationRequest request) throws MarshallingException {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+            return Utf8.decodeString(String.format("%s %s %s %d",
+                    MessageType.AUTHCONFIRMATION_REQUEST,
+                    request.getUsername(),
+                    new String(request.getServerChallenge()),
+                    request.getMessageId()
+            ));
+        } catch (UnsupportedEncodingException e) {
+            throw new MarshallingException("Unsupported encoding", e);
+        }
 	}
 
 	@Override
 	public AuthConfirmationRequest unmarshallAuthConfirmationRequest(byte[] data)
 			throws MarshallingException {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+            final Scanner scanner = new Scanner(Utf8.encodeByteArray(data));
+            scanner.findInLine("^(\\s+)\\w(\\d+)$");
+            final MatchResult result = scanner.match();
+
+            assert result.group(1).equals(MessageType.AUTHCONFIRMATION_REQUEST);
+            final String username = new String(result.group(2).getBytes());
+            final byte[] serverChallenge = result.group(3).getBytes();
+            final long messageId = Long.parseLong(result.group(4));
+
+            AuthConfirmationRequest request =  new AuthConfirmationRequest(messageId);
+            request.setUsername(username);
+            request.setServerChallenge(serverChallenge);
+            
+            return request;
+        } catch (UnsupportedEncodingException e) {
+            throw new MarshallingException("Unsupported encoding", e);
+        } catch (IllegalStateException e) {
+            throw new MarshallingException("Could not deserialize message", e);
+        }
 	}
 
 	@Override
 	public byte[] marshallAuthenticateResponse(AuthenticateResponse response)
 			throws MarshallingException {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+            return Utf8.decodeString(String.format("%s %s %s %s %s %d",
+                    MessageType.AUTHENTICATE_RESPONSE,
+                    new String(response.getServerChallenge()),
+                    new String(response.getClientChallenge()),
+                    new String(response.getKey()),
+                    new String(response.getIV()),
+                    response.getMessageId()
+                    
+            ));
+        } catch (UnsupportedEncodingException e) {
+            throw new MarshallingException("Unsupported encoding", e);
+        }
 	}
 
 	@Override
 	public AuthenticateResponse unmarshallAuthenticateResponse(byte[] data)
 			throws MarshallingException {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+            final Scanner scanner = new Scanner(Utf8.encodeByteArray(data));
+            scanner.findInLine("^(\\s+)\\w(\\d+)$");
+            final MatchResult result = scanner.match();
+
+            assert result.group(1).equals(MessageType.AUTHENTICATE_RESPONSE);
+            final byte[] serverChallenge = result.group(2).getBytes();
+            final byte[] clientChallenge = result.group(3).getBytes();
+            final byte[] key = result.group(4).getBytes();
+            final byte[] iv = result.group(5).getBytes();
+            final long messageId = Long.parseLong(result.group(6));
+
+            AuthenticateResponse response =  new AuthenticateResponse(messageId);
+            response.setServerChallenge(serverChallenge);
+            response.setClientChallenge(clientChallenge);
+            response.setKey(key);
+            response.setIV(iv);
+            
+            return response;
+        } catch (UnsupportedEncodingException e) {
+            throw new MarshallingException("Unsupported encoding", e);
+        } catch (IllegalStateException e) {
+            throw new MarshallingException("Could not deserialize message", e);
+        }
 	}
 
 	@Override
-	public byte[] marshallAuthenticateRequest(AuthenticateRequest response)
+	public byte[] marshallAuthenticateRequest(AuthenticateRequest request)
 			throws MarshallingException {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+            return Utf8.decodeString(String.format("%s %s %s %d",
+                    MessageType.AUTHENTICATE_REQUEST,
+                    request.getUsername(),
+                    new String(request.getClientChallenge()),
+                    request.getMessageId()
+            ));
+        } catch (UnsupportedEncodingException e) {
+            throw new MarshallingException("Unsupported encoding", e);
+        }
 	}
 
 	@Override
 	public AuthenticateRequest unmarshallAuthenticateRequest(byte[] data)
 			throws MarshallingException {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+            final Scanner scanner = new Scanner(Utf8.encodeByteArray(data));
+            scanner.findInLine("^(\\s+)\\w(\\d+)$");
+            final MatchResult result = scanner.match();
+
+            assert result.group(1).equals(MessageType.AUTHENTICATE_REQUEST);
+            final String username = new String(result.group(2).getBytes());
+            final byte[] clientChallenge = result.group(3).getBytes();
+            final long messageId = Long.parseLong(result.group(4));
+
+            AuthenticateRequest request =  new AuthenticateRequest(messageId);
+            request.setUsername(username);
+            request.setClientChallenge(clientChallenge);
+            
+            return request;
+        } catch (UnsupportedEncodingException e) {
+            throw new MarshallingException("Unsupported encoding", e);
+        } catch (IllegalStateException e) {
+            throw new MarshallingException("Could not deserialize message", e);
+        }
 	}
 }

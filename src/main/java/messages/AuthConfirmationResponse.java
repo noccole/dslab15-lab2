@@ -14,6 +14,10 @@ public class AuthConfirmationResponse extends Response {
     public AuthConfirmationResponse(AuthConfirmationRequest request) {
         super(request);
     }
+    
+    public AuthConfirmationResponse(long messageId) {
+    	super(messageId);
+    }
 
     @Override
     public String toString() {

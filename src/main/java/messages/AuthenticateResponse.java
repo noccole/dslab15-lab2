@@ -29,6 +29,10 @@ public class AuthenticateResponse extends Response {
     public AuthenticateResponse(AuthenticateRequest request) {
         super(request);
     }
+    
+    public AuthenticateResponse(long messageId) {
+    	super(messageId);
+    }
 
     public byte[] getClientChallenge() {
         return clientChallenge;

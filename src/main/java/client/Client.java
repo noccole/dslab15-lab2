@@ -482,7 +482,7 @@ public class Client implements IClientCli, Runnable {
 	@Override
 	@Command
 	public String authenticate(String username) throws IOException {
-		final AuthenticateRequest request = new AuthenticateRequest();
+		final AuthenticateRequest request = new AuthenticateRequest(-1);
 		request.setUsername(username);
 		
 		// generates a 32 byte secure random number
@@ -532,7 +532,7 @@ public class Client implements IClientCli, Runnable {
 				secureChannel.setReceiveCipherMode(aesCipher);
 				secureChannel.setSendCipherMode(aesCipher);
 				
-				final AuthConfirmationRequest confReq = new AuthConfirmationRequest();
+				final AuthConfirmationRequest confReq = new AuthConfirmationRequest(-1);
 				confReq.setUsername(username);
 				confReq.setServerChallenge(Base64.encode(serverChallenge));
 				tcpRequester.syncRequest(confReq, AuthConfirmationResponse.class);

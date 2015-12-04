@@ -10,6 +10,10 @@ public class AuthConfirmationRequest extends Request {
 	private String username;
     private byte[] serverChallenge;
     
+    public AuthConfirmationRequest(long messageId) {
+    	super(messageId);
+    }
+    
     public String getUsername() {
         return username;
     }

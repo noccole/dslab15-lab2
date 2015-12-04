@@ -9,6 +9,10 @@ import states.StateResult;
 public class AuthenticateRequest extends Request {
     private String username;
     private byte[] clientChallenge;
+    
+    public AuthenticateRequest(long messageId) {
+    	super(messageId);
+    }
 
     public String getUsername() {
         return username;

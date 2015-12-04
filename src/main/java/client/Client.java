@@ -51,7 +51,9 @@ public class Client implements IClientCli, Runnable {
 	private ClientHandler tcpRequester;
 	private ClientHandler udpRequester;
 	
-	private RSAChannel rsaChannel;
+	private SecureChannel secureChannel;
+	private AESCipher aesCipher;
+	private RSACipher rsaCipher;
 	private Channel channel;
 
 	private final HandlerManager handlerManager;
@@ -93,8 +95,8 @@ public class Client implements IClientCli, Runnable {
 		}
 
 		try {
-			rsaChannel = new RSAChannel(new Base64Channel(new TcpChannel(socket)));
-			channel = new MessageChannel(rsaChannel);
+			secureChannel = new SecureChannel(new Base64Channel(new TcpChannel(socket)));
+			channel = new MessageChannel(secureChannel);
 		} catch (ChannelException e) {
 			LOGGER.warning("could not create tcp channel");
 			return false;
@@ -503,15 +505,12 @@ public class Client implements IClientCli, Runnable {
 		byte[] clientChallenge = Base64.encode(number);
 		request.setClientChallenge(clientChallenge);
 		
-		rsaChannel.setReceiveAlgorithm("RSA/NONE/OAEPWithSHA256AndMGF1Padding");
-		rsaChannel.setSendAlgorithm("RSA/NONE/OAEPWithSHA256AndMGF1Padding");
-		rsaChannel.setReceiveAES(false);
-		rsaChannel.setSendAES(false);
+		rsaCipher = new RSACipher();
 		
 		// Get client's private key
 		try {
 			PrivateKey privateKey = Keys.readPrivatePEM(new File(config.getString("keys.dir") + "/" + username + ".pem"));
-			rsaChannel.setPrivateKey(privateKey);
+			rsaCipher.setPrivateKey(privateKey);
 		} catch(IOException e) {
 			System.err.println("Private key of user " + username + " not found! " + e.getMessage());
 		}
@@ -519,10 +518,13 @@ public class Client implements IClientCli, Runnable {
 		// Get server's public key
 		try {
 			PublicKey publicKey = Keys.readPublicPEM(new File(config.getString("chatserver.key")));
-			rsaChannel.setPublicKey(publicKey);
+			rsaCipher.setPublicKey(publicKey);
 		} catch(IOException e) {
 			System.err.println("Public key of chatserver not found! " + e.getMessage());
 		}
+		
+		secureChannel.setReceiveCipherMode(rsaCipher);
+		secureChannel.setSendCipherMode(rsaCipher);
 		
 		try {
 			final AuthenticateResponse response = tcpRequester.syncRequest(request, AuthenticateResponse.class);
@@ -535,13 +537,12 @@ public class Client implements IClientCli, Runnable {
 			if(Arrays.equals(clientChallengeResponse, number)) {
 				Key aesKey = new SecretKeySpec(key, "AES");
 				
-				rsaChannel.setReceiveAES(true);
-				rsaChannel.setSendAES(true);
-				rsaChannel.setIV(iv);
-				rsaChannel.setPrivateKey(aesKey);
-				rsaChannel.setPublicKey(aesKey);
-				rsaChannel.setReceiveAlgorithm("AES/CTR/NoPadding");
-				rsaChannel.setSendAlgorithm("AES/CTR/NoPadding");
+				aesCipher = new AESCipher();
+				aesCipher.setIV(iv);
+				aesCipher.setKey(aesKey);
+				
+				secureChannel.setReceiveCipherMode(aesCipher);
+				secureChannel.setSendCipherMode(aesCipher);
 				
 				final AuthConfirmationRequest confReq = new AuthConfirmationRequest();
 				confReq.setUsername(username);

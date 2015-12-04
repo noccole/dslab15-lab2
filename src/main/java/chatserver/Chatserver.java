@@ -101,21 +101,21 @@ public class Chatserver implements IChatserverCli, Runnable {
 		socketListener = new SocketConnectionListener(serverSocket, new HandlerFactory() {
 			@Override
 			public HandlerBase createHandler(Channel channel) {
-				RSAChannel rsaChannel = new RSAChannel(channel.getChannel());
-		        channel = new MessageChannel(rsaChannel);
+				SecureChannel secureChannel = new SecureChannel(channel.getChannel());
 		        
-		        rsaChannel.setReceiveAlgorithm("RSA/NONE/OAEPWithSHA256AndMGF1Padding");
-		        rsaChannel.setSendAlgorithm("RSA/NONE/OAEPWithSHA256AndMGF1Padding");
-		        rsaChannel.setReceiveAES(false);
-		        rsaChannel.setSendAES(false);
-				
+		        RSACipher rsaCipher = new RSACipher();
+		        
 				// Get chatserver's private key
 				try {
 					PrivateKey privateKey = Keys.readPrivatePEM(new File(config.getString("key")));
-					rsaChannel.setPrivateKey(privateKey);
+					rsaCipher.setPrivateKey(privateKey);
 				} catch(IOException e) {
 					System.err.println("Private key of chatserver not found! " + e.getMessage());
 				}
+				
+				secureChannel.setReceiveCipherMode(rsaCipher);
+				secureChannel.setSendCipherMode(rsaCipher);
+				channel = new MessageChannel(secureChannel);
 				
 				return new ClientHandler(channel, userService, eventDistributor, executorService, handlerManager, config);
 			}

@@ -17,7 +17,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 
-public class AESChannel extends ChannelDecorator<byte[]> {
+public class AESCipher implements CipherMode {
     private static final Logger LOGGER = Logger.getAnonymousLogger();
     
     private Key key;
@@ -25,9 +25,7 @@ public class AESChannel extends ChannelDecorator<byte[]> {
     
     private Channel channel;
 
-    public AESChannel(Channel channel) {
-    	super(channel);
-    	this.channel = channel;
+    public AESCipher() {
     }
     
     public void setKey(Key key) {
@@ -39,7 +37,7 @@ public class AESChannel extends ChannelDecorator<byte[]> {
     }
 
     @Override
-    public void send(Packet packet) throws ChannelException { System.out.println("Sending with AES");
+    public Packet encrypt(Packet packet) { System.out.println("Encrypting with AES");
     	Packet<byte[]> resPacket = new NetworkPacket<byte[]>();
 		try {
 			// make sure to use the right ALGORITHM for what you want to do (see text)
@@ -56,12 +54,11 @@ public class AESChannel extends ChannelDecorator<byte[]> {
 			e.printStackTrace();
 		}
 
-        channel.send(resPacket);
+        return resPacket;
     }
 
     @Override
-    public Packet receive() throws ChannelException { System.out.println("Receiving with AES");
-    	Packet<byte[]> recPacket = channel.receive();
+    public Packet decrypt(Packet packet) { System.out.println("Decrypting with AES");
     	Packet<byte[]> resPacket = new NetworkPacket<byte[]>();
 
     	try {
@@ -72,7 +69,7 @@ public class AESChannel extends ChannelDecorator<byte[]> {
 	    	// KEY is either a private, public or secret key
 	    	// IV is an init vector, needed for AES
 			cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(iv));
-	    	resPacket.pack(cipher.doFinal((byte[]) recPacket.unpack()));
+	    	resPacket.pack(cipher.doFinal((byte[]) packet.unpack()));
 		} catch (ArrayIndexOutOfBoundsException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException e) {
 			// TODO Auto-generated catch block
 			System.err.println("Problem with receiving AES");
@@ -80,9 +77,5 @@ public class AESChannel extends ChannelDecorator<byte[]> {
 		}
     	
         return resPacket;
-    }
-    
-    public Channel getChannel() {
-    	return channel.getChannel();
     }
 }

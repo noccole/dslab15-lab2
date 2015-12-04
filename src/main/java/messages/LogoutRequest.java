@@ -7,6 +7,14 @@ import states.StateException;
 import states.StateResult;
 
 public class LogoutRequest extends Request {
+    public LogoutRequest() {
+        super();
+    }
+
+    public LogoutRequest(long messageId) {
+        super(messageId);
+    }
+
     @Override
     public StateResult applyTo(State state) throws StateException {
         return state.handleLogoutRequest(this);

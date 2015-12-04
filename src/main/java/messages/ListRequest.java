@@ -7,6 +7,14 @@ import states.StateException;
 import states.StateResult;
 
 public class ListRequest extends Request {
+    public ListRequest() {
+        super();
+    }
+
+    public ListRequest(long messageId) {
+        super(messageId);
+    }
+
     @Override
     public StateResult applyTo(State state) throws StateException {
         return state.handleListRequest(this);

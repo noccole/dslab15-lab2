@@ -10,6 +10,14 @@ import states.StateResult;
 public class RegisterRequest extends Request {
     private PrivateAddress privateAddress;
 
+    public RegisterRequest() {
+        super();
+    }
+
+    public RegisterRequest(long messageId) {
+        super(messageId);
+    }
+
     public PrivateAddress getPrivateAddress() {
         return privateAddress;
     }

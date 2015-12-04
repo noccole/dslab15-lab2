@@ -10,6 +10,14 @@ public class LoginRequest extends Request {
     private String username;
     private String password;
 
+    public LoginRequest() {
+        super();
+    }
+
+    public LoginRequest(long messageId) {
+        super(messageId);
+    }
+
     public String getUsername() {
         return username;
     }

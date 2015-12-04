@@ -8,6 +8,10 @@ public class TamperedResponse extends ErrorResponse {
         super(request);
     }
 
+    public TamperedResponse(long messageId) {
+        super(messageId);
+    }
+
     @Override
     public byte[] marshall(MessageMarshaller marshaller) throws MarshallingException {
         return marshaller.marshallTamperedResponse(this);

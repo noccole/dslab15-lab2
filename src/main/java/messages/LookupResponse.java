@@ -13,6 +13,10 @@ public class LookupResponse extends Response {
         super(request);
     }
 
+    public LookupResponse(long messageId) {
+        super(messageId);
+    }
+
     public PrivateAddress getPrivateAddress() {
         return privateAddress;
     }

@@ -8,6 +8,10 @@ public class RegisterResponse extends Response {
         super(request);
     }
 
+    public RegisterResponse(long messageId) {
+        super(messageId);
+    }
+
     @Override
     public byte[] marshall(MessageMarshaller marshaller) throws MarshallingException {
         return marshaller.marshallRegisterResponse(this);

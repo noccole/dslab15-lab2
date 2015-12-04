@@ -8,6 +8,10 @@ public class LogoutResponse extends Response {
         super(request);
     }
 
+    public LogoutResponse(long messageId) {
+        super(messageId);
+    }
+
     @Override
     public byte[] marshall(MessageMarshaller marshaller) throws MarshallingException {
         return marshaller.marshallLogoutResponse(this);

@@ -11,6 +11,8 @@ public abstract class Response implements Message {
         this.messageId = request.getMessageId();
     }
 
+    public Response(long messageId) { this.messageId = messageId; }
+
     @Override
     public long getMessageId() {
         return messageId;

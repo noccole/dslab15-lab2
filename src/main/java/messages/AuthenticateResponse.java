@@ -78,7 +78,6 @@ public class AuthenticateResponse extends Response {
 	@Override
 	public byte[] marshall(MessageMarshaller marshaller)
 			throws MarshallingException {
-		// TODO Auto-generated method stub
-		return null;
+		return marshaller.marshallAuthenticateResponse(this);
 	}
 }

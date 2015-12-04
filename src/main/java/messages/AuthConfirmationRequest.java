@@ -39,7 +39,6 @@ public class AuthConfirmationRequest extends Request {
 	@Override
 	public byte[] marshall(MessageMarshaller marshaller)
 			throws MarshallingException {
-		// TODO Auto-generated method stub
-		return null;
+		return marshaller.marshallAuthConfirmationRequest(this);
 	}
 }

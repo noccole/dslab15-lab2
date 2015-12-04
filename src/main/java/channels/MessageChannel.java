@@ -1,38 +1,42 @@
 package channels;
 
+import marshalling.MarshallingException;
+import marshalling.MessageMarshaller;
 import messages.Message;
 import messages.TamperedRequest;
-import messages.UnknownRequest;
 
 import java.io.*;
 import java.security.Key;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.logging.Logger;
 
 /**
  * Sends/receives Messages via/from a byte[] channel
  */
 public class MessageChannel implements Channel<Message> {
-    private final Channel<byte[]> channel;
+    private static final Logger LOGGER = Logger.getAnonymousLogger();
 
-    public MessageChannel(Channel<byte[]> channel) {
+    private final Channel<byte[]> channel;
+    private final MessageMarshaller messageMarshaller;
+
+    public MessageChannel(MessageMarshaller messageMarshaller, Channel<byte[]> channel) {
+        this.messageMarshaller = messageMarshaller;
         this.channel = channel;
     }
 
     @Override
     public void send(Packet<Message> packet) throws ChannelException {
-        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        final byte[] data;
         try {
-            final Message message = packet.unpack();
-            ObjectOutputStream objectStream =  new ObjectOutputStream(byteStream);
-            objectStream.writeObject(message);
-        } catch (IOException e) {
-            throw new ChannelException("could not serialize message: " + packet.unpack(), e);
+            data = messageMarshaller.marshall(packet.unpack());
+        } catch (MarshallingException e) {
+            throw new ChannelException("Could not marshall message: " + packet.unpack(), e);
         }
 
         final Packet<byte[]> bytePacket = new NetworkPacket();
         bytePacket.setRemoteAddress(packet.getRemoteAddress());
-        bytePacket.pack(byteStream.toByteArray());
+        bytePacket.pack(data);
         channel.send(bytePacket);
     }
 
@@ -42,14 +46,25 @@ public class MessageChannel implements Channel<Message> {
         try {
             bytePacket = channel.receive();
         } catch (ChannelIntegrityException e) {
-            final Message message = toMessage(e.getBytes());
+            Message message;
+            try {
+                message = messageMarshaller.unmarshall(e.getBytes());
+            } catch (MarshallingException e1) {
+                LOGGER.warning("Could not unmarshall data: " + e.getBytes());
+                message = null;
+            }
 
             final Packet<Message> packet = new NetworkPacket();
             packet.pack(new TamperedRequest(message));
             return packet;
         }
 
-        final Message message = toMessage(bytePacket.unpack());
+        final Message message;
+        try {
+            message = messageMarshaller.unmarshall(bytePacket.unpack());
+        } catch (MarshallingException e) {
+            throw new ChannelException("Could not unmarshall data: " + bytePacket.unpack(), e);
+        }
 
         final Packet<Message> packet = new NetworkPacket();
         packet.setRemoteAddress(bytePacket.getRemoteAddress());

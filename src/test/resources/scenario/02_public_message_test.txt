@@ -1,3 +1,7 @@
+*   Nameserver  ns-root
+*   Nameserver  ns-at
+*   Nameserver  ns-de
+*   Nameserver  ns-vienna-at
 *	Chatserver	server
 *	Client		alice
 *	Client		bill

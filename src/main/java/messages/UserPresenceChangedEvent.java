@@ -1,6 +1,8 @@
 package messages;
 
 import entities.User;
+import marshalling.MarshallingException;
+import marshalling.MessageMarshaller;
 import states.State;
 import states.StateException;
 import states.StateResult;
@@ -28,6 +30,11 @@ public class UserPresenceChangedEvent extends Event {
     @Override
     public StateResult applyTo(State state) throws StateException {
         return state.handleUserStateChangedEvent(this);
+    }
+
+    @Override
+    public byte[] marshall(MessageMarshaller marshaller) throws MarshallingException {
+        return marshaller.marshallUserPresenceChangedEvent(this);
     }
 
     @Override

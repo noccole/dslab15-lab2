@@ -5,8 +5,10 @@ import channels.Channel;
 import channels.MessageChannel;
 import channels.RSACipher;
 import channels.SecureChannel;
+import entities.PrivateAddress;
 import entities.User;
 import messages.*;
+import service.ServiceException;
 import service.UserService;
 import shared.EventDistributor;
 import shared.HandlerBase;
@@ -262,11 +264,15 @@ class ClientHandler extends HandlerBase {
         public StateResult handleRegisterRequest(RegisterRequest request) throws StateException {
             LOGGER.info("ClientHandler::StateOnline::handleRegisterRequest with parameters: " + request);
 
-            user.addPrivateAddress(request.getPrivateAddress());
-
-            final RegisterResponse response = new RegisterResponse(request);
-
-            return new StateResult(this, response);
+            try {
+                userService.registerPrivateAddress(user, request.getPrivateAddress());
+                final RegisterResponse response = new RegisterResponse(request);
+                return new StateResult(this, response);
+            } catch (ServiceException e) {
+                final ErrorResponse response = new ErrorResponse(request);
+                response.setReason(e.getMessage());
+                return new StateResult(this, response);
+            }
         }
 
         @Override
@@ -276,9 +282,17 @@ class ClientHandler extends HandlerBase {
             final User requestedUser = userService.find(request.getUsername());
 
             if (requestedUser != null) {
-                final LookupResponse response = new LookupResponse(request);
-                response.setPrivateAddresses(requestedUser.getPrivateAddresses());
+                final PrivateAddress privateAddress;
+                try {
+                    privateAddress = userService.lookupPrivateAddress(requestedUser);
+                } catch (ServiceException e) {
+                    final ErrorResponse response = new ErrorResponse(request);
+                    response.setReason(e.getMessage());
+                    return new StateResult(this, response);
+                }
 
+                final LookupResponse response = new LookupResponse(request);
+                response.setPrivateAddress(privateAddress);
                 return new StateResult(this, response);
             } else {
                 final ErrorResponse response = new ErrorResponse(request);

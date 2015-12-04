@@ -1,5 +1,7 @@
 package messages;
 
+import marshalling.MarshallingException;
+import marshalling.MessageMarshaller;
 import states.State;
 import states.StateException;
 import states.StateResult;
@@ -33,4 +35,11 @@ public class AuthenticateRequest extends Request {
     public String toString() {
         return "authenticate";
     }
+
+	@Override
+	public byte[] marshall(MessageMarshaller marshaller)
+			throws MarshallingException {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

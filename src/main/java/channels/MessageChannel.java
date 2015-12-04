@@ -4,6 +4,7 @@ import marshalling.MarshallingException;
 import marshalling.MessageMarshaller;
 import messages.Message;
 import messages.TamperedRequest;
+import messages.UnknownRequest;
 
 import java.io.*;
 import java.security.Key;

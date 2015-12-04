@@ -6,6 +6,8 @@ import java.util.Collection;
 
 import javax.crypto.SecretKey;
 
+import marshalling.MarshallingException;
+import marshalling.MessageMarshaller;
 import messages.LoginResponse.ResponseCode;
 
 public class AuthConfirmationResponse extends Response {
@@ -17,4 +19,11 @@ public class AuthConfirmationResponse extends Response {
     public String toString() {
         return "authconfirmation result";
     }
+
+	@Override
+	public byte[] marshall(MessageMarshaller marshaller)
+			throws MarshallingException {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

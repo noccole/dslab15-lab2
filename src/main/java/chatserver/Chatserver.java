@@ -3,10 +3,14 @@ package chatserver;
 import channels.Base64Channel;
 import channels.Channel;
 import channels.ChannelException;
+import channels.MessageChannel;
+import channels.RSACipher;
+import channels.SecureChannel;
 import channels.UdpChannel;
 import cli.Command;
 import cli.Shell;
 import entities.User;
+import marshalling.SerializableMessageMarshaller;
 import nameserver.INameserver;
 import nameserver.NameserverRMI;
 import repositories.ConfigUserRepository;
@@ -48,6 +52,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 	private final UserService userService;
 	private final EventDistributor eventDistributor;
 	private final HandlerManager handlerManager;
+	private SerializableMessageMarshaller marshaller;
 
 	private SocketConnectionListener socketListener;
 
@@ -76,6 +81,8 @@ public class Chatserver implements IChatserverCli, Runnable {
 		Config userConfig = new Config("user");
 		UserRepository userRepository = new ConfigUserRepository(userConfig);
 		userService = new UserService(userRepository);
+		
+		marshaller = new SerializableMessageMarshaller();
 	}
 
 	private boolean startListHandler() {
@@ -126,7 +133,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 				
 				secureChannel.setReceiveCipherMode(rsaCipher);
 				secureChannel.setSendCipherMode(rsaCipher);
-				channel = new MessageChannel(secureChannel);
+				channel = new MessageChannel(marshaller, secureChannel);
 				
 				return new ClientHandler(channel, userService, eventDistributor, executorService, handlerManager, config);
 			}

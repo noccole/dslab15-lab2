@@ -7,6 +7,7 @@ import channels.RSACipher;
 import channels.SecureChannel;
 import entities.PrivateAddress;
 import entities.User;
+import marshalling.SerializableMessageMarshaller;
 import messages.*;
 import service.ServiceException;
 import service.UserService;
@@ -48,6 +49,7 @@ class ClientHandler extends HandlerBase {
     private AESCipher aesCipher;
     private final UserService userService;
     private final EventDistributor eventDistributor;
+    private SerializableMessageMarshaller marshaller;
     
     private Config config;
     
@@ -60,8 +62,8 @@ class ClientHandler extends HandlerBase {
         this.userService = userService;
         this.eventDistributor = eventDistributor;
         this.config = config;
-        
         this.rsaCipher = new RSACipher();
+        this.marshaller = new SerializableMessageMarshaller();
 		
 		// Get chatserver's private key
 		try {
@@ -73,7 +75,7 @@ class ClientHandler extends HandlerBase {
 		
 		secureChannel.setReceiveCipherMode(this.rsaCipher);
 		secureChannel.setSendCipherMode(this.rsaCipher);
-		this.channel = new MessageChannel(this.secureChannel);
+		this.channel = new MessageChannel(marshaller, this.secureChannel);
         
         serverChallenges = new HashMap<User, byte[]>();
         keys = new HashMap<User, Key>();

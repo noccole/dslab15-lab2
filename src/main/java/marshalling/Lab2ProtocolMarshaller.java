@@ -499,4 +499,60 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
     public UserPresenceChangedEvent unmarshallUserPresenceChangedEvent(byte[] data) throws MarshallingException {
         return null;
     }
+
+	@Override
+	public byte[] marshallAuthConfirmationResponse(
+			AuthConfirmationResponse response) throws MarshallingException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public AuthConfirmationResponse unmarshallAuthConfirmationResponse(
+			byte[] data) throws MarshallingException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public byte[] marshallAuthConfirmationRequest(
+			AuthConfirmationRequest request) throws MarshallingException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public AuthConfirmationRequest unmarshallAuthConfirmationRequest(byte[] data)
+			throws MarshallingException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public byte[] marshallAuthenticateResponse(AuthenticateResponse response)
+			throws MarshallingException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public AuthenticateResponse unmarshallAuthenticateResponse(byte[] data)
+			throws MarshallingException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public byte[] marshallAuthenticateRequest(AuthenticateRequest response)
+			throws MarshallingException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public AuthenticateRequest unmarshallAuthenticateRequest(byte[] data)
+			throws MarshallingException {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

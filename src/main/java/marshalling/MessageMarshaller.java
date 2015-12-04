@@ -5,6 +5,18 @@ import messages.*;
 public interface MessageMarshaller {
     byte[] marshall(Message message) throws MarshallingException;
     Message unmarshall(byte[] data) throws MarshallingException;
+    
+    byte[] marshallAuthConfirmationResponse(AuthConfirmationResponse response) throws MarshallingException;
+    AuthConfirmationResponse unmarshallAuthConfirmationResponse(byte[] data) throws MarshallingException;
+    
+    byte[] marshallAuthConfirmationRequest(AuthConfirmationRequest request) throws MarshallingException;
+    AuthConfirmationRequest unmarshallAuthConfirmationRequest(byte[] data) throws MarshallingException;
+    
+    byte[] marshallAuthenticateResponse(AuthenticateResponse response) throws MarshallingException;
+    AuthenticateResponse unmarshallAuthenticateResponse(byte[] data) throws MarshallingException;
+    
+    byte[] marshallAuthenticateRequest(AuthenticateRequest response) throws MarshallingException;
+    AuthenticateRequest unmarshallAuthenticateRequest(byte[] data) throws MarshallingException;
 
     byte[] marshallErrorResponse(ErrorResponse response) throws MarshallingException;
     ErrorResponse unmarshallErrorResponse(byte[] data) throws MarshallingException;

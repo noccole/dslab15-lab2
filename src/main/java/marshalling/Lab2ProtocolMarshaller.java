@@ -58,31 +58,31 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 
     public Lab2ProtocolMarshaller() {
         try {
-        	dispatcher.put(MessageType.AUTHENTICATE_RESPONSE, getClass().getMethod("unmarshallAuthenticateResponse"));
-        	dispatcher.put(MessageType.AUTHENTICATE_REQUEST, getClass().getMethod("unmarshallAuthenticateRequest"));
-        	dispatcher.put(MessageType.AUTHCONFIRMATION_RESPONSE, getClass().getMethod("unmarshallAuthConfirmationResponse"));
-        	dispatcher.put(MessageType.AUTHCONFIRMATION_REQUEST, getClass().getMethod("unmarshallAuthConfirmationRequest"));
-            dispatcher.put(MessageType.ERROR_RESPONSE, getClass().getMethod("unmarshallErrorResponse"));
-            dispatcher.put(MessageType.EXIT_EVENT, getClass().getMethod("unmarshallExitEvent"));
-            dispatcher.put(MessageType.MESSAGE_EVENT, getClass().getMethod("unmarshallMessageEvent"));
-            dispatcher.put(MessageType.USER_PRESENCE_CHANGED_EVENT, getClass().getMethod("unmarshallUserPresenceChangedEvent"));
-            dispatcher.put(MessageType.LIST_REQUEST, getClass().getMethod("unmarshallListRequest"));
-            dispatcher.put(MessageType.LIST_RESPONSE, getClass().getMethod("unmarshallListResponse"));
-            dispatcher.put(MessageType.LOGIN_REQUEST, getClass().getMethod("unmarshallLoginRequest"));
-            dispatcher.put(MessageType.LOGIN_RESPONSE, getClass().getMethod("unmarshallLoginResponse"));
-            dispatcher.put(MessageType.LOGOUT_REQUEST, getClass().getMethod("unmarshallLogoutRequest"));
-            dispatcher.put(MessageType.LOGOUT_RESPONSE, getClass().getMethod("unmarshallLogoutResponse"));
-            dispatcher.put(MessageType.LOOKUP_REQUEST, getClass().getMethod("unmarshallLookupRequest"));
-            dispatcher.put(MessageType.LOOKUP_RESPONSE, getClass().getMethod("unmarshallLookupResponse"));
-            dispatcher.put(MessageType.REGISTER_REQUEST, getClass().getMethod("unmarshallRegisterRequest"));
-            dispatcher.put(MessageType.REGISTER_RESPONSE, getClass().getMethod("unmarshallRegisterResponse"));
-            dispatcher.put(MessageType.SEND_MESSAGE_REQUEST, getClass().getMethod("unmarshallSendMessageRequest"));
-            dispatcher.put(MessageType.SEND_MESSAGE_RESPONSE, getClass().getMethod("unmarshallSendMessageResponse"));
-            dispatcher.put(MessageType.SEND_PRIVATE_MESSAGE_REQUEST, getClass().getMethod("unmarshallSendPrivateMessageRequest"));
-            dispatcher.put(MessageType.SEND_PRIVATE_MESSAGE_RESPONSE, getClass().getMethod("unmarshallSendPrivateMessageResponse"));
-            dispatcher.put(MessageType.UNKNOWN_REQUEST, getClass().getMethod("unmarshallUnknownRequest"));
-            dispatcher.put(MessageType.TAMPERED_REQUEST, getClass().getMethod("unmarshallTamperedRequest"));
-            dispatcher.put(MessageType.TAMPERED_RESPONSE, getClass().getMethod("unmarshallTamperedResponse"));
+        	dispatcher.put(MessageType.AUTHENTICATE_RESPONSE, getClass().getMethod("unmarshallAuthenticateResponse", byte[].class));
+        	dispatcher.put(MessageType.AUTHENTICATE_REQUEST, getClass().getMethod("unmarshallAuthenticateRequest", byte[].class));
+        	dispatcher.put(MessageType.AUTHCONFIRMATION_RESPONSE, getClass().getMethod("unmarshallAuthConfirmationResponse", byte[].class));
+        	dispatcher.put(MessageType.AUTHCONFIRMATION_REQUEST, getClass().getMethod("unmarshallAuthConfirmationRequest", byte[].class));
+            dispatcher.put(MessageType.ERROR_RESPONSE, getClass().getMethod("unmarshallErrorResponse", byte[].class));
+            dispatcher.put(MessageType.EXIT_EVENT, getClass().getMethod("unmarshallExitEvent", byte[].class));
+            dispatcher.put(MessageType.MESSAGE_EVENT, getClass().getMethod("unmarshallMessageEvent", byte[].class));
+            dispatcher.put(MessageType.USER_PRESENCE_CHANGED_EVENT, getClass().getMethod("unmarshallUserPresenceChangedEvent", byte[].class));
+            dispatcher.put(MessageType.LIST_REQUEST, getClass().getMethod("unmarshallListRequest", byte[].class));
+            dispatcher.put(MessageType.LIST_RESPONSE, getClass().getMethod("unmarshallListResponse", byte[].class));
+            dispatcher.put(MessageType.LOGIN_REQUEST, getClass().getMethod("unmarshallLoginRequest", byte[].class));
+            dispatcher.put(MessageType.LOGIN_RESPONSE, getClass().getMethod("unmarshallLoginResponse", byte[].class));
+            dispatcher.put(MessageType.LOGOUT_REQUEST, getClass().getMethod("unmarshallLogoutRequest", byte[].class));
+            dispatcher.put(MessageType.LOGOUT_RESPONSE, getClass().getMethod("unmarshallLogoutResponse", byte[].class));
+            dispatcher.put(MessageType.LOOKUP_REQUEST, getClass().getMethod("unmarshallLookupRequest", byte[].class));
+            dispatcher.put(MessageType.LOOKUP_RESPONSE, getClass().getMethod("unmarshallLookupResponse", byte[].class));
+            dispatcher.put(MessageType.REGISTER_REQUEST, getClass().getMethod("unmarshallRegisterRequest", byte[].class));
+            dispatcher.put(MessageType.REGISTER_RESPONSE, getClass().getMethod("unmarshallRegisterResponse", byte[].class));
+            dispatcher.put(MessageType.SEND_MESSAGE_REQUEST, getClass().getMethod("unmarshallSendMessageRequest", byte[].class));
+            dispatcher.put(MessageType.SEND_MESSAGE_RESPONSE, getClass().getMethod("unmarshallSendMessageResponse", byte[].class));
+            dispatcher.put(MessageType.SEND_PRIVATE_MESSAGE_REQUEST, getClass().getMethod("unmarshallSendPrivateMessageRequest", byte[].class));
+            dispatcher.put(MessageType.SEND_PRIVATE_MESSAGE_RESPONSE, getClass().getMethod("unmarshallSendPrivateMessageResponse", byte[].class));
+            dispatcher.put(MessageType.UNKNOWN_REQUEST, getClass().getMethod("unmarshallUnknownRequest", byte[].class));
+            dispatcher.put(MessageType.TAMPERED_REQUEST, getClass().getMethod("unmarshallTamperedRequest", byte[].class));
+            dispatcher.put(MessageType.TAMPERED_RESPONSE, getClass().getMethod("unmarshallTamperedResponse", byte[].class));
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
             assert false;
@@ -90,12 +90,12 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
     }
 
     @Override
-    public byte[] marshall(Message message) throws MarshallingException {
+    public byte[] marshall(Message message) throws MarshallingException { System.out.println("marsh");
         return message.marshall(this);
     }
 
     @Override
-    public Message unmarshall(byte[] data) throws MarshallingException {
+    public Message unmarshall(byte[] data) throws MarshallingException { System.out.println("unmarsh");
         if (data.length == 0) {
             final UnknownRequest unknownRequest = new UnknownRequest();
             unknownRequest.setRequestData(data);
@@ -114,11 +114,17 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
             throw new MarshallingException("Unsupported encoding", e);
         }
 
-        final Method method = dispatcher.get(messageType);
+        Method method = null;
+        for(MessageType m : dispatcher.keySet()) {
+        	if(m.toString().equals(messageType.toString())) {
+        		method = dispatcher.get(m);
+        	}
+        }
+
         if (method != null) {
             try {
-                return Message.class.cast(method.invoke(data));
-            } catch (IllegalAccessException | InvocationTargetException e) {
+                return Message.class.cast(method.invoke(getClass().newInstance(), new Object[]{data}));
+            } catch (IllegalAccessException | InvocationTargetException | IllegalArgumentException | InstantiationException e) {
                 throw new MarshallingException("Could not unmarshall the message", e);
             }
         } else {
@@ -510,7 +516,7 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 
 	@Override
 	public byte[] marshallAuthConfirmationResponse(
-			AuthConfirmationResponse response) throws MarshallingException {
+			AuthConfirmationResponse response) throws MarshallingException { System.out.println("marsh Conf Res");
 		try {
             return Utf8.decodeString(String.format("%s %d",
                     MessageType.AUTHCONFIRMATION_RESPONSE,
@@ -523,7 +529,7 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 
 	@Override
 	public AuthConfirmationResponse unmarshallAuthConfirmationResponse(
-			byte[] data) throws MarshallingException {
+			byte[] data) throws MarshallingException { System.out.println("unmarsh Conf Res");
 		try {
             final Scanner scanner = new Scanner(Utf8.encodeByteArray(data));
             scanner.findInLine("^(\\s+)\\w(\\d+)$");
@@ -544,7 +550,7 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 
 	@Override
 	public byte[] marshallAuthConfirmationRequest(
-			AuthConfirmationRequest request) throws MarshallingException {
+			AuthConfirmationRequest request) throws MarshallingException { System.out.println("marsh Conf Req");
 		try {
             return Utf8.decodeString(String.format("%s %s %s %d",
                     MessageType.AUTHCONFIRMATION_REQUEST,
@@ -559,7 +565,7 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 
 	@Override
 	public AuthConfirmationRequest unmarshallAuthConfirmationRequest(byte[] data)
-			throws MarshallingException {
+			throws MarshallingException { System.out.println("unmarsh Conf Req");
 		try {
             final Scanner scanner = new Scanner(Utf8.encodeByteArray(data));
             scanner.findInLine("^(\\s+)\\w(\\d+)$");
@@ -584,7 +590,7 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 
 	@Override
 	public byte[] marshallAuthenticateResponse(AuthenticateResponse response)
-			throws MarshallingException {
+			throws MarshallingException { System.out.println("marsh Auth Res");
 		try {
             return Utf8.decodeString(String.format("%s %s %s %s %s %d",
                     MessageType.AUTHENTICATE_RESPONSE,
@@ -602,7 +608,7 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 
 	@Override
 	public AuthenticateResponse unmarshallAuthenticateResponse(byte[] data)
-			throws MarshallingException {
+			throws MarshallingException { System.out.println("unmarsh Auth Res");
 		try {
             final Scanner scanner = new Scanner(Utf8.encodeByteArray(data));
             scanner.findInLine("^(\\s+)\\w(\\d+)$");
@@ -631,7 +637,7 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 
 	@Override
 	public byte[] marshallAuthenticateRequest(AuthenticateRequest request)
-			throws MarshallingException {
+			throws MarshallingException { System.out.println("marsh Auth Req");
 		try {
             return Utf8.decodeString(String.format("%s %s %s %d",
                     MessageType.AUTHENTICATE_REQUEST,
@@ -646,7 +652,7 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 
 	@Override
 	public AuthenticateRequest unmarshallAuthenticateRequest(byte[] data)
-			throws MarshallingException {
+			throws MarshallingException { System.out.println("unmarsh Auth Req");
 		try {
             final Scanner scanner = new Scanner(Utf8.encodeByteArray(data));
             scanner.findInLine("^(\\s+)\\w(\\d+)$");

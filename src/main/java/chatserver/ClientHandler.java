@@ -7,6 +7,7 @@ import channels.RSACipher;
 import channels.SecureChannel;
 import entities.PrivateAddress;
 import entities.User;
+import marshalling.Lab2ProtocolMarshaller;
 import marshalling.SerializableMessageMarshaller;
 import messages.*;
 import service.ServiceException;
@@ -49,7 +50,7 @@ class ClientHandler extends HandlerBase {
     private AESCipher aesCipher;
     private final UserService userService;
     private final EventDistributor eventDistributor;
-    private SerializableMessageMarshaller marshaller;
+    private Lab2ProtocolMarshaller marshaller;
     
     private Config config;
     
@@ -63,7 +64,7 @@ class ClientHandler extends HandlerBase {
         this.eventDistributor = eventDistributor;
         this.config = config;
         this.rsaCipher = new RSACipher();
-        this.marshaller = new SerializableMessageMarshaller();
+        this.marshaller = new Lab2ProtocolMarshaller();
 		
 		// Get chatserver's private key
 		try {

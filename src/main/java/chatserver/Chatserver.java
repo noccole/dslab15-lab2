@@ -10,6 +10,7 @@ import channels.UdpChannel;
 import cli.Command;
 import cli.Shell;
 import entities.User;
+import marshalling.Lab2ProtocolMarshaller;
 import marshalling.SerializableMessageMarshaller;
 import nameserver.INameserver;
 import nameserver.NameserverRMI;
@@ -52,7 +53,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 	private final UserService userService;
 	private final EventDistributor eventDistributor;
 	private final HandlerManager handlerManager;
-	private SerializableMessageMarshaller marshaller;
+	private Lab2ProtocolMarshaller marshaller;
 
 	private SocketConnectionListener socketListener;
 
@@ -82,7 +83,7 @@ public class Chatserver implements IChatserverCli, Runnable {
 		UserRepository userRepository = new ConfigUserRepository(userConfig);
 		userService = new UserService(userRepository);
 		
-		marshaller = new SerializableMessageMarshaller();
+		marshaller = new Lab2ProtocolMarshaller();
 	}
 
 	private boolean startListHandler() {

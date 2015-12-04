@@ -13,6 +13,10 @@ public class ListResponse extends Response {
         super(request);
     }
 
+    public ListResponse(long messageId) {
+        super(messageId);
+    }
+
     public Map<String, User.Presence> getUserList() {
         return userList;
     }

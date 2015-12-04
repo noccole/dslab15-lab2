@@ -10,6 +10,10 @@ public class ErrorResponse extends Response {
         super(request);
     }
 
+    public ErrorResponse(long messageId) {
+        super(messageId);
+    }
+
     public String getReason() {
         return reason;
     }

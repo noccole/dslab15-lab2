@@ -9,6 +9,14 @@ import states.StateResult;
 public class SendMessageRequest extends Request {
     private String message;
 
+    public SendMessageRequest() {
+        super();
+    }
+
+    public SendMessageRequest(long messageId) {
+        super(messageId);
+    }
+
     public String getMessage() {
         return message;
     }

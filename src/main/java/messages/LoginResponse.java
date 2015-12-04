@@ -17,6 +17,10 @@ public class LoginResponse extends Response {
         super(request);
     }
 
+    public LoginResponse(long messageId) {
+        super(messageId);
+    }
+
     public ResponseCode getResponse() {
         return response;
     }

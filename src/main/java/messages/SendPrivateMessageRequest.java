@@ -10,6 +10,14 @@ public class SendPrivateMessageRequest extends Request {
     private String sender;
     private String message;
 
+    public SendPrivateMessageRequest() {
+        super();
+    }
+
+    public SendPrivateMessageRequest(long messageId) {
+        super(messageId);
+    }
+
     public String getSender() {
         return sender;
     }

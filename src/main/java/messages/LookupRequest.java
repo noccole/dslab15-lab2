@@ -9,6 +9,14 @@ import states.StateResult;
 public class LookupRequest extends Request {
     private String username;
 
+    public LookupRequest() {
+        super();
+    }
+
+    public LookupRequest(long messageId) {
+        super(messageId);
+    }
+
     public String getUsername() {
         return username;
     }

@@ -48,4 +48,25 @@ public class SendPrivateMessageRequest extends Request {
     public String toString() {
         return "send private message";
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof SendPrivateMessageRequest)) return false;
+        if (!super.equals(o)) return false;
+
+        SendPrivateMessageRequest that = (SendPrivateMessageRequest) o;
+
+        if (sender != null ? !sender.equals(that.sender) : that.sender != null) return false;
+        return !(message != null ? !message.equals(that.message) : that.message != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (sender != null ? sender.hashCode() : 0);
+        result = 31 * result + (message != null ? message.hashCode() : 0);
+        return result;
+    }
 }

@@ -19,4 +19,20 @@ public abstract class Request implements Message {
     public long getMessageId() {
         return messageId;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Request)) return false;
+
+        Request request = (Request) o;
+
+        return messageId == request.messageId;
+
+    }
+
+    @Override
+    public int hashCode() {
+        return (int) (messageId ^ (messageId >>> 32));
+    }
 }

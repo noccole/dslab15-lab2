@@ -22,4 +22,20 @@ public abstract class Response implements Message {
     public StateResult applyTo(State state) throws StateException {
         return new StateResult(state);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Response)) return false;
+
+        Response response = (Response) o;
+
+        return messageId == response.messageId;
+
+    }
+
+    @Override
+    public int hashCode() {
+        return (int) (messageId ^ (messageId >>> 32));
+    }
 }

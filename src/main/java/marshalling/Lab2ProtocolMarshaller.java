@@ -50,34 +50,38 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
         }
     }
 
-    private final Map<MessageType, Method> dispatcher = new HashMap<>();
+    private final Map<String, Method> dispatcher = new HashMap<>();
 
     public Lab2ProtocolMarshaller() {
+        registerUnmarshallingMethod(MessageType.ERROR_RESPONSE, "unmarshallErrorResponse");
+        registerUnmarshallingMethod(MessageType.EXIT_EVENT, "unmarshallExitEvent");
+        registerUnmarshallingMethod(MessageType.MESSAGE_EVENT, "unmarshallMessageEvent");
+        registerUnmarshallingMethod(MessageType.USER_PRESENCE_CHANGED_EVENT, "unmarshallUserPresenceChangedEvent");
+        registerUnmarshallingMethod(MessageType.LIST_REQUEST, "unmarshallListRequest");
+        registerUnmarshallingMethod(MessageType.LIST_RESPONSE, "unmarshallListResponse");
+        registerUnmarshallingMethod(MessageType.LOGIN_REQUEST, "unmarshallLoginRequest");
+        registerUnmarshallingMethod(MessageType.LOGIN_RESPONSE, "unmarshallLoginResponse");
+        registerUnmarshallingMethod(MessageType.LOGOUT_REQUEST, "unmarshallLogoutRequest");
+        registerUnmarshallingMethod(MessageType.LOGOUT_RESPONSE, "unmarshallLogoutResponse");
+        registerUnmarshallingMethod(MessageType.LOOKUP_REQUEST, "unmarshallLookupRequest");
+        registerUnmarshallingMethod(MessageType.LOOKUP_RESPONSE, "unmarshallLookupResponse");
+        registerUnmarshallingMethod(MessageType.REGISTER_REQUEST, "unmarshallRegisterRequest");
+        registerUnmarshallingMethod(MessageType.REGISTER_RESPONSE, "unmarshallRegisterResponse");
+        registerUnmarshallingMethod(MessageType.SEND_MESSAGE_REQUEST, "unmarshallSendMessageRequest");
+        registerUnmarshallingMethod(MessageType.SEND_MESSAGE_RESPONSE, "unmarshallSendMessageResponse");
+        registerUnmarshallingMethod(MessageType.SEND_PRIVATE_MESSAGE_REQUEST, "unmarshallSendPrivateMessageRequest");
+        registerUnmarshallingMethod(MessageType.SEND_PRIVATE_MESSAGE_RESPONSE, "unmarshallSendPrivateMessageResponse");
+        registerUnmarshallingMethod(MessageType.UNKNOWN_REQUEST, "unmarshallUnknownRequest");
+        registerUnmarshallingMethod(MessageType.TAMPERED_REQUEST, "unmarshallTamperedRequest");
+        registerUnmarshallingMethod(MessageType.TAMPERED_RESPONSE, "unmarshallTamperedResponse");
+    }
+
+    private void registerUnmarshallingMethod(MessageType messageType, String methodName) {
         try {
-            dispatcher.put(MessageType.ERROR_RESPONSE, getClass().getMethod("unmarshallErrorResponse"));
-            dispatcher.put(MessageType.EXIT_EVENT, getClass().getMethod("unmarshallExitEvent"));
-            dispatcher.put(MessageType.MESSAGE_EVENT, getClass().getMethod("unmarshallMessageEvent"));
-            dispatcher.put(MessageType.USER_PRESENCE_CHANGED_EVENT, getClass().getMethod("unmarshallUserPresenceChangedEvent"));
-            dispatcher.put(MessageType.LIST_REQUEST, getClass().getMethod("unmarshallListRequest"));
-            dispatcher.put(MessageType.LIST_RESPONSE, getClass().getMethod("unmarshallListResponse"));
-            dispatcher.put(MessageType.LOGIN_REQUEST, getClass().getMethod("unmarshallLoginRequest"));
-            dispatcher.put(MessageType.LOGIN_RESPONSE, getClass().getMethod("unmarshallLoginResponse"));
-            dispatcher.put(MessageType.LOGOUT_REQUEST, getClass().getMethod("unmarshallLogoutRequest"));
-            dispatcher.put(MessageType.LOGOUT_RESPONSE, getClass().getMethod("unmarshallLogoutResponse"));
-            dispatcher.put(MessageType.LOOKUP_REQUEST, getClass().getMethod("unmarshallLookupRequest"));
-            dispatcher.put(MessageType.LOOKUP_RESPONSE, getClass().getMethod("unmarshallLookupResponse"));
-            dispatcher.put(MessageType.REGISTER_REQUEST, getClass().getMethod("unmarshallRegisterRequest"));
-            dispatcher.put(MessageType.REGISTER_RESPONSE, getClass().getMethod("unmarshallRegisterResponse"));
-            dispatcher.put(MessageType.SEND_MESSAGE_REQUEST, getClass().getMethod("unmarshallSendMessageRequest"));
-            dispatcher.put(MessageType.SEND_MESSAGE_RESPONSE, getClass().getMethod("unmarshallSendMessageResponse"));
-            dispatcher.put(MessageType.SEND_PRIVATE_MESSAGE_REQUEST, getClass().getMethod("unmarshallSendPrivateMessageRequest"));
-            dispatcher.put(MessageType.SEND_PRIVATE_MESSAGE_RESPONSE, getClass().getMethod("unmarshallSendPrivateMessageResponse"));
-            dispatcher.put(MessageType.UNKNOWN_REQUEST, getClass().getMethod("unmarshallUnknownRequest"));
-            dispatcher.put(MessageType.TAMPERED_REQUEST, getClass().getMethod("unmarshallTamperedRequest"));
-            dispatcher.put(MessageType.TAMPERED_RESPONSE, getClass().getMethod("unmarshallTamperedResponse"));
+            dispatcher.put(messageType.toString(), getClass().getMethod(methodName, byte[].class));
         } catch (NoSuchMethodException e) {
+            System.err.println("Could not register unmarshalling method '" + methodName + "'!");
             e.printStackTrace();
-            assert false;
         }
     }
 
@@ -109,7 +113,7 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
         final Method method = dispatcher.get(messageType);
         if (method != null) {
             try {
-                return Message.class.cast(method.invoke(data));
+                return Message.class.cast(method.invoke(this, data));
             } catch (IllegalAccessException | InvocationTargetException e) {
                 throw new MarshallingException("Could not unmarshall the message", e);
             }

@@ -19,8 +19,8 @@ public abstract class MarshallingTest {
     public void testLoginRequest() throws MarshallingException {
         // PREPARE
         final LoginRequest request = new LoginRequest();
-        request.setUsername("username");
-        request.setPassword("12345");
+        request.setUsername("bill@test.at");
+        request.setPassword("t # as asdf123");
 
         final byte[] data = marshaller.marshall(request);
 
@@ -35,8 +35,8 @@ public abstract class MarshallingTest {
     public void testLoginResponse() throws MarshallingException {
         // PREPARE
         final LoginRequest request = new LoginRequest();
-        request.setUsername("username");
-        request.setPassword("12345");
+        request.setUsername("bill@test.at");
+        request.setPassword("t # as asdf123");
 
         final LoginResponse response = new LoginResponse(request);
         response.setResponse(LoginResponse.ResponseCode.UserAlreadyLoggedIn);

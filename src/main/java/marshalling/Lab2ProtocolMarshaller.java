@@ -458,9 +458,10 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
     @Override
     public byte[] marshallSendPrivateMessageRequest(SendPrivateMessageRequest request) throws MarshallingException {
         try {
-            return Utf8.decodeString(String.format("%s %d %s",
+            return Utf8.decodeString(String.format("%s %d %s %s",
                     MessageType.SEND_PRIVATE_MESSAGE_REQUEST,
                     request.getMessageId(),
+                    request.getSender(),
                     request.getMessage()
             ));
         } catch (UnsupportedEncodingException e) {
@@ -470,7 +471,23 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 
     @Override
     public SendPrivateMessageRequest unmarshallSendPrivateMessageRequest(byte[] data) throws MarshallingException {
-        return null;
+        try {
+            final Pattern pattern = Pattern.compile("^(?<type>\\S+)\\s(?<id>\\d+)\\s(?<sender>\\S+)\\s(?<message>.+)$");
+            final Matcher matcher = pattern.matcher(Utf8.encodeByteArray(data));
+            if (!matcher.matches()) {
+                throw new MarshallingException("Could not deserialize message");
+            }
+
+            assert matcher.group("type").equals(MessageType.SEND_PRIVATE_MESSAGE_REQUEST.toString());
+            final long messageId = Long.parseLong(matcher.group("id"));
+
+            final SendPrivateMessageRequest request = new SendPrivateMessageRequest(messageId);
+            request.setSender(matcher.group("sender"));
+            request.setMessage(matcher.group("message"));
+            return request;
+        } catch (UnsupportedEncodingException e) {
+            throw new MarshallingException("Unsupported encoding", e);
+        }
     }
 
     @Override
@@ -487,7 +504,20 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 
     @Override
     public SendPrivateMessageResponse unmarshallSendPrivateMessageResponse(byte[] data) throws MarshallingException {
-        return null;
+        try {
+            final Pattern pattern = Pattern.compile("^(?<type>\\S+)\\s(?<id>\\d+)$");
+            final Matcher matcher = pattern.matcher(Utf8.encodeByteArray(data));
+            if (!matcher.matches()) {
+                throw new MarshallingException("Could not deserialize message");
+            }
+
+            assert matcher.group("type").equals(MessageType.SEND_PRIVATE_MESSAGE_RESPONSE.toString());
+            final long messageId = Long.parseLong(matcher.group("id"));
+
+            return new SendPrivateMessageResponse(messageId);
+        } catch (UnsupportedEncodingException e) {
+            throw new MarshallingException("Unsupported encoding", e);
+        }
     }
 
     @Override

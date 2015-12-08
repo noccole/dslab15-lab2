@@ -668,9 +668,9 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
             request.setClientChallenge(clientChallenge);
             
             return request;
-        } catch (UnsupportedEncodingException e) {
+        } catch (UnsupportedEncodingException e) { e.printStackTrace();
             throw new MarshallingException("Unsupported encoding", e);
-        } catch (IllegalStateException e) {
+        } catch (IllegalStateException e) { e.printStackTrace();
             throw new MarshallingException("Could not deserialize message", e);
         }
 	}

@@ -78,6 +78,10 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
         registerUnmarshallingMethod(MessageType.UNKNOWN_REQUEST, "unmarshallUnknownRequest");
         registerUnmarshallingMethod(MessageType.TAMPERED_REQUEST, "unmarshallTamperedRequest");
         registerUnmarshallingMethod(MessageType.TAMPERED_RESPONSE, "unmarshallTamperedResponse");
+        registerUnmarshallingMethod(MessageType.AUTHENTICATE_REQUEST, "unmarshallAuthenticateRequest");
+        registerUnmarshallingMethod(MessageType.AUTHENTICATE_RESPONSE, "unmarshallAuthenticateResponse");
+        registerUnmarshallingMethod(MessageType.AUTHCONFIRMATION_REQUEST, "unmarshallAuthConfirmationRequest");
+        registerUnmarshallingMethod(MessageType.AUTHCONFIRMATION_RESPONSE, "unmarshallAuthConfirmationResponse");
     }
 
     private void registerUnmarshallingMethod(MessageType messageType, String methodName) {
@@ -113,14 +117,8 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
         } catch (UnsupportedEncodingException e) {
             throw new MarshallingException("Unsupported encoding", e);
         }
-
-        Method method = null;
-        for(MessageType m : dispatcher.keySet()) {
-        	if(m.toString().equals(messageType.toString())) {
-        		method = dispatcher.get(m);
-        	}
-        }
-
+        
+        final Method method = dispatcher.get(messageType.toString());
         if (method != null) {
             try {
                 return Message.class.cast(method.invoke(this, data));
@@ -607,12 +605,14 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 	public AuthConfirmationResponse unmarshallAuthConfirmationResponse(
 			byte[] data) throws MarshallingException { System.out.println("unmarsh Conf Res");
 		try {
-            final Scanner scanner = new Scanner(Utf8.encodeByteArray(data));
-            scanner.findInLine("^(\\s+)\\w(\\d+)$");
-            final MatchResult result = scanner.match();
+			final Pattern pattern = Pattern.compile("^(?<type>\\S+)\\s(?<id>\\d+)$");
+            final Matcher matcher = pattern.matcher(Utf8.encodeByteArray(data));
+            if (!matcher.matches()) {
+                throw new MarshallingException("Could not deserialize message");
+            }
 
-            assert result.group(1).equals(MessageType.AUTHCONFIRMATION_RESPONSE);
-            final long messageId = Long.parseLong(result.group(2));
+            assert matcher.group("type").equals(MessageType.AUTHCONFIRMATION_RESPONSE);
+            final long messageId = Long.parseLong(matcher.group("id"));
 
             AuthConfirmationResponse response =  new AuthConfirmationResponse(messageId);
             
@@ -643,14 +643,16 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 	public AuthConfirmationRequest unmarshallAuthConfirmationRequest(byte[] data)
 			throws MarshallingException { System.out.println("unmarsh Conf Req");
 		try {
-            final Scanner scanner = new Scanner(Utf8.encodeByteArray(data));
-            scanner.findInLine("^(\\s+)\\w(\\d+)$");
-            final MatchResult result = scanner.match();
+			final Pattern pattern = Pattern.compile("^(?<type>\\S+)\\s(?<username>\\S+)\\s(?<serverchallenge>\\S+)\\s(?<id>\\d+)$");
+            final Matcher matcher = pattern.matcher(Utf8.encodeByteArray(data));
+            if (!matcher.matches()) {
+                throw new MarshallingException("Could not deserialize message");
+            }
 
-            assert result.group(1).equals(MessageType.AUTHCONFIRMATION_REQUEST);
-            final String username = new String(result.group(2).getBytes());
-            final byte[] serverChallenge = result.group(3).getBytes();
-            final long messageId = Long.parseLong(result.group(4));
+            assert matcher.group("type").equals(MessageType.AUTHCONFIRMATION_REQUEST);
+            final String username = new String(matcher.group("username").getBytes());
+            final byte[] serverChallenge = matcher.group("serverchallenge").getBytes();
+            final long messageId = Long.parseLong(matcher.group("id"));
 
             AuthConfirmationRequest request =  new AuthConfirmationRequest(messageId);
             request.setUsername(username);
@@ -686,16 +688,18 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 	public AuthenticateResponse unmarshallAuthenticateResponse(byte[] data)
 			throws MarshallingException { System.out.println("unmarsh Auth Res");
 		try {
-            final Scanner scanner = new Scanner(Utf8.encodeByteArray(data));
-            scanner.findInLine("^(\\s+)\\w(\\d+)$");
-            final MatchResult result = scanner.match();
+			final Pattern pattern = Pattern.compile("^(?<type>\\S+)\\s(?<serverchallenge>\\S+)\\s(?<clientchallenge>\\S+)\\s(?<key>\\S+)\\s(?<iv>\\S+)\\s(?<id>\\d+)$");
+            final Matcher matcher = pattern.matcher(Utf8.encodeByteArray(data));
+            if (!matcher.matches()) {
+                throw new MarshallingException("Could not deserialize message");
+            }
 
-            assert result.group(1).equals(MessageType.AUTHENTICATE_RESPONSE);
-            final byte[] serverChallenge = result.group(2).getBytes();
-            final byte[] clientChallenge = result.group(3).getBytes();
-            final byte[] key = result.group(4).getBytes();
-            final byte[] iv = result.group(5).getBytes();
-            final long messageId = Long.parseLong(result.group(6));
+            assert matcher.group("type").equals(MessageType.AUTHENTICATE_RESPONSE);
+            final byte[] serverChallenge = matcher.group("serverchallenge").getBytes();
+            final byte[] clientChallenge = matcher.group("clientchallenge").getBytes();
+            final byte[] key = matcher.group("key").getBytes();
+            final byte[] iv = matcher.group("iv").getBytes();
+            final long messageId = Long.parseLong(matcher.group("id"));
 
             AuthenticateResponse response =  new AuthenticateResponse(messageId);
             response.setServerChallenge(serverChallenge);
@@ -730,18 +734,23 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 	public AuthenticateRequest unmarshallAuthenticateRequest(byte[] data)
 			throws MarshallingException { System.out.println("unmarsh Auth Req");
 		try {
-            final Scanner scanner = new Scanner(Utf8.encodeByteArray(data));
-            scanner.findInLine("^(\\s+)\\w(\\d+)$");
-            final MatchResult result = scanner.match();
+			final Pattern pattern = Pattern.compile("^(?<type>\\S+)\\s(?<username>\\S+)\\s(?<clientchallenge>\\S+)\\s(?<id>\\d+)$");
+            final Matcher matcher = pattern.matcher(Utf8.encodeByteArray(data));
 
-            assert result.group(1).equals(MessageType.AUTHENTICATE_REQUEST);
-            final String username = new String(result.group(2).getBytes());
-            final byte[] clientChallenge = result.group(3).getBytes();
-            final long messageId = Long.parseLong(result.group(4));
+            if (!matcher.matches()) {
+                throw new MarshallingException("Could not deserialize message");
+            }
+
+            assert matcher.group("type").equals(MessageType.AUTHENTICATE_REQUEST);
+            final String username = new String(matcher.group("username"));
+            final byte[] clientChallenge = matcher.group("clientchallenge").getBytes();
+            final long messageId = Long.parseLong(matcher.group("id"));
 
             AuthenticateRequest request =  new AuthenticateRequest(messageId);
             request.setUsername(username);
             request.setClientChallenge(clientChallenge);
+            
+            System.out.println("username "+username);
             
             return request;
         } catch (UnsupportedEncodingException e) { e.printStackTrace();

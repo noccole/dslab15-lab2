@@ -10,8 +10,8 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
-import java.util.regex.MatchResult;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Lab2ProtocolMarshaller implements MessageMarshaller {
     private static final byte DELIMITER = (byte)32; // space
@@ -54,38 +54,38 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
         }
     }
 
-    private final Map<MessageType, Method> dispatcher = new HashMap<>();
+    private final Map<String, Method> dispatcher = new HashMap<>();
 
     public Lab2ProtocolMarshaller() {
+        registerUnmarshallingMethod(MessageType.ERROR_RESPONSE, "unmarshallErrorResponse");
+        registerUnmarshallingMethod(MessageType.EXIT_EVENT, "unmarshallExitEvent");
+        registerUnmarshallingMethod(MessageType.MESSAGE_EVENT, "unmarshallMessageEvent");
+        registerUnmarshallingMethod(MessageType.USER_PRESENCE_CHANGED_EVENT, "unmarshallUserPresenceChangedEvent");
+        registerUnmarshallingMethod(MessageType.LIST_REQUEST, "unmarshallListRequest");
+        registerUnmarshallingMethod(MessageType.LIST_RESPONSE, "unmarshallListResponse");
+        registerUnmarshallingMethod(MessageType.LOGIN_REQUEST, "unmarshallLoginRequest");
+        registerUnmarshallingMethod(MessageType.LOGIN_RESPONSE, "unmarshallLoginResponse");
+        registerUnmarshallingMethod(MessageType.LOGOUT_REQUEST, "unmarshallLogoutRequest");
+        registerUnmarshallingMethod(MessageType.LOGOUT_RESPONSE, "unmarshallLogoutResponse");
+        registerUnmarshallingMethod(MessageType.LOOKUP_REQUEST, "unmarshallLookupRequest");
+        registerUnmarshallingMethod(MessageType.LOOKUP_RESPONSE, "unmarshallLookupResponse");
+        registerUnmarshallingMethod(MessageType.REGISTER_REQUEST, "unmarshallRegisterRequest");
+        registerUnmarshallingMethod(MessageType.REGISTER_RESPONSE, "unmarshallRegisterResponse");
+        registerUnmarshallingMethod(MessageType.SEND_MESSAGE_REQUEST, "unmarshallSendMessageRequest");
+        registerUnmarshallingMethod(MessageType.SEND_MESSAGE_RESPONSE, "unmarshallSendMessageResponse");
+        registerUnmarshallingMethod(MessageType.SEND_PRIVATE_MESSAGE_REQUEST, "unmarshallSendPrivateMessageRequest");
+        registerUnmarshallingMethod(MessageType.SEND_PRIVATE_MESSAGE_RESPONSE, "unmarshallSendPrivateMessageResponse");
+        registerUnmarshallingMethod(MessageType.UNKNOWN_REQUEST, "unmarshallUnknownRequest");
+        registerUnmarshallingMethod(MessageType.TAMPERED_REQUEST, "unmarshallTamperedRequest");
+        registerUnmarshallingMethod(MessageType.TAMPERED_RESPONSE, "unmarshallTamperedResponse");
+    }
+
+    private void registerUnmarshallingMethod(MessageType messageType, String methodName) {
         try {
-        	dispatcher.put(MessageType.AUTHENTICATE_RESPONSE, getClass().getMethod("unmarshallAuthenticateResponse", byte[].class));
-        	dispatcher.put(MessageType.AUTHENTICATE_REQUEST, getClass().getMethod("unmarshallAuthenticateRequest", byte[].class));
-        	dispatcher.put(MessageType.AUTHCONFIRMATION_RESPONSE, getClass().getMethod("unmarshallAuthConfirmationResponse", byte[].class));
-        	dispatcher.put(MessageType.AUTHCONFIRMATION_REQUEST, getClass().getMethod("unmarshallAuthConfirmationRequest", byte[].class));
-            dispatcher.put(MessageType.ERROR_RESPONSE, getClass().getMethod("unmarshallErrorResponse", byte[].class));
-            dispatcher.put(MessageType.EXIT_EVENT, getClass().getMethod("unmarshallExitEvent", byte[].class));
-            dispatcher.put(MessageType.MESSAGE_EVENT, getClass().getMethod("unmarshallMessageEvent", byte[].class));
-            dispatcher.put(MessageType.USER_PRESENCE_CHANGED_EVENT, getClass().getMethod("unmarshallUserPresenceChangedEvent", byte[].class));
-            dispatcher.put(MessageType.LIST_REQUEST, getClass().getMethod("unmarshallListRequest", byte[].class));
-            dispatcher.put(MessageType.LIST_RESPONSE, getClass().getMethod("unmarshallListResponse", byte[].class));
-            dispatcher.put(MessageType.LOGIN_REQUEST, getClass().getMethod("unmarshallLoginRequest", byte[].class));
-            dispatcher.put(MessageType.LOGIN_RESPONSE, getClass().getMethod("unmarshallLoginResponse", byte[].class));
-            dispatcher.put(MessageType.LOGOUT_REQUEST, getClass().getMethod("unmarshallLogoutRequest", byte[].class));
-            dispatcher.put(MessageType.LOGOUT_RESPONSE, getClass().getMethod("unmarshallLogoutResponse", byte[].class));
-            dispatcher.put(MessageType.LOOKUP_REQUEST, getClass().getMethod("unmarshallLookupRequest", byte[].class));
-            dispatcher.put(MessageType.LOOKUP_RESPONSE, getClass().getMethod("unmarshallLookupResponse", byte[].class));
-            dispatcher.put(MessageType.REGISTER_REQUEST, getClass().getMethod("unmarshallRegisterRequest", byte[].class));
-            dispatcher.put(MessageType.REGISTER_RESPONSE, getClass().getMethod("unmarshallRegisterResponse", byte[].class));
-            dispatcher.put(MessageType.SEND_MESSAGE_REQUEST, getClass().getMethod("unmarshallSendMessageRequest", byte[].class));
-            dispatcher.put(MessageType.SEND_MESSAGE_RESPONSE, getClass().getMethod("unmarshallSendMessageResponse", byte[].class));
-            dispatcher.put(MessageType.SEND_PRIVATE_MESSAGE_REQUEST, getClass().getMethod("unmarshallSendPrivateMessageRequest", byte[].class));
-            dispatcher.put(MessageType.SEND_PRIVATE_MESSAGE_RESPONSE, getClass().getMethod("unmarshallSendPrivateMessageResponse", byte[].class));
-            dispatcher.put(MessageType.UNKNOWN_REQUEST, getClass().getMethod("unmarshallUnknownRequest", byte[].class));
-            dispatcher.put(MessageType.TAMPERED_REQUEST, getClass().getMethod("unmarshallTamperedRequest", byte[].class));
-            dispatcher.put(MessageType.TAMPERED_RESPONSE, getClass().getMethod("unmarshallTamperedResponse", byte[].class));
+            dispatcher.put(messageType.toString(), getClass().getMethod(methodName, byte[].class));
         } catch (NoSuchMethodException e) {
+            System.err.println("Could not register unmarshalling method '" + methodName + "'!");
             e.printStackTrace();
-            assert false;
         }
     }
 
@@ -123,8 +123,8 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 
         if (method != null) {
             try {
-                return Message.class.cast(method.invoke(getClass().newInstance(), new Object[]{data}));
-            } catch (IllegalAccessException | InvocationTargetException | IllegalArgumentException | InstantiationException e) {
+                return Message.class.cast(method.invoke(this, data));
+            } catch (IllegalAccessException | InvocationTargetException e) {
                 throw new MarshallingException("Could not unmarshall the message", e);
             }
         } else {
@@ -151,20 +151,20 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
     @Override
     public ErrorResponse unmarshallErrorResponse(byte[] data) throws MarshallingException {
         try {
-            final Scanner scanner = new Scanner(Utf8.encodeByteArray(data));
-            scanner.findInLine("^(\\s+)\\w(\\d+)\\w(\\s+)$");
-            final MatchResult result = scanner.match();
+            final Pattern pattern = Pattern.compile("^(?<type>\\S+)\\s(?<id>\\d+)\\s(?<reason>.+)$");
+            final Matcher matcher = pattern.matcher(Utf8.encodeByteArray(data));
+            if (!matcher.matches()) {
+                throw new MarshallingException("Could not deserialize message");
+            }
 
-            assert result.group(1).equals(MessageType.ERROR_RESPONSE);
-            final long messageId = Long.parseLong(result.group(2));
+            assert matcher.group("type").equals(MessageType.ERROR_RESPONSE.toString());
+            final long messageId = Long.parseLong(matcher.group("id"));
 
             final ErrorResponse response = new ErrorResponse(messageId);
-            response.setReason(result.group(3));
+            response.setReason(matcher.group("reason"));
             return response;
         } catch (UnsupportedEncodingException e) {
             throw new MarshallingException("Unsupported encoding", e);
-        } catch (IllegalStateException e) {
-            throw new MarshallingException("Could not deserialize message", e);
         }
     }
 
@@ -182,20 +182,7 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 
     @Override
     public ListRequest unmarshallListRequest(byte[] data) throws MarshallingException {
-        try {
-            final Scanner scanner = new Scanner(Utf8.encodeByteArray(data));
-            scanner.findInLine("^(\\s+)\\w(\\d+)$");
-            final MatchResult result = scanner.match();
-
-            assert result.group(1).equals(MessageType.LIST_REQUEST);
-            final long messageId = Long.parseLong(result.group(2));
-
-            return new ListRequest(messageId);
-        } catch (UnsupportedEncodingException e) {
-            throw new MarshallingException("Unsupported encoding", e);
-        } catch (IllegalStateException e) {
-            throw new MarshallingException("Could not deserialize message", e);
-        }
+        return null;
     }
 
     @Override
@@ -232,7 +219,23 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 
     @Override
     public LoginRequest unmarshallLoginRequest(byte[] data) throws MarshallingException {
-        return null;
+        try {
+            final Pattern pattern = Pattern.compile("^(?<type>\\S+)\\s(?<id>\\d+)\\s(?<username>\\S+)\\s(?<password>.+)$");
+            final Matcher matcher = pattern.matcher(Utf8.encodeByteArray(data));
+            if (!matcher.matches()) {
+                throw new MarshallingException("Could not deserialize message");
+            }
+
+            assert matcher.group("type").equals(MessageType.LOGIN_REQUEST.toString());
+            final long messageId = Long.parseLong(matcher.group("id"));
+
+            final LoginRequest request = new LoginRequest(messageId);
+            request.setUsername(matcher.group("username"));
+            request.setPassword(matcher.group("password"));
+            return request;
+        } catch (UnsupportedEncodingException e) {
+            throw new MarshallingException("Unsupported encoding", e);
+        }
     }
 
     @Override
@@ -250,7 +253,22 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 
     @Override
     public LoginResponse unmarshallLoginResponse(byte[] data) throws MarshallingException {
-        return null;
+        try {
+            final Pattern pattern = Pattern.compile("^(?<type>\\S+)\\s(?<id>\\d+)\\s(?<response>.+)$");
+            final Matcher matcher = pattern.matcher(Utf8.encodeByteArray(data));
+            if (!matcher.matches()) {
+                throw new MarshallingException("Could not deserialize message");
+            }
+
+            assert matcher.group("type").equals(MessageType.LOGIN_RESPONSE.toString());
+            final long messageId = Long.parseLong(matcher.group("id"));
+
+            final LoginResponse response = new LoginResponse(messageId);
+            response.setResponse(LoginResponse.ResponseCode.valueOf(matcher.group("response")));
+            return response;
+        } catch (UnsupportedEncodingException e) {
+            throw new MarshallingException("Unsupported encoding", e);
+        }
     }
 
     @Override
@@ -268,18 +286,18 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
     @Override
     public LogoutRequest unmarshallLogoutRequest(byte[] data) throws MarshallingException {
         try {
-            final Scanner scanner = new Scanner(Utf8.encodeByteArray(data));
-            scanner.findInLine("^(\\s+)\\w(\\d+)$");
-            final MatchResult result = scanner.match();
+            final Pattern pattern = Pattern.compile("^(?<type>\\S+)\\s(?<id>\\d+)");
+            final Matcher matcher = pattern.matcher(Utf8.encodeByteArray(data));
+            if (!matcher.matches()) {
+                throw new MarshallingException("Could not deserialize message");
+            }
 
-            assert result.group(1).equals(MessageType.LOGOUT_REQUEST);
-            final long messageId = Long.parseLong(result.group(2));
+            assert matcher.group("type").equals(MessageType.LOGOUT_REQUEST.toString());
+            final long messageId = Long.parseLong(matcher.group("id"));
 
             return new LogoutRequest(messageId);
         } catch (UnsupportedEncodingException e) {
             throw new MarshallingException("Unsupported encoding", e);
-        } catch (IllegalStateException e) {
-            throw new MarshallingException("Could not deserialize message", e);
         }
     }
 
@@ -298,18 +316,18 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
     @Override
     public LogoutResponse unmarshallLogoutResponse(byte[] data) throws MarshallingException {
         try {
-            final Scanner scanner = new Scanner(Utf8.encodeByteArray(data));
-            scanner.findInLine("^(\\s+)\\w(\\d+)$");
-            final MatchResult result = scanner.match();
+            final Pattern pattern = Pattern.compile("^(?<type>\\S+)\\s(?<id>\\d+)$");
+            final Matcher matcher = pattern.matcher(Utf8.encodeByteArray(data));
+            if (!matcher.matches()) {
+                throw new MarshallingException("Could not deserialize message");
+            }
 
-            assert result.group(1).equals(MessageType.LOGOUT_RESPONSE);
-            final long messageId = Long.parseLong(result.group(2));
+            assert matcher.group("type").equals(MessageType.LOGOUT_RESPONSE.toString());
+            final long messageId = Long.parseLong(matcher.group("id"));
 
             return new LogoutResponse(messageId);
         } catch (UnsupportedEncodingException e) {
             throw new MarshallingException("Unsupported encoding", e);
-        } catch (IllegalStateException e) {
-            throw new MarshallingException("Could not deserialize message", e);
         }
     }
 
@@ -399,7 +417,22 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 
     @Override
     public SendMessageRequest unmarshallSendMessageRequest(byte[] data) throws MarshallingException {
-        return null;
+        try {
+            final Pattern pattern = Pattern.compile("^(?<type>\\S+)\\s(?<id>\\d+)\\s(?<message>.+)$");
+            final Matcher matcher = pattern.matcher(Utf8.encodeByteArray(data));
+            if (!matcher.matches()) {
+                throw new MarshallingException("Could not deserialize message");
+            }
+
+            assert matcher.group("type").equals(MessageType.SEND_MESSAGE_REQUEST.toString());
+            final long messageId = Long.parseLong(matcher.group("id"));
+
+            final SendMessageRequest request = new SendMessageRequest(messageId);
+            request.setMessage(matcher.group("message"));
+            return request;
+        } catch (UnsupportedEncodingException e) {
+            throw new MarshallingException("Unsupported encoding", e);
+        }
     }
 
     @Override
@@ -416,15 +449,29 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 
     @Override
     public SendMessageResponse unmarshallSendMessageResponse(byte[] data) throws MarshallingException {
-        return null;
+        try {
+            final Pattern pattern = Pattern.compile("^(?<type>\\S+)\\s(?<id>\\d+)$");
+            final Matcher matcher = pattern.matcher(Utf8.encodeByteArray(data));
+            if (!matcher.matches()) {
+                throw new MarshallingException("Could not deserialize message");
+            }
+
+            assert matcher.group("type").equals(MessageType.SEND_MESSAGE_RESPONSE.toString());
+            final long messageId = Long.parseLong(matcher.group("id"));
+
+            return new SendMessageResponse(messageId);
+        } catch (UnsupportedEncodingException e) {
+            throw new MarshallingException("Unsupported encoding", e);
+        }
     }
 
     @Override
     public byte[] marshallSendPrivateMessageRequest(SendPrivateMessageRequest request) throws MarshallingException {
         try {
-            return Utf8.decodeString(String.format("%s %d %s",
+            return Utf8.decodeString(String.format("%s %d %s %s",
                     MessageType.SEND_PRIVATE_MESSAGE_REQUEST,
                     request.getMessageId(),
+                    request.getSender(),
                     request.getMessage()
             ));
         } catch (UnsupportedEncodingException e) {
@@ -434,7 +481,23 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 
     @Override
     public SendPrivateMessageRequest unmarshallSendPrivateMessageRequest(byte[] data) throws MarshallingException {
-        return null;
+        try {
+            final Pattern pattern = Pattern.compile("^(?<type>\\S+)\\s(?<id>\\d+)\\s(?<sender>\\S+)\\s(?<message>.+)$");
+            final Matcher matcher = pattern.matcher(Utf8.encodeByteArray(data));
+            if (!matcher.matches()) {
+                throw new MarshallingException("Could not deserialize message");
+            }
+
+            assert matcher.group("type").equals(MessageType.SEND_PRIVATE_MESSAGE_REQUEST.toString());
+            final long messageId = Long.parseLong(matcher.group("id"));
+
+            final SendPrivateMessageRequest request = new SendPrivateMessageRequest(messageId);
+            request.setSender(matcher.group("sender"));
+            request.setMessage(matcher.group("message"));
+            return request;
+        } catch (UnsupportedEncodingException e) {
+            throw new MarshallingException("Unsupported encoding", e);
+        }
     }
 
     @Override
@@ -451,7 +514,20 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 
     @Override
     public SendPrivateMessageResponse unmarshallSendPrivateMessageResponse(byte[] data) throws MarshallingException {
-        return null;
+        try {
+            final Pattern pattern = Pattern.compile("^(?<type>\\S+)\\s(?<id>\\d+)$");
+            final Matcher matcher = pattern.matcher(Utf8.encodeByteArray(data));
+            if (!matcher.matches()) {
+                throw new MarshallingException("Could not deserialize message");
+            }
+
+            assert matcher.group("type").equals(MessageType.SEND_PRIVATE_MESSAGE_RESPONSE.toString());
+            final long messageId = Long.parseLong(matcher.group("id"));
+
+            return new SendPrivateMessageResponse(messageId);
+        } catch (UnsupportedEncodingException e) {
+            throw new MarshallingException("Unsupported encoding", e);
+        }
     }
 
     @Override

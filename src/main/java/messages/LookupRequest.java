@@ -39,4 +39,23 @@ public class LookupRequest extends Request {
     public String toString() {
         return "lookup";
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof LookupRequest)) return false;
+        if (!super.equals(o)) return false;
+
+        LookupRequest that = (LookupRequest) o;
+
+        return !(username != null ? !username.equals(that.username) : that.username != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (username != null ? username.hashCode() : 0);
+        return result;
+    }
 }

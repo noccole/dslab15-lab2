@@ -48,4 +48,25 @@ public class LoginRequest extends Request {
     public String toString() {
         return "login";
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof LoginRequest)) return false;
+        if (!super.equals(o)) return false;
+
+        LoginRequest that = (LoginRequest) o;
+
+        if (username != null ? !username.equals(that.username) : that.username != null) return false;
+        return !(password != null ? !password.equals(that.password) : that.password != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (username != null ? username.hashCode() : 0);
+        result = 31 * result + (password != null ? password.hashCode() : 0);
+        return result;
+    }
 }

@@ -34,4 +34,23 @@ public class LookupResponse extends Response {
     public String toString() {
         return "lookup result";
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof LookupResponse)) return false;
+        if (!super.equals(o)) return false;
+
+        LookupResponse that = (LookupResponse) o;
+
+        return !(privateAddress != null ? !privateAddress.equals(that.privateAddress) : that.privateAddress != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (privateAddress != null ? privateAddress.hashCode() : 0);
+        return result;
+    }
 }

@@ -6,6 +6,8 @@ import states.State;
 import states.StateException;
 import states.StateResult;
 
+import java.util.Arrays;
+
 public class UnknownRequest extends Request {
     private byte[] requestData;
     private String reason;
@@ -43,5 +45,26 @@ public class UnknownRequest extends Request {
     @Override
     public String toString() {
         return "unknown request";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof UnknownRequest)) return false;
+        if (!super.equals(o)) return false;
+
+        UnknownRequest that = (UnknownRequest) o;
+
+        if (!Arrays.equals(requestData, that.requestData)) return false;
+        return !(reason != null ? !reason.equals(that.reason) : that.reason != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + Arrays.hashCode(requestData);
+        result = 31 * result + (reason != null ? reason.hashCode() : 0);
+        return result;
     }
 }

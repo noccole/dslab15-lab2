@@ -27,4 +27,23 @@ public class TamperedRequest extends Request {
     public byte[] marshall(MessageMarshaller marshaller) throws MarshallingException {
         return marshaller.marshallTamperedRequest(this);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof TamperedRequest)) return false;
+        if (!super.equals(o)) return false;
+
+        TamperedRequest that = (TamperedRequest) o;
+
+        return !(request != null ? !request.equals(that.request) : that.request != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (request != null ? request.hashCode() : 0);
+        return result;
+    }
 }

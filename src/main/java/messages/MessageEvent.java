@@ -40,4 +40,24 @@ public class MessageEvent extends Event {
     public String toString() {
         return "message event";
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof MessageEvent)) return false;
+        if (!super.equals(o)) return false;
+
+        MessageEvent that = (MessageEvent) o;
+
+        if (username != null ? !username.equals(that.username) : that.username != null) return false;
+        return !(message != null ? !message.equals(that.message) : that.message != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = username != null ? username.hashCode() : 0;
+        result = 31 * result + (message != null ? message.hashCode() : 0);
+        return result;
+    }
 }

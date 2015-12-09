@@ -37,7 +37,7 @@ public class AESCipher implements CipherMode {
     }
 
     @Override
-    public Packet encrypt(Packet packet) { System.out.println("Encrypting with AES");
+    public Packet encrypt(Packet packet) {
     	Packet<byte[]> resPacket = new NetworkPacket<byte[]>();
 		try {
 			// make sure to use the right ALGORITHM for what you want to do (see text)
@@ -58,7 +58,7 @@ public class AESCipher implements CipherMode {
     }
 
     @Override
-    public Packet decrypt(Packet packet) { System.out.println("Decrypting with AES");
+    public Packet decrypt(Packet packet) {
     	Packet<byte[]> resPacket = new NetworkPacket<byte[]>();
 
     	try {

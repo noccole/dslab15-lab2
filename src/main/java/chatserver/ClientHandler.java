@@ -173,14 +173,22 @@ class ClientHandler extends HandlerBase {
     	@Override
         public StateResult handleAuthConfirmationRequest(AuthConfirmationRequest request) throws StateException {
             LOGGER.info("ClientHandler::StateOffline::handleAuthenticateRequest with parameters: " + request);
-            
+
             State nextState = new StateOffline();
             final AuthConfirmationResponse response = new AuthConfirmationResponse(request);
+            byte[] serverChallenge = Base64.decode(request.getServerChallenge());
             
-            final User user = userService.find(request.getUsername());
+            User user = null;
+            for(User u : serverChallenges.keySet()) {
+            	if(Arrays.equals(serverChallenges.get(u), serverChallenge)) {
+            		user = u;
+            	}
+            }
+
+            //final User user = userService.find(request.getUsername());
             if (user != null) {
                 if (user.getPresence() == User.Presence.Offline) {
-            		byte[] serverChallenge = Base64.decode(request.getServerChallenge());
+            		
 
             		if(Arrays.equals(serverChallenges.get(user), serverChallenge)) {
             			nextState = new StateOnline(user);

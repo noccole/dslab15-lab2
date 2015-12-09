@@ -7,6 +7,7 @@ import util.Utf8;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,8 +20,8 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
     private enum MessageType {
     	AUTHENTICATE_REQUEST("!authenticate"),
     	AUTHENTICATE_RESPONSE("!ok"),
-    	AUTHCONFIRMATION_REQUEST(""),
-    	AUTHCONFIRMATION_RESPONSE(""),
+    	AUTHCONFIRMATION_REQUEST("!confirm"),
+    	AUTHCONFIRMATION_RESPONSE("!confirm_resp"),
         ERROR_RESPONSE("!error"),
         EXIT_EVENT("!exit_event"),
         MESSAGE_EVENT("!msg_event"),
@@ -94,12 +95,12 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
     }
 
     @Override
-    public byte[] marshall(Message message) throws MarshallingException { System.out.println("marsh");
+    public byte[] marshall(Message message) throws MarshallingException {
         return message.marshall(this);
     }
 
     @Override
-    public Message unmarshall(byte[] data) throws MarshallingException { System.out.println("unmarsh");
+    public Message unmarshall(byte[] data) throws MarshallingException {
         if (data.length == 0) {
             final UnknownRequest unknownRequest = new UnknownRequest();
             unknownRequest.setRequestData(data);
@@ -119,6 +120,7 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
         }
         
         final Method method = dispatcher.get(messageType.toString());
+        System.out.println("MESSAGETYPE "+messageType.toString() + ", method "+method);
         if (method != null) {
             try {
                 return Message.class.cast(method.invoke(this, data));
@@ -628,9 +630,8 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 	public byte[] marshallAuthConfirmationRequest(
 			AuthConfirmationRequest request) throws MarshallingException { System.out.println("marsh Conf Req");
 		try {
-            return Utf8.decodeString(String.format("%s %s %s %d",
+            return Utf8.decodeString(String.format("%s %s %d",
                     MessageType.AUTHCONFIRMATION_REQUEST,
-                    request.getUsername(),
                     new String(request.getServerChallenge()),
                     request.getMessageId()
             ));
@@ -643,19 +644,17 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
 	public AuthConfirmationRequest unmarshallAuthConfirmationRequest(byte[] data)
 			throws MarshallingException { System.out.println("unmarsh Conf Req");
 		try {
-			final Pattern pattern = Pattern.compile("^(?<type>\\S+)\\s(?<username>\\S+)\\s(?<serverchallenge>\\S+)\\s(?<id>\\d+)$");
+			final Pattern pattern = Pattern.compile("^(?<type>\\S+)\\s(?<serverchallenge>\\S+)\\s(?<id>\\d+)$");
             final Matcher matcher = pattern.matcher(Utf8.encodeByteArray(data));
             if (!matcher.matches()) {
                 throw new MarshallingException("Could not deserialize message");
             }
 
             assert matcher.group("type").equals(MessageType.AUTHCONFIRMATION_REQUEST);
-            final String username = new String(matcher.group("username").getBytes());
             final byte[] serverChallenge = matcher.group("serverchallenge").getBytes();
             final long messageId = Long.parseLong(matcher.group("id"));
 
             AuthConfirmationRequest request =  new AuthConfirmationRequest(messageId);
-            request.setUsername(username);
             request.setServerChallenge(serverChallenge);
             
             return request;
@@ -749,8 +748,6 @@ public class Lab2ProtocolMarshaller implements MessageMarshaller {
             AuthenticateRequest request =  new AuthenticateRequest(messageId);
             request.setUsername(username);
             request.setClientChallenge(clientChallenge);
-            
-            System.out.println("username "+username);
             
             return request;
         } catch (UnsupportedEncodingException e) { e.printStackTrace();

@@ -1,13 +1,28 @@
 package messages;
 
+import marshalling.MarshallingException;
+import marshalling.MessageMarshaller;
 import states.State;
 import states.StateException;
 import states.StateResult;
 
 public class LogoutRequest extends Request {
+    public LogoutRequest() {
+        super();
+    }
+
+    public LogoutRequest(long messageId) {
+        super(messageId);
+    }
+
     @Override
     public StateResult applyTo(State state) throws StateException {
         return state.handleLogoutRequest(this);
+    }
+
+    @Override
+    public byte[] marshall(MessageMarshaller marshaller) throws MarshallingException {
+        return marshaller.marshallLogoutRequest(this);
     }
 
     @Override
